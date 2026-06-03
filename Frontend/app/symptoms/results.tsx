@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { DiseaseCard } from '../../components/DiseaseCard';
 import { Button } from '../../components/ui/Button';
@@ -37,7 +37,7 @@ export default function ResultsScreen() {
     <View style={globalStyles.safeArea}>
       <TopBar />
       <View style={globalStyles.container}>
-        <View style={styles.header}>
+        <View style={globalStyles.titleContainer}>
           <Text style={globalStyles.pageTitle}>Prediction Results</Text>
           <Text style={globalStyles.pageDescription}>Based on your symptoms, here are the possible conditions:</Text>
         </View>
@@ -45,9 +45,9 @@ export default function ResultsScreen() {
       {loading ? (
         <LoadingSpinner />
       ) : error ? (
-        <Text style={styles.error}>{error}</Text>
+        <Text style={globalStyles.appointmentError}>{error}</Text>
       ) : predictions.length === 0 ? (
-        <View style={styles.empty}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 }}>
           <Text style={globalStyles.emptyText}>No diseases matched your symptoms. Please consult a General Practitioner.</Text>
         </View>
       ) : (
@@ -59,12 +59,12 @@ export default function ResultsScreen() {
               router.push({ pathname: '/(tabs)/doctors', params: { specialty: item.specialty } })
             } />
           )}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={globalStyles.listPadding}
         />
       )}
 
-      <View style={styles.footer}>
-        <Text style={styles.disclaimer}>
+      <View style={[globalStyles.footerBar, { gap: 16 }]}>
+        <Text style={globalStyles.disclaimerWarning}>
           ⚠️ These results are indicative only. Always consult a qualified healthcare professional.
         </Text>
         <Button title="Start Over" onPress={() => router.back()} variant="outline" />
@@ -73,18 +73,3 @@ export default function ResultsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  header: { paddingHorizontal: 24, paddingTop: 20 },
-  error: { fontSize: 14, color: colors.accent, padding: 24 },
-  empty: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
-  list: { padding: 24 },
-  footer: {
-    padding: 24,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.surface,
-    gap: 16,
-  },
-  disclaimer: { fontSize: 12, color: '#7A5F00', textAlign: 'center' },
-});

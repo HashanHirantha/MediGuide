@@ -44,7 +44,7 @@ export default function DoctorsScreen() {
 
 
   const renderTitle = () => (
-    <View style={styles.titleContainer}>
+    <View style={globalStyles.titleContainer}>
       <Text style={globalStyles.pageTitle}>Find Your Specialist</Text>
       <Text style={globalStyles.pageDescription}>
         Consult with our world-class medical professionals specializing in cardiac vitality and neurological flow.
@@ -82,40 +82,40 @@ export default function DoctorsScreen() {
     if (index === 0) {
       return (
         <TouchableOpacity 
-          style={styles.featuredCard} 
+          style={globalStyles.featuredCard} 
           onPress={() => router.push(`/doctors/${item.id}`)}
           activeOpacity={0.9}
         >
-          <View style={styles.featuredTop}>
+          <View style={globalStyles.featuredTop}>
             <Image 
               source={{ uri: item.profiles?.profile_image || 'https://i.pravatar.cc/150?img=11' }} 
-              style={styles.featuredImage} 
+              style={globalStyles.featuredImage} 
             />
-            <View style={styles.featuredInfo}>
-              <View style={styles.featuredNameRow}>
-                <Text style={styles.featuredName}>{item.profiles?.first_name} {item.profiles?.last_name}</Text>
-                <View style={styles.ratingBadge}>
+            <View style={globalStyles.featuredInfo}>
+              <View style={globalStyles.featuredNameRow}>
+                <Text style={globalStyles.featuredName}>{item.profiles?.first_name} {item.profiles?.last_name}</Text>
+                <View style={globalStyles.ratingBadge}>
                   <Ionicons name="star-outline" size={14} color={colors.black} />
-                  <Text style={styles.ratingText}>{item.average_rating?.toFixed(1) || '4.9'}</Text>
+                  <Text style={globalStyles.ratingText}>{item.average_rating?.toFixed(1) || '4.9'}</Text>
                 </View>
               </View>
-              <View style={styles.specialtyBadge}>
-                <Text style={styles.specialtyText}>{item.specialty?.toUpperCase() || 'CARDIOLOGIST'}</Text>
+              <View style={globalStyles.specialtyBadge}>
+                <Text style={globalStyles.specialtyText}>{item.specialty?.toUpperCase() || 'CARDIOLOGIST'}</Text>
               </View>
-              <Text style={styles.featuredBio} numberOfLines={2}>
+              <Text style={globalStyles.featuredBio} numberOfLines={2}>
                 {item.bio || `${item.profiles?.first_name} is an experienced specialist dedicated to providing exceptional patient care and advanced treatments.`}
               </Text>
             </View>
           </View>
           
-          <View style={styles.statsRow}>
-            <View style={styles.statBox}>
-              <Text style={styles.statLabel}>NEXT SLOT</Text>
-              <Text style={styles.statValue}>Today, 14:30</Text>
+          <View style={globalStyles.statsRow}>
+            <View style={globalStyles.statBox}>
+              <Text style={globalStyles.statLabel}>NEXT SLOT</Text>
+              <Text style={globalStyles.statValue}>Today, 14:30</Text>
             </View>
-            <View style={styles.statBox}>
-              <Text style={styles.statLabel}>EXPERIENCE</Text>
-              <Text style={styles.statValue}>{item.experience_years || 15} Years</Text>
+            <View style={globalStyles.statBox}>
+              <Text style={globalStyles.statLabel}>EXPERIENCE</Text>
+              <Text style={globalStyles.statValue}>{item.experience_years || 15} Years</Text>
             </View>
           </View>
 
@@ -128,24 +128,24 @@ export default function DoctorsScreen() {
 
     return (
       <TouchableOpacity 
-        style={styles.compactCard}
+        style={globalStyles.compactCard}
         onPress={() => router.push(`/doctors/${item.id}`)}
         activeOpacity={0.9}
       >
         <Image 
           source={{ uri: item.profiles?.profile_image || `https://i.pravatar.cc/150?img=${index + 20}` }} 
-          style={styles.compactImage} 
+          style={globalStyles.compactImage} 
         />
-        <View style={styles.compactInfo}>
-          <Text style={styles.compactName}>{item.profiles?.first_name} {item.profiles?.last_name}</Text>
-          <Text style={styles.compactSpecialty}>{item.specialty?.toUpperCase() || 'NEUROLOGIST'}</Text>
-          <View style={styles.compactRating}>
+        <View style={globalStyles.compactInfo}>
+          <Text style={globalStyles.compactName}>{item.profiles?.first_name} {item.profiles?.last_name}</Text>
+          <Text style={globalStyles.compactSpecialty}>{item.specialty?.toUpperCase() || 'NEUROLOGIST'}</Text>
+          <View style={globalStyles.compactRating}>
             <Ionicons name="star-outline" size={12} color={colors.black} />
-            <Text style={styles.compactRatingText}>{item.average_rating?.toFixed(1) || '4.8'}</Text>
+            <Text style={globalStyles.compactRatingText}>{item.average_rating?.toFixed(1) || '4.8'}</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.bookButtonSmall} onPress={() => router.push({ pathname: '/doctors/book', params: { doctorId: item.id } })}>
-          <Text style={styles.bookButtonSmallText}>Book</Text>
+        <TouchableOpacity style={globalStyles.bookButtonSmall} onPress={() => router.push({ pathname: '/doctors/book', params: { doctorId: item.id } })}>
+          <Text style={globalStyles.bookButtonSmallText}>Book</Text>
         </TouchableOpacity>
       </TouchableOpacity>
     );
@@ -165,7 +165,7 @@ export default function DoctorsScreen() {
         data={doctors.length > 0 ? doctors : MOCK_DOCTORS.filter(d => activeSpecialty === 'All Doctors' || d.specialty === activeSpecialty)}
         keyExtractor={(item) => item.id}
         renderItem={renderDoctor}
-        contentContainerStyle={styles.listContainer}
+        contentContainerStyle={globalStyles.listContainer}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           loading ? <LoadingSpinner /> : <Text style={globalStyles.emptyText}>No doctors found.</Text>
@@ -191,159 +191,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.black,
-  },
-  titleContainer: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.md,
-  },
-  listContainer: {
-    paddingBottom: spacing.xl,
-  },
-  
-  // Featured Card Styles
-  featuredCard: {
-    backgroundColor: colors.authCardBg,
-    borderRadius: 16,
-    padding: spacing.lg,
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.md,
-  },
-  featuredTop: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    marginBottom: spacing.md,
-  },
-  featuredImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
-  },
-  featuredInfo: {
-    flex: 1,
-  },
-  featuredNameRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  featuredName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.black,
-  },
-  ratingBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
-  },
-  ratingText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.black,
-  },
-  specialtyBadge: {
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  specialtyText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#4A5568',
-    letterSpacing: 0.5,
-  },
-  featuredBio: {
-    fontSize: 13,
-    color: '#4A5568',
-    lineHeight: 18,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginBottom: spacing.md,
-  },
-  statBox: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    padding: spacing.sm,
-    borderRadius: 8,
-  },
-  statLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#4A5568',
-    marginBottom: 4,
-    letterSpacing: 0.5,
-  },
-  statValue: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: colors.black,
-  },
-  
-  // Compact Card Styles
-  compactCard: {
-    backgroundColor: colors.authCardBg,
-    borderRadius: 16,
-    padding: spacing.md,
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  compactImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-  },
-  compactInfo: {
-    flex: 1,
-  },
-  compactName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.black,
-    marginBottom: 2,
-  },
-  compactSpecialty: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#4A5568',
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  compactRating: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  compactRatingText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.black,
-  },
-  bookButtonSmall: {
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.8)',
-  },
-  bookButtonSmallText: {
-    fontSize: 13,
-    fontWeight: '600',
     color: colors.black,
   },
 });

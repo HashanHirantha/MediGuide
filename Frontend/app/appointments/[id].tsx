@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -11,7 +11,7 @@ import { globalStyles } from '../../constants/globalStyles';
 import { colors } from '../../constants/theme';
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: '#FF9500',
+  pending: colors.starColorAlt,
   confirmed: colors.secondary,
   completed: colors.primary,
   cancelled: colors.accent,
@@ -110,7 +110,7 @@ export default function AppointmentDetailScreen() {
   };
 
   if (loading) return <LoadingSpinner />;
-  if (!appointment) return <Text style={styles.error}>Appointment not found.</Text>;
+  if (!appointment) return <Text style={globalStyles.appointmentError}>Appointment not found.</Text>;
 
   const doctorName = `Dr. ${appointment.doctors?.profiles?.first_name} ${appointment.doctors?.profiles?.last_name}`;
   const canCancel = ['pending', 'confirmed'].includes(appointment.status);
@@ -122,10 +122,10 @@ export default function AppointmentDetailScreen() {
         <Text style={globalStyles.pageTitle}>Appointment Details</Text>
 
         <View style={globalStyles.profileCard}>
-        <Text style={styles.doctorName}>{doctorName}</Text>
-        <Text style={styles.specialty}>{appointment.doctors?.specialty}</Text>
-        <Text style={styles.hospital}>{appointment.doctors?.hospital_name}</Text>
-        <View style={styles.statusRow}>
+        <Text style={globalStyles.appointmentDoctorName}>{doctorName}</Text>
+        <Text style={globalStyles.appointmentSpecialty}>{appointment.doctors?.specialty}</Text>
+        <Text style={globalStyles.appointmentHospital}>{appointment.doctors?.hospital_name}</Text>
+        <View style={globalStyles.appointmentStatusRow}>
           <Badge
             label={appointment.status.toUpperCase()}
             color={STATUS_COLORS[appointment.status]}
@@ -139,9 +139,9 @@ export default function AppointmentDetailScreen() {
           { label: 'Time', value: appointment.appointment_time },
           { label: 'Consultation Fee', value: `LKR ${appointment.doctors?.consultation_fee || '3500'}` },
         ].map((item, idx, arr) => (
-          <View key={item.label} style={[styles.row, idx < arr.length - 1 && styles.rowBorder]}>
-            <Text style={styles.rowLabel}>{item.label}</Text>
-            <Text style={styles.rowValue}>{item.value}</Text>
+          <View key={item.label} style={[globalStyles.appointmentRow, idx < arr.length - 1 && globalStyles.appointmentRowBorder]}>
+            <Text style={globalStyles.appointmentRowLabel}>{item.label}</Text>
+            <Text style={globalStyles.appointmentRowValue}>{item.value}</Text>
           </View>
         ))}
       </View>
@@ -149,7 +149,7 @@ export default function AppointmentDetailScreen() {
       {appointment.notes ? (
         <View style={globalStyles.cardPadded}>
           <Text style={globalStyles.sectionTitle}>Notes</Text>
-          <Text style={styles.notes}>{appointment.notes}</Text>
+          <Text style={globalStyles.appointmentNotes}>{appointment.notes}</Text>
         </View>
       ) : null}
 
@@ -160,7 +160,7 @@ export default function AppointmentDetailScreen() {
       {appointment.status === 'completed' && (
         <Button
           title="Leave a Review"
-          onPress={() => router.push({ pathname: `/doctors/${appointment.doctor_id}` })}
+          onPress={() => router.push({ pathname: '/doctors/[id]', params: { id: appointment.doctor_id } })}
           variant="outline"
         />
       )}
@@ -168,16 +168,3 @@ export default function AppointmentDetailScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  doctorName: { fontSize: 20, fontWeight: '700', color: colors.black, marginBottom: 4 },
-  specialty: { fontSize: 14, color: colors.primary, marginBottom: 2 },
-  hospital: { fontSize: 12, color: colors.textSecondary },
-  statusRow: { alignSelf: 'flex-start', marginTop: 10 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', padding: 8 },
-  rowBorder: { borderBottomWidth: 1, borderBottomColor: colors.border },
-  rowLabel: { fontSize: 12, color: colors.textSecondary },
-  rowValue: { fontSize: 14, color: colors.textPrimary, fontWeight: '500', maxWidth: '60%', textAlign: 'right' },
-  notes: { fontSize: 14, color: colors.textSecondary, marginTop: 4 },
-  error: { fontSize: 16, color: colors.accent, padding: 24, textAlign: 'center' },
-});

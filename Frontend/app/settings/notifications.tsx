@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Switch, ScrollView } from 'react-native';
+import { View, Text, SafeAreaView, Switch, ScrollView } from 'react-native';
 import { TopBar } from '../../components/TopBar';
-import { colors, typography, spacing } from '../../constants/theme';
+import { colors } from '../../constants/theme';
 import { globalStyles } from '../../constants/globalStyles';
 
 export default function NotificationsSettingsScreen() {
@@ -17,7 +17,7 @@ export default function NotificationsSettingsScreen() {
         <Text style={globalStyles.pageTitle}>Notifications</Text>
         <Text style={globalStyles.pageDescription}>Manage your alerts, sounds, and health reminders here.</Text>
 
-        <View style={styles.section}>
+        <View style={globalStyles.section}>
           <Text style={globalStyles.sectionTitle}>Push Notifications</Text>
           <View style={globalStyles.card}>
             <View style={globalStyles.rowSpaceBetween}>
@@ -28,7 +28,7 @@ export default function NotificationsSettingsScreen() {
               <Switch 
                 value={appointmentReminders} 
                 onValueChange={setAppointmentReminders}
-                trackColor={{ false: colors.border, true: '#2E4A62' }}
+                trackColor={{ false: colors.border, true: colors.iconDark }}
               />
             </View>
             <View style={globalStyles.divider} />
@@ -40,13 +40,13 @@ export default function NotificationsSettingsScreen() {
               <Switch 
                 value={healthTips} 
                 onValueChange={setHealthTips}
-                trackColor={{ false: colors.border, true: '#2E4A62' }}
+                trackColor={{ false: colors.border, true: colors.iconDark }}
               />
             </View>
           </View>
         </View>
 
-        <View style={styles.section}>
+        <View style={globalStyles.section}>
           <Text style={globalStyles.sectionTitle}>Other Alerts</Text>
           <View style={globalStyles.card}>
             <View style={globalStyles.rowSpaceBetween}>
@@ -57,7 +57,7 @@ export default function NotificationsSettingsScreen() {
               <Switch 
                 value={emailAlerts} 
                 onValueChange={setEmailAlerts}
-                trackColor={{ false: colors.border, true: '#2E4A62' }}
+                trackColor={{ false: colors.border, true: colors.iconDark }}
               />
             </View>
             <View style={globalStyles.divider} />
@@ -69,7 +69,7 @@ export default function NotificationsSettingsScreen() {
               <Switch 
                 value={smsAlerts} 
                 onValueChange={setSmsAlerts}
-                trackColor={{ false: colors.border, true: '#2E4A62' }}
+                trackColor={{ false: colors.border, true: colors.iconDark }}
               />
             </View>
           </View>
@@ -78,9 +78,3 @@ export default function NotificationsSettingsScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  section: {
-    marginBottom: spacing.xl,
-  },
-});

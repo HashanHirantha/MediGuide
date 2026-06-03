@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, SafeAreaView, Image, TextInput } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, SafeAreaView, Image, TextInput } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
@@ -7,6 +7,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
 import { TopBar } from '../../components/TopBar';
 import { globalStyles } from '../../constants/globalStyles';
+import { colors } from '../../constants/theme';
 
 const TIME_SLOTS = [
   { time: '09:00', label: '9:00 AM' },
@@ -16,27 +17,6 @@ const TIME_SLOTS = [
   { time: '15:00', label: '3:00 PM' },
   { time: '16:00', label: '4:00 PM' },
 ];
-
-const MOCK_DOCTORS_DETAIL: Record<string, any> = {
-  '1': {
-    id: '1',
-    profiles: { first_name: 'Sarah', last_name: 'Jenkins', profile_image: 'https://i.pravatar.cc/150?img=47' },
-    specialty: 'Cardiologist',
-    consultation_fee: 3500,
-  },
-  '2': {
-    id: '2',
-    profiles: { first_name: 'Michael', last_name: 'Chen', profile_image: 'https://i.pravatar.cc/150?img=11' },
-    specialty: 'Neurologist',
-    consultation_fee: 4000,
-  },
-  '3': {
-    id: '3',
-    profiles: { first_name: 'Emily', last_name: 'Davis', profile_image: 'https://i.pravatar.cc/150?img=32' },
-    specialty: 'General Medicine',
-    consultation_fee: 2500,
-  }
-};
 
 export default function BookScreen() {
   const { doctorId, diseaseId } = useLocalSearchParams<{ doctorId: string; diseaseId?: string }>();
@@ -55,8 +35,7 @@ export default function BookScreen() {
       .eq('id', doctorId)
       .single()
       .then(({ data }) => {
-        const mockDoc = MOCK_DOCTORS_DETAIL[doctorId] || MOCK_DOCTORS_DETAIL['1'];
-        setDoctor(data || mockDoc);
+        setDoctor(data);
         setFetchLoading(false);
       });
   }, [doctorId]);
@@ -84,8 +63,7 @@ export default function BookScreen() {
     }
     setLoading(true);
 
-    const mockDoc = MOCK_DOCTORS_DETAIL[doctorId] || MOCK_DOCTORS_DETAIL['1'];
-    const doc = doctor || mockDoc;
+    const doc = doctor;
     const newAppointment = {
       id: `local-${Date.now()}`,
       patient_id: user?.id || 'local-user',
@@ -143,8 +121,7 @@ export default function BookScreen() {
 
   if (fetchLoading) return <LoadingSpinner />;
 
-  const mockDoc = MOCK_DOCTORS_DETAIL[doctorId] || MOCK_DOCTORS_DETAIL['1'];
-  const doc = doctor || mockDoc;
+  const doc = doctor;
   const doctorName = `Dr. ${doc?.profiles?.first_name} ${doc?.profiles?.last_name}`;
   const dates = getDates();
 
@@ -167,36 +144,36 @@ export default function BookScreen() {
           />
           <View style={globalStyles.profileInfo}>
             <Text style={globalStyles.profileName}>{doctorName}</Text>
-            <View style={styles.specialtyBadge}>
-              <Text style={styles.specialtyText}>{doc?.specialty?.toUpperCase() || 'CARDIOLOGIST'}</Text>
+            <View style={[globalStyles.specialtyBadge, { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 }]}>
+              <Text style={[globalStyles.specialtyText, { fontSize: 9 }]}>{doc?.specialty?.toUpperCase() || 'CARDIOLOGIST'}</Text>
             </View>
           </View>
-          <View style={styles.feeBadge}>
-            <Text style={styles.feeLabel}>FEE</Text>
-            <Text style={styles.feeValue}>LKR {doc?.consultation_fee || 3500}</Text>
+          <View style={globalStyles.feeBadge}>
+            <Text style={globalStyles.feeBadgeLabel}>FEE</Text>
+            <Text style={globalStyles.feeBadgeValue}>LKR {doc?.consultation_fee || 3500}</Text>
           </View>
         </View>
 
         {/* Date Selection */}
         <View style={globalStyles.cardPadded}>
-          <View style={styles.sectionHeader}>
-            <Feather name="calendar" size={16} color="#2E4A62" />
+          <View style={globalStyles.sectionHeader}>
+            <Feather name="calendar" size={16} color={colors.iconDark} />
             <Text style={globalStyles.sectionTitle}>SELECT DATE</Text>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={styles.dateRow}>
+            <View style={globalStyles.dateChipRow}>
               {dates.map((d) => {
                 const isActive = selectedDate === d.full;
                 return (
                   <TouchableOpacity
                     key={d.full}
-                    style={[styles.dateChip, isActive && styles.dateChipActive]}
+                    style={[globalStyles.dateChip, isActive && globalStyles.dateChipActive]}
                     onPress={() => setSelectedDate(d.full)}
                     activeOpacity={0.8}
                   >
-                    <Text style={[styles.dateDay, isActive && styles.dateTextActive]}>{d.day}</Text>
-                    <Text style={[styles.dateNum, isActive && styles.dateTextActive]}>{d.date}</Text>
-                    <Text style={[styles.dateMonth, isActive && styles.dateTextActive]}>{d.month}</Text>
+                    <Text style={[globalStyles.dateDay, isActive && globalStyles.dateChipTextActive]}>{d.day}</Text>
+                    <Text style={[globalStyles.dateNum, isActive && globalStyles.dateChipTextActive]}>{d.date}</Text>
+                    <Text style={[globalStyles.dateMonth, isActive && globalStyles.dateChipTextActive]}>{d.month}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -206,21 +183,21 @@ export default function BookScreen() {
 
         {/* Time Selection */}
         <View style={globalStyles.cardPadded}>
-          <View style={styles.sectionHeader}>
-            <Feather name="clock" size={16} color="#2E4A62" />
+          <View style={globalStyles.sectionHeader}>
+            <Feather name="clock" size={16} color={colors.iconDark} />
             <Text style={globalStyles.sectionTitle}>SELECT TIME</Text>
           </View>
-          <View style={styles.timeGrid}>
+          <View style={globalStyles.timeGrid}>
             {TIME_SLOTS.map((slot) => {
               const isActive = selectedTime === slot.time;
               return (
                 <TouchableOpacity
                   key={slot.time}
-                  style={[styles.timeChip, isActive && styles.timeChipActive]}
+                  style={[globalStyles.timeChip, isActive && globalStyles.timeChipActive]}
                   onPress={() => setSelectedTime(slot.time)}
                   activeOpacity={0.8}
                 >
-                  <Text style={[styles.timeText, isActive && styles.timeTextActive]}>{slot.label}</Text>
+                  <Text style={[globalStyles.timeChipText, isActive && globalStyles.timeChipTextActive]}>{slot.label}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -229,14 +206,14 @@ export default function BookScreen() {
 
         {/* Notes */}
         <View style={globalStyles.cardPadded}>
-          <View style={styles.sectionHeader}>
-            <Feather name="edit-3" size={16} color="#2E4A62" />
+          <View style={globalStyles.sectionHeader}>
+            <Feather name="edit-3" size={16} color={colors.iconDark} />
             <Text style={globalStyles.sectionTitle}>ADDITIONAL NOTES</Text>
           </View>
           <TextInput
-            style={styles.notesInput}
+            style={[globalStyles.notesInput, { minHeight: 100, borderRadius: 12, padding: 16, fontSize: 14 }]}
             placeholder="Describe your symptoms or reason for visit..."
-            placeholderTextColor="#88B0C8"
+            placeholderTextColor={colors.iconLight}
             multiline
             numberOfLines={4}
             textAlignVertical="top"
@@ -247,21 +224,21 @@ export default function BookScreen() {
 
         {/* Summary */}
         {selectedDate && selectedTime && (
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryLabel}>BOOKING SUMMARY</Text>
-            <View style={styles.summaryRow}>
-              <Feather name="user" size={14} color="#2E4A62" />
-              <Text style={styles.summaryText}>{doctorName}</Text>
+          <View style={globalStyles.summaryCard}>
+            <Text style={globalStyles.summaryLabel}>BOOKING SUMMARY</Text>
+            <View style={globalStyles.summaryRow}>
+              <Feather name="user" size={14} color={colors.iconDark} />
+              <Text style={globalStyles.summaryText}>{doctorName}</Text>
             </View>
-            <View style={styles.summaryRow}>
-              <Feather name="calendar" size={14} color="#2E4A62" />
-              <Text style={styles.summaryText}>
+            <View style={globalStyles.summaryRow}>
+              <Feather name="calendar" size={14} color={colors.iconDark} />
+              <Text style={globalStyles.summaryText}>
                 {new Date(selectedDate).toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
               </Text>
             </View>
-            <View style={styles.summaryRow}>
-              <Feather name="clock" size={14} color="#2E4A62" />
-              <Text style={styles.summaryText}>
+            <View style={globalStyles.summaryRow}>
+              <Feather name="clock" size={14} color={colors.iconDark} />
+              <Text style={globalStyles.summaryText}>
                 {TIME_SLOTS.find(s => s.time === selectedTime)?.label}
               </Text>
             </View>
@@ -273,9 +250,9 @@ export default function BookScreen() {
       </ScrollView>
 
       {/* Fixed Confirm Button */}
-      <View style={styles.confirmBarContainer}>
+      <View style={globalStyles.bottomBarContainer}>
         <TouchableOpacity
-          style={[globalStyles.buttonPrimary, (!selectedDate || !selectedTime) && styles.confirmButtonDisabled]}
+          style={[globalStyles.buttonPrimary, (!selectedDate || !selectedTime) && globalStyles.disabled]}
           activeOpacity={0.8}
           onPress={handleBook}
           disabled={loading}
@@ -285,7 +262,7 @@ export default function BookScreen() {
           ) : (
             <>
               <Text style={globalStyles.buttonPrimaryText}>Confirm Booking</Text>
-              <Feather name="check-circle" size={20} color="#FFFFFF" />
+              <Feather name="check-circle" size={20} color={colors.surface} />
             </>
           )}
         </TouchableOpacity>
@@ -293,160 +270,3 @@ export default function BookScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  specialtyBadge: {
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-  },
-  specialtyText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#4A5568',
-    letterSpacing: 0.5,
-  },
-  feeBadge: {
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    borderRadius: 12,
-    padding: 10,
-    alignItems: 'center',
-  },
-  feeLabel: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#4A5568',
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  feeValue: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1A1A1A',
-  },
-
-  // Section Header
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 16,
-  },
-
-  // Date Chips
-  dateRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  dateChip: {
-    width: 64,
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.5)',
-  },
-  dateChipActive: {
-    backgroundColor: '#111827',
-  },
-  dateDay: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#4A5568',
-    marginBottom: 4,
-  },
-  dateNum: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    marginBottom: 2,
-  },
-  dateMonth: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#4A5568',
-  },
-  dateTextActive: {
-    color: '#FFFFFF',
-  },
-
-  // Time Grid
-  timeGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  timeChip: {
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.5)',
-  },
-  timeChipActive: {
-    backgroundColor: '#111827',
-  },
-  timeText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1A1A1A',
-  },
-  timeTextActive: {
-    color: '#FFFFFF',
-  },
-
-  // Notes Input
-  notesInput: {
-    backgroundColor: 'rgba(255,255,255,0.5)',
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 14,
-    color: '#1A1A1A',
-    minHeight: 100,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
-  },
-
-  // Summary
-  summaryCard: {
-    backgroundColor: '#E8F5E9',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
-  },
-  summaryLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#2E7D32',
-    letterSpacing: 1,
-    marginBottom: 14,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 10,
-  },
-  summaryText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#1A1A1A',
-  },
-
-  // Confirm Bar
-  confirmBarContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 24,
-    paddingBottom: 30,
-    paddingTop: 12,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.05)',
-  },
-  confirmButtonDisabled: {
-    opacity: 0.5,
-  },
-});

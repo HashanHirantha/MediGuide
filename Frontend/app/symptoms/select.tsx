@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Input } from '../../components/ui/Input';
 import { SymptomCard } from '../../components/SymptomCard';
@@ -39,7 +39,7 @@ export default function SymptomSelectScreen() {
     <View style={globalStyles.safeArea}>
       <TopBar />
       <View style={globalStyles.container}>
-        <View style={styles.header}>
+        <View style={globalStyles.headerPadding}>
           <Text style={globalStyles.pageTitle}>Select Symptoms</Text>
           <Input
             value={search}
@@ -74,11 +74,11 @@ export default function SymptomSelectScreen() {
           renderItem={({ item }) => (
             <SymptomCard symptom={item} selected={selected.includes(item.id)} onPress={() => toggle(item.id)} />
           )}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={globalStyles.listPadding}
         />
       )}
 
-      <View style={styles.footer}>
+      <View style={globalStyles.footerBar}>
         <Button
           title={`Predict Disease (${selected.length} symptoms)`}
           onPress={handleNext}
@@ -89,9 +89,3 @@ export default function SymptomSelectScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  header: { paddingHorizontal: 24, paddingTop: 20, gap: 16, paddingBottom: 10 },
-  list: { padding: 24 },
-  footer: { padding: 24, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.surface },
-});

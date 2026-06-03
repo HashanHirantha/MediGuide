@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { View, Text, FlatList } from 'react-native';
 import { AppointmentCard } from '../../components/AppointmentCard';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { supabase } from '../../lib/supabase';
@@ -7,7 +7,6 @@ import { useAuth } from '../../hooks/useAuth';
 import { useRealtime } from '../../hooks/useRealtime';
 import { TopBar } from '../../components/TopBar';
 import { globalStyles } from '../../constants/globalStyles';
-import { colors } from '../../constants/theme';
 
 export default function AppointmentsScreen() {
   const { user } = useAuth();
@@ -36,7 +35,7 @@ export default function AppointmentsScreen() {
     <View style={globalStyles.safeArea}>
       <TopBar />
       <View style={globalStyles.container}>
-        <View style={styles.header}>
+        <View style={globalStyles.titleContainer}>
           <Text style={globalStyles.pageTitle}>My Appointments</Text>
         </View>
 
@@ -49,7 +48,7 @@ export default function AppointmentsScreen() {
           renderItem={({ item }) => (
             <AppointmentCard appointment={item} onRefresh={fetchAppointments} />
           )}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={globalStyles.listPadding}
           ListEmptyComponent={
             <Text style={globalStyles.emptyText}>You have no appointments yet.</Text>
           }
@@ -59,8 +58,3 @@ export default function AppointmentsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  header: { paddingHorizontal: 24, paddingTop: 20 },
-  list: { padding: 24 },
-});

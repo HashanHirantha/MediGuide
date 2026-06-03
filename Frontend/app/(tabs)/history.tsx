@@ -12,7 +12,7 @@ import { Badge } from '../../components/ui/Badge';
 import { TopBar } from '../../components/TopBar';
 import { globalStyles } from '../../constants/globalStyles';
 const STATUS_COLORS: Record<string, string> = {
-  pending: '#FF9500',
+  pending: colors.starColorAlt,
   confirmed: colors.secondary,
   completed: colors.primary,
   cancelled: colors.accent,
@@ -143,7 +143,7 @@ export default function HistoryScreen() {
 
 
   const renderTitle = () => (
-    <View style={styles.titleContainer}>
+    <View style={globalStyles.titleContainer}>
       <Text style={globalStyles.pageTitle}>My History</Text>
       <Text style={globalStyles.pageDescription}>
         View your past appointments and diagnosis history here.
@@ -180,31 +180,31 @@ export default function HistoryScreen() {
     
     return (
       <TouchableOpacity 
-        style={styles.compactCard}
+        style={globalStyles.compactCard}
         onPress={() => router.push(`/appointments/${item.id}`)}
         activeOpacity={0.9}
       >
         <Image 
           source={{ uri: doctor?.profiles?.profile_image || 'https://i.pravatar.cc/150?img=11' }} 
-          style={styles.compactImage} 
+          style={globalStyles.compactImage} 
         />
-        <View style={styles.compactInfo}>
-          <Text style={styles.compactName}>{name}</Text>
-          <Text style={styles.compactSpecialty}>{doctor?.specialty?.toUpperCase() || 'GENERAL'}</Text>
-          <View style={styles.dateRow}>
+        <View style={globalStyles.compactInfo}>
+          <Text style={globalStyles.compactName}>{name}</Text>
+          <Text style={globalStyles.compactSpecialty}>{doctor?.specialty?.toUpperCase() || 'GENERAL'}</Text>
+          <View style={globalStyles.dateRow}>
             <Ionicons name="calendar-outline" size={12} color={colors.black} />
-            <Text style={styles.dateText}>
+            <Text style={globalStyles.dateText}>
               {new Date(item.appointment_date).toLocaleDateString('en', {
                 month: 'short', day: 'numeric',
               })} at {item.appointment_time}
             </Text>
           </View>
         </View>
-        <View style={styles.rightActions}>
+        <View style={globalStyles.rightActions}>
           <Badge label={item.status} color={STATUS_COLORS[item.status]} />
           {['pending', 'confirmed'].includes(item.status) && (
-            <TouchableOpacity style={styles.cancelBtn} onPress={() => handleCancel(item.id)}>
-              <Text style={styles.cancelBtnText}>Cancel</Text>
+            <TouchableOpacity style={globalStyles.cancelBtn} onPress={() => handleCancel(item.id)}>
+              <Text style={globalStyles.cancelBtnText}>Cancel</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -214,22 +214,22 @@ export default function HistoryScreen() {
 
   const renderDiagnosisCard = ({ item }: { item: any }) => {
     return (
-      <View style={styles.compactCard}>
-        <View style={styles.diagIconContainer}>
+      <View style={globalStyles.compactCard}>
+        <View style={globalStyles.diagIconContainer}>
           <Ionicons name="medical" size={28} color={colors.black} />
         </View>
-        <View style={styles.compactInfo}>
-          <Text style={styles.compactName}>{item.diseases?.name ?? 'Unknown'}</Text>
-          <Text style={styles.compactSpecialty}>{(item.diseases?.severity ?? 'Unknown')?.toUpperCase()}</Text>
-          <View style={styles.dateRow}>
+        <View style={globalStyles.compactInfo}>
+          <Text style={globalStyles.compactName}>{item.diseases?.name ?? 'Unknown'}</Text>
+          <Text style={globalStyles.compactSpecialty}>{(item.diseases?.severity ?? 'Unknown')?.toUpperCase()}</Text>
+          <View style={globalStyles.dateRow}>
             <Ionicons name="analytics-outline" size={12} color={colors.black} />
-            <Text style={styles.dateText}>
+            <Text style={globalStyles.dateText}>
               {item.confidence_score}% Confidence
             </Text>
           </View>
         </View>
-        <View style={styles.rightActions}>
-          <Text style={styles.dateTextRight}>
+        <View style={globalStyles.rightActions}>
+          <Text style={globalStyles.dateTextSecondary}>
             {new Date(item.created_at).toLocaleDateString('en', {
               month: 'short', day: 'numeric', year: 'numeric'
             })}
@@ -253,7 +253,7 @@ export default function HistoryScreen() {
         data={activeTab === 'appointments' ? (appointments.length > 0 ? appointments : MOCK_APPOINTMENTS) : (diagnosisHistory.length > 0 ? diagnosisHistory : MOCK_DIAGNOSES)}
         keyExtractor={(item) => item.id.toString()}
         renderItem={activeTab === 'appointments' ? renderAppointmentCard : renderDiagnosisCard}
-        contentContainerStyle={styles.listContainer}
+        contentContainerStyle={globalStyles.listContainer}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           loading ? <LoadingSpinner /> : (
@@ -284,86 +284,5 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: colors.black,
-  },
-  titleContainer: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.md,
-  },
-  listContainer: {
-    paddingBottom: spacing.xl,
-  },
-  
-  // Compact Card Styles
-  compactCard: {
-    backgroundColor: colors.authCardBg,
-    borderRadius: 16,
-    padding: spacing.md,
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  compactImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-  },
-  diagIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  compactInfo: {
-    flex: 1,
-  },
-  compactName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.black,
-    marginBottom: 2,
-  },
-  compactSpecialty: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#4A5568',
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  dateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  dateText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.black,
-  },
-  dateTextRight: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.textSecondary,
-  },
-  rightActions: {
-    alignItems: 'flex-end',
-    gap: 8,
-  },
-  cancelBtn: {
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.8)',
-  },
-  cancelBtnText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.accent,
   },
 });

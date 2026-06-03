@@ -6,6 +6,7 @@ import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { supabase } from '../../lib/supabase';
 import { TopBar } from '../../components/TopBar';
 import { globalStyles } from '../../constants/globalStyles';
+import { colors } from '../../constants/theme';
 
 const MOCK_DOCTORS_DETAIL: Record<string, any> = {
   '1': {
@@ -105,44 +106,44 @@ export default function DoctorDetailScreen() {
         <View style={globalStyles.profileCard}>
           <Image
             source={{ uri: doc.profiles?.profile_image || 'https://i.pravatar.cc/150?img=11' }}
-            style={styles.doctorImage}
+            style={globalStyles.doctorImage}
           />
           <View style={globalStyles.profileInfo}>
             <Text style={globalStyles.profileName}>{name}</Text>
-            <View style={styles.specialtyBadge}>
-              <Text style={styles.specialtyText}>{doc.specialty?.toUpperCase() || 'CARDIOLOGIST'}</Text>
+            <View style={globalStyles.specialtyBadge}>
+              <Text style={globalStyles.specialtyText}>{doc.specialty?.toUpperCase() || 'CARDIOLOGIST'}</Text>
             </View>
-            <View style={styles.ratingRow}>
-              <Ionicons name="star" size={14} color="#F5A623" />
-              <Text style={styles.ratingText}>{doc.average_rating?.toFixed(1) || '4.9'}</Text>
-              <Text style={styles.reviewCount}>({doc.total_reviews || 127} reviews)</Text>
+            <View style={globalStyles.ratingRow}>
+              <Ionicons name="star" size={14} color={colors.starColor} />
+              <Text style={globalStyles.ratingTextLarge}>{doc.average_rating?.toFixed(1) || '4.9'}</Text>
+              <Text style={globalStyles.reviewCount}>({doc.total_reviews || 127} reviews)</Text>
             </View>
           </View>
         </View>
 
         {/* Stats Row */}
-        <View style={styles.statsRow}>
-          <View style={styles.statBox}>
-            <MaterialCommunityIcons name="clock-outline" size={20} color="#2E4A62" />
-            <Text style={styles.statValue}>{doc.experience_years || 15}+</Text>
-            <Text style={styles.statLabel}>Years Exp.</Text>
+        <View style={[globalStyles.statsRow, { gap: 12, marginBottom: 20 }]}>
+          <View style={globalStyles.statBoxCentered}>
+            <MaterialCommunityIcons name="clock-outline" size={20} color={colors.iconDark} />
+            <Text style={[globalStyles.statValue, { fontSize: 20, fontWeight: '700' }]}>{doc.experience_years || 15}+</Text>
+            <Text style={[globalStyles.statLabel, { fontWeight: '600' }]}>Years Exp.</Text>
           </View>
-          <View style={styles.statBox}>
-            <MaterialCommunityIcons name="account-group-outline" size={20} color="#2E4A62" />
-            <Text style={styles.statValue}>{doc.total_reviews || 127}</Text>
-            <Text style={styles.statLabel}>Patients</Text>
+          <View style={globalStyles.statBoxCentered}>
+            <MaterialCommunityIcons name="account-group-outline" size={20} color={colors.iconDark} />
+            <Text style={[globalStyles.statValue, { fontSize: 20, fontWeight: '700' }]}>{doc.total_reviews || 127}</Text>
+            <Text style={[globalStyles.statLabel, { fontWeight: '600' }]}>Patients</Text>
           </View>
-          <View style={styles.statBox}>
-            <MaterialCommunityIcons name="star-outline" size={20} color="#2E4A62" />
-            <Text style={styles.statValue}>{doc.average_rating?.toFixed(1) || '4.9'}</Text>
-            <Text style={styles.statLabel}>Rating</Text>
+          <View style={globalStyles.statBoxCentered}>
+            <MaterialCommunityIcons name="star-outline" size={20} color={colors.iconDark} />
+            <Text style={[globalStyles.statValue, { fontSize: 20, fontWeight: '700' }]}>{doc.average_rating?.toFixed(1) || '4.9'}</Text>
+            <Text style={[globalStyles.statLabel, { fontWeight: '600' }]}>Rating</Text>
           </View>
         </View>
 
         {/* About Section */}
         <View style={globalStyles.cardPadded}>
           <Text style={globalStyles.sectionTitle}>ABOUT</Text>
-          <Text style={styles.aboutText}>
+          <Text style={globalStyles.aboutText}>
             {doc.bio || `${name} is a highly experienced ${doc.specialty} dedicated to providing exceptional patient care.`}
           </Text>
         </View>
@@ -158,39 +159,39 @@ export default function DoctorDetailScreen() {
             { icon: 'clock', label: 'Working Hours', value: doc.available_from && doc.available_to ? `${doc.available_from} – ${doc.available_to}` : '09:00 – 17:00' },
           ].map((item, idx, arr) => (
             <View key={item.label}>
-              <View style={styles.detailRow}>
-                <View style={styles.detailIconContainer}>
-                  <Feather name={item.icon as any} size={16} color="#2E4A62" />
+              <View style={globalStyles.detailRow}>
+                <View style={globalStyles.detailIconContainer}>
+                  <Feather name={item.icon as any} size={16} color={colors.iconDark} />
                 </View>
-                <View style={styles.detailTextContainer}>
-                  <Text style={styles.detailLabel}>{item.label}</Text>
-                  <Text style={styles.detailValue}>{item.value}</Text>
+                <View style={globalStyles.detailTextContainer}>
+                  <Text style={globalStyles.detailLabel}>{item.label}</Text>
+                  <Text style={globalStyles.detailValue}>{item.value}</Text>
                 </View>
               </View>
-              {idx < arr.length - 1 && <View style={styles.divider} />}
+              {idx < arr.length - 1 && <View style={globalStyles.dividerIndented} />}
             </View>
           ))}
         </View>
 
         {/* Reviews Section */}
         <View style={globalStyles.cardPadded}>
-          <View style={styles.reviewsHeader}>
+          <View style={globalStyles.reviewsHeader}>
             <Text style={globalStyles.sectionTitle}>REVIEWS</Text>
-            <Text style={styles.seeAll}>See All</Text>
+            <Text style={globalStyles.seeAll}>See All</Text>
           </View>
           {reviews.map((r) => (
-            <View key={r.id} style={styles.reviewItem}>
-              <View style={styles.reviewTop}>
-                <Text style={styles.reviewAuthor}>
+            <View key={r.id} style={globalStyles.reviewItem}>
+              <View style={globalStyles.reviewTop}>
+                <Text style={globalStyles.reviewAuthor}>
                   {r.is_anonymous ? 'Anonymous' : `${r.profiles?.first_name} ${r.profiles?.last_name}`}
                 </Text>
-                <View style={styles.reviewRating}>
+                <View style={globalStyles.reviewRating}>
                   {Array.from({ length: r.rating }, (_, i) => (
-                    <Ionicons key={i} name="star" size={12} color="#F5A623" />
+                    <Ionicons key={i} name="star" size={12} color={colors.starColor} />
                   ))}
                 </View>
               </View>
-              {r.comment && <Text style={styles.reviewComment}>{r.comment}</Text>}
+              {r.comment && <Text style={globalStyles.reviewComment}>{r.comment}</Text>}
             </View>
           ))}
         </View>
@@ -200,11 +201,11 @@ export default function DoctorDetailScreen() {
       </ScrollView>
 
       {/* Fixed Book Now Button */}
-      <View style={styles.bookBarContainer}>
-        <View style={styles.bookBar}>
+      <View style={globalStyles.bottomBarContainer}>
+        <View style={globalStyles.bottomBar}>
           <View>
-            <Text style={styles.feeLabel}>CONSULTATION FEE</Text>
-            <Text style={styles.feeValue}>LKR {doc.consultation_fee || 3500}</Text>
+            <Text style={globalStyles.feeLabel}>CONSULTATION FEE</Text>
+            <Text style={globalStyles.feeValue}>LKR {doc.consultation_fee || 3500}</Text>
           </View>
           <TouchableOpacity
             style={globalStyles.buttonPrimary}
@@ -218,179 +219,3 @@ export default function DoctorDetailScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  doctorImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginRight: 16,
-    borderWidth: 3,
-    borderColor: 'rgba(255,255,255,0.6)',
-  },
-  specialtyBadge: {
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  specialtyText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#4A5568',
-    letterSpacing: 0.5,
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  ratingText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1A1A1A',
-  },
-  reviewCount: {
-    fontSize: 12,
-    color: '#4A5568',
-  },
-
-  // Stats
-  statsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 20,
-  },
-  statBox: {
-    flex: 1,
-    backgroundColor: '#C8E8FE',
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    gap: 6,
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1A1A1A',
-  },
-  statLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#4A5568',
-    letterSpacing: 0.5,
-  },
-
-  // About Text
-  aboutText: {
-    fontSize: 14,
-    color: '#4A5568',
-    lineHeight: 22,
-  },
-
-  // Detail Rows
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  detailIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 14,
-  },
-  detailTextContainer: {
-    flex: 1,
-  },
-  detailLabel: {
-    fontSize: 12,
-    color: '#4A5568',
-    marginBottom: 2,
-  },
-  detailValue: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#1A1A1A',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    marginLeft: 50,
-  },
-
-  // Reviews
-  reviewsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  seeAll: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#2E4A62',
-    marginBottom: 12,
-  },
-  reviewItem: {
-    backgroundColor: 'rgba(255,255,255,0.5)',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 10,
-  },
-  reviewTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  reviewAuthor: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1A1A1A',
-  },
-  reviewRating: {
-    flexDirection: 'row',
-    gap: 2,
-  },
-  reviewComment: {
-    fontSize: 13,
-    color: '#4A5568',
-    lineHeight: 20,
-  },
-
-  // Book Bar
-  bookBarContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 24,
-    paddingBottom: 30,
-    paddingTop: 12,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.05)',
-  },
-  bookBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  feeLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#4A5568',
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  feeValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1A1A1A',
-  },
-});

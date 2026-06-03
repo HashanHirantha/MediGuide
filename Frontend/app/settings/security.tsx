@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Switch, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, SafeAreaView, Switch, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { TopBar } from '../../components/TopBar';
-import { colors, typography, spacing } from '../../constants/theme';
+import { colors } from '../../constants/theme';
 import { Feather } from '@expo/vector-icons';
 import { globalStyles } from '../../constants/globalStyles';
 
@@ -20,18 +20,18 @@ export default function SecuritySettingsScreen() {
         <Text style={globalStyles.pageTitle}>Security</Text>
         <Text style={globalStyles.pageDescription}>Manage biometrics and data encryption here.</Text>
 
-        <View style={styles.section}>
+        <View style={globalStyles.section}>
           <Text style={globalStyles.sectionTitle}>Authentication</Text>
           <View style={globalStyles.card}>
             <TouchableOpacity style={globalStyles.row} onPress={handleChangePassword}>
               <View style={globalStyles.iconContainer}>
-                <Feather name="lock" size={20} color="#2E4A62" />
+                <Feather name="lock" size={20} color={colors.iconDark} />
               </View>
               <View style={globalStyles.rowTextContainer}>
                 <Text style={globalStyles.rowTitle}>Change Password</Text>
                 <Text style={globalStyles.rowSubtitle}>Update your account password</Text>
               </View>
-              <Feather name="chevron-right" size={20} color="#88B0C8" />
+              <Feather name="chevron-right" size={20} color={colors.iconLight} />
             </TouchableOpacity>
             
             <View style={globalStyles.divider} />
@@ -39,7 +39,7 @@ export default function SecuritySettingsScreen() {
             <View style={globalStyles.rowSpaceBetween}>
               <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                 <View style={globalStyles.iconContainer}>
-                  <Feather name="shield" size={20} color="#2E4A62" />
+                  <Feather name="shield" size={20} color={colors.iconDark} />
                 </View>
                 <View style={globalStyles.rowTextContainer}>
                   <Text style={globalStyles.rowTitle}>Two-Factor Authentication</Text>
@@ -49,19 +49,19 @@ export default function SecuritySettingsScreen() {
               <Switch 
                 value={twoFactor} 
                 onValueChange={setTwoFactor}
-                trackColor={{ false: colors.border, true: '#2E4A62' }}
+                trackColor={{ false: colors.border, true: colors.iconDark }}
               />
             </View>
           </View>
         </View>
 
-        <View style={styles.section}>
+        <View style={globalStyles.section}>
           <Text style={globalStyles.sectionTitle}>Device & Privacy</Text>
           <View style={globalStyles.card}>
             <View style={globalStyles.rowSpaceBetween}>
               <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                 <View style={globalStyles.iconContainer}>
-                  <Feather name="smartphone" size={20} color="#2E4A62" />
+                  <Feather name="smartphone" size={20} color={colors.iconDark} />
                 </View>
                 <View style={globalStyles.rowTextContainer}>
                   <Text style={globalStyles.rowTitle}>Biometric Login</Text>
@@ -71,7 +71,7 @@ export default function SecuritySettingsScreen() {
               <Switch 
                 value={biometrics} 
                 onValueChange={setBiometrics}
-                trackColor={{ false: colors.border, true: '#2E4A62' }}
+                trackColor={{ false: colors.border, true: colors.iconDark }}
               />
             </View>
           </View>
@@ -80,9 +80,3 @@ export default function SecuritySettingsScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  section: {
-    marginBottom: spacing.xl,
-  },
-});

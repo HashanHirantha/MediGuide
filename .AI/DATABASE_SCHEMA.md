@@ -517,6 +517,7 @@ Common conditions: Common Cold, Flu, Migraine, Hypertension, Diabetes Type 2, As
 Specialties: General Medicine, Cardiology, Dermatology, Orthopedics, Neurology, ENT, Pulmonology, Gastroenterology, Endocrinology, Pediatrics, Ophthalmology, Psychiatry
 
 > **Seed file**: `supabase/seed.sql` — run via Supabase CLI or Dashboard SQL Editor.
+> **Note**: Sri Lankan mock doctor data is available in `supabase/doctors.db`. You can run this file in the Supabase SQL Editor to populate the doctors and profiles tables.
 
 ---
 
