@@ -1,0 +1,1 @@
+Also i want to allow users to add reports and images. then it should be sent to through API and prased to text and then get the prediction with that additionall information.

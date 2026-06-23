@@ -52,3 +52,22 @@ export async function submitReview(review: {
 }) {
   return supabase.from('reviews').insert(review);
 }
+
+/**
+ * Fetch verified doctors matching any of the given specialties, ordered by average rating (highest first).
+ * Used by the RecommendedDoctors component after symptom analysis.
+ *
+ * @param specialties - Array of specialty names (must match DB values exactly)
+ */
+export async function getRecommendedDoctors(specialties: string[]) {
+  if (specialties.length === 0) {
+    return { data: [], error: null };
+  }
+
+  return supabase
+    .from('doctors')
+    .select('*, profiles(first_name, last_name, profile_image)')
+    .eq('is_verified', true)
+    .in('specialty', specialties)
+    .order('average_rating', { ascending: false });
+}
