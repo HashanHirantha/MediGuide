@@ -409,19 +409,21 @@ Logs of all symptom checks and predictions made by users.
 | `patients`    | Yes    | User & doctor profile images       | Authenticated users can upload to their own path (`user_id/*`) |
 | `medical-docs`| No     | Medical documents & reports        | Only the owning user can read/write    |
 
+> **Note**: The `patients` bucket is used for all profile image uploads — both during registration (via `AuthContext.signUp()`) and in the profile settings editor (`settings/profile.tsx`). Images are stored at `{user_id}/avatar.{ext}` with `upsert: true` to allow overwrites.
+
 ### Storage RLS Example
 
 ```sql
--- Allow users to upload their own avatar
-CREATE POLICY "users_upload_own_avatar"
+-- Allow users to upload their own profile image
+CREATE POLICY "users_upload_own_image"
 ON storage.objects FOR INSERT
 WITH CHECK (
   bucket_id = 'patients'
   AND auth.uid()::text = (storage.foldername(name))[1]
 );
 
--- Allow public read for avatars
-CREATE POLICY "public_read_avatars"
+-- Allow public read for profile images
+CREATE POLICY "public_read_images"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'patients');
 ```
