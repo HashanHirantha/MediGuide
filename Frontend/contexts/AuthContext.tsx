@@ -25,7 +25,7 @@ interface AuthContextValue {
   profile: Profile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, meta?: { firstName?: string; lastName?: string; phone?: string; dateOfBirth?: string; gender?: string; bloodGroup?: string; profileImageUri?: string; heightCm?: number; weightKg?: number; bmi?: number }) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, meta?: { firstName?: string; lastName?: string; phone?: string; dateOfBirth?: string; gender?: string; bloodGroup?: string; profileImageUri?: string; heightCm?: number; weightKg?: number; bmi?: number }) => Promise<{ error: any; imageError: string | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -84,26 +84,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, meta?: { firstName?: string; lastName?: string; phone?: string; dateOfBirth?: string; gender?: string; bloodGroup?: string; profileImageUri?: string; heightCm?: number; weightKg?: number; bmi?: number }) => {
+    console.log('[Auth] Starting signUp for:', email);
     const { data, error } = await supabase.auth.signUp({ email, password });
-    if (!error && data.user && meta) {
+    
+    if (error) {
+      console.error('[Auth] SignUp failed:', error.message);
+      return { error, imageError: null };
+    }
+
+    console.log('[Auth] SignUp successful, user ID:', data.user?.id);
+    let imageError: string | null = null;
+
+    if (data.user && meta) {
       let profile_image = null;
 
       if (meta.profileImageUri) {
         const ext = meta.profileImageUri.split('.').pop() ?? 'jpg';
         const filePath = `${data.user.id}/avatar.${ext}`;
+        console.log('[Storage] Uploading profile image to patients/' + filePath);
         try {
           const response = await fetch(meta.profileImageUri);
           const blob = await response.blob();
+          console.log('[Storage] Image blob size:', blob.size, 'bytes, type:', blob.type);
+          
           const { error: uploadError } = await supabase.storage.from('patients').upload(filePath, blob, {
             upsert: true,
             contentType: `image/${ext}`,
           });
-          if (!uploadError) {
+          
+          if (uploadError) {
+            console.error('[Storage] Upload failed:', uploadError.message);
+            imageError = `Image upload failed: ${uploadError.message}`;
+          } else {
             const { data: urlData } = supabase.storage.from('patients').getPublicUrl(filePath);
             profile_image = urlData.publicUrl;
+            console.log('[Storage] Upload successful! Public URL:', profile_image);
           }
-        } catch (e) {
-          console.error("Image upload failed", e);
+        } catch (e: any) {
+          console.error('[Storage] Image upload exception:', e?.message || e);
+          imageError = `Image upload error: ${e?.message || 'Unknown error'}`;
         }
       }
 
@@ -120,6 +139,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (meta.bmi) updateData.bmi = meta.bmi;
       if (profile_image) updateData.profile_image = profile_image;
 
+      console.log('[Profile] Updating profile with fields:', Object.keys(updateData).join(', '));
+
       // Update profile with extra fields if any exist
       if (Object.keys(updateData).length > 0) {
         const { error: updateError } = await supabase
@@ -128,11 +149,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .eq('id', data.user.id);
         
         if (updateError) {
-          console.error("Profile update failed:", updateError);
+          console.error('[Profile] Update failed:', updateError.message);
+        } else {
+          console.log('[Profile] Update successful!');
         }
       }
     }
-    return { error };
+    return { error, imageError };
   };
 
   const signOut = async () => {

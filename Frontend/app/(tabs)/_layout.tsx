@@ -1,7 +1,8 @@
 import { Tabs } from 'expo-router';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../../constants/theme';
+import { globalStyles } from '../../constants/globalStyles';
 
 export default function TabsLayout() {
   return (
@@ -10,7 +11,7 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: {
-          backgroundColor: '#CDE7FA', // light blue background
+          backgroundColor: colors.authCardBg,
           borderTopWidth: 0,
           elevation: 0,
           height: 80,
@@ -18,8 +19,8 @@ export default function TabsLayout() {
           borderTopRightRadius: 15,
           position: 'absolute', // To make the rounded corners look good against white background
         },
-        tabBarActiveTintColor: '#111827',
-        tabBarInactiveTintColor: '#4A5568',
+        tabBarActiveTintColor: colors.buttonDark,
+        tabBarInactiveTintColor: colors.textTertiary,
       }}
     >
       <Tabs.Screen
@@ -42,8 +43,8 @@ export default function TabsLayout() {
         name="check"
         options={{
           tabBarIcon: ({ focused }) => (
-            <View style={styles.centerButton}>
-              <MaterialCommunityIcons name="brain" size={30} color="#FFFFFF" />
+            <View style={globalStyles.tabCenterButton}>
+              <MaterialCommunityIcons name="brain" size={30} color={colors.surface} />
             </View>
           ),
         }}
@@ -68,20 +69,3 @@ export default function TabsLayout() {
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  centerButton: {
-    backgroundColor: '#111827',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20, // Elevate above the tab bar
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-});

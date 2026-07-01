@@ -1,65 +1,320 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, SafeAreaView } from 'react-native';
-import { router } from 'expo-router';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  SafeAreaView,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { TopBar } from '../../components/TopBar';
 import { globalStyles } from '../../constants/globalStyles';
+import { colors } from '../../constants/theme';
+import { useAuth } from '../../hooks/useAuth';
+import {
+  analyzeSymptoms,
+  getRiskColor,
+  getRiskBgColor,
+  PredictionCondition,
+  PredictionResponse,
+} from '../../services/geminiService';
+import { searchSymptoms } from '../../services/symptomService';
+
+// ─── Duration options ────────────────────────────────────────
+
+const DURATION_OPTIONS = [
+  'Less than a day',
+  '1-2 days',
+  '3-5 days',
+  '1 week',
+  '2+ weeks',
+  '1+ month',
+];
+
+// ─── Default common symptom chips ────────────────────────────
+
+const DEFAULT_SYMPTOMS = [
+  'Headache',
+  'Fever',
+  'Fatigue',
+  'Chest Tightness',
+  'Cough',
+  'Dizziness',
+  'Nausea',
+  'Body Aches',
+  'Sore Throat',
+  'Shortness of Breath',
+];
+
+// ─── Feather icon type helper ────────────────────────────────
+
+const VALID_FEATHER_ICONS = [
+  'activity', 'heart', 'thermometer', 'eye', 'wind',
+  'zap', 'shield', 'alert-triangle', 'clipboard',
+] as const;
+
+function getFeatherIcon(name: string): string {
+  if (VALID_FEATHER_ICONS.includes(name as any)) return name;
+  return 'activity';
+}
+
+// ─── Component ───────────────────────────────────────────────
+
 export default function SymptomCheckerScreen() {
+  const { profile } = useAuth();
+
+  // Symptom state
   const [searchQuery, setSearchQuery] = useState('');
-  
-  const selectedSymptoms = ['Palpitations', 'Fatigue'];
-  const allSymptoms = ['Palpitations', 'Chest Tightness', 'Fatigue', 'Dizziness', 'Swollen Ankles'];
+  const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
+  const [commonSymptoms, setCommonSymptoms] = useState<string[]>(DEFAULT_SYMPTOMS);
+  const [searchResults, setSearchResults] = useState<string[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Duration state
+  const [selectedDuration, setSelectedDuration] = useState('');
+
+  // Additional notes
+  const [additionalNotes, setAdditionalNotes] = useState('');
+
+  // Prediction state
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [prediction, setPrediction] = useState<PredictionResponse | null>(null);
+  const [predictionError, setPredictionError] = useState<string | null>(null);
+
+  // ─── Step progress ──────────────────────────────────────────
+
+  const getStep = () => {
+    if (prediction) return { step: 4, label: 'RESULTS', desc: 'AI analysis complete', percent: 100 };
+    if (selectedSymptoms.length > 0 && selectedDuration) return { step: 3, label: 'STEP 3 OF 4', desc: 'Ready to analyze', percent: 75 };
+    if (selectedSymptoms.length > 0) return { step: 2, label: 'STEP 2 OF 4', desc: 'Set symptom duration', percent: 50 };
+    return { step: 1, label: 'STEP 1 OF 4', desc: 'Select your symptoms', percent: 25 };
+  };
+
+  const stepInfo = getStep();
+
+  // ─── Symptom search (debounced) ─────────────────────────────
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const { data } = await searchSymptoms(searchQuery);
+        if (data) {
+          setSearchResults(data.map((s: any) => s.name).filter((n: string) => !selectedSymptoms.includes(n)));
+        }
+      } catch (e) {
+        console.log('[Check] Symptom search error:', e);
+      }
+      setIsSearching(false);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, selectedSymptoms]);
+
+  // ─── Toggle symptom ─────────────────────────────────────────
+
+  const toggleSymptom = (symptom: string) => {
+    setSelectedSymptoms(prev =>
+      prev.includes(symptom)
+        ? prev.filter(s => s !== symptom)
+        : [...prev, symptom]
+    );
+    // Reset prediction when symptoms change
+    if (prediction) {
+      setPrediction(null);
+      setPredictionError(null);
+    }
+  };
+
+  // ─── Add custom symptom ─────────────────────────────────────
+
+  const addCustomSymptom = () => {
+    const trimmed = searchQuery.trim();
+    if (trimmed && !selectedSymptoms.includes(trimmed)) {
+      setSelectedSymptoms(prev => [...prev, trimmed]);
+      setSearchQuery('');
+      setSearchResults([]);
+      if (prediction) {
+        setPrediction(null);
+        setPredictionError(null);
+      }
+    }
+  };
+
+  // ─── Generate prediction ────────────────────────────────────
+
+  const handleGenerate = async () => {
+    if (selectedSymptoms.length === 0) {
+      Alert.alert('No Symptoms', 'Please select at least one symptom before generating a prediction.');
+      return;
+    }
+    if (!selectedDuration) {
+      Alert.alert('Duration Required', 'Please select how long you\'ve been experiencing these symptoms.');
+      return;
+    }
+
+    console.log('[Check] Generating prediction...');
+    console.log('[Check] Symptoms:', selectedSymptoms);
+    console.log('[Check] Duration:', selectedDuration);
+    console.log('[Check] Profile:', profile?.first_name, profile?.gender, profile?.blood_group);
+
+    setIsAnalyzing(true);
+    setPredictionError(null);
+    setPrediction(null);
+
+    const { data, error } = await analyzeSymptoms(
+      selectedSymptoms,
+      selectedDuration,
+      additionalNotes || undefined
+    );
+
+    setIsAnalyzing(false);
+
+    if (error) {
+      console.error('[Check] Prediction error:', error);
+      setPredictionError(error);
+      Alert.alert('Analysis Failed', error);
+      return;
+    }
+
+    if (data?.prediction) {
+      console.log('[Check] Prediction received successfully');
+      setPrediction(data.prediction);
+    }
+  };
+
+  // ─── Reset ──────────────────────────────────────────────────
+
+  const handleReset = () => {
+    setSelectedSymptoms([]);
+    setSelectedDuration('');
+    setAdditionalNotes('');
+    setPrediction(null);
+    setPredictionError(null);
+    setSearchQuery('');
+  };
+
+  // ─── Render ─────────────────────────────────────────────────
 
   return (
     <SafeAreaView style={globalStyles.safeArea}>
       <TopBar />
-      <ScrollView style={globalStyles.container} contentContainerStyle={styles.content}>
-        
+      <ScrollView style={globalStyles.container} contentContainerStyle={globalStyles.content}>
+
         {/* Huge Title */}
-        <Text style={styles.mainTitle}>Symptom Checker</Text>
+        <Text style={globalStyles.mainTitle}>Symptom Checker</Text>
         <Text style={globalStyles.pageDescription}>
-          Tell us how you're feeling. Our AI analyzes your inputs for potential cardiac patterns.
+          Tell us how you're feeling. Our AI analyzes your inputs for potential patterns.
         </Text>
 
-        {/* Step Card */}
+        {/* Step Progress Card */}
         <View style={globalStyles.cardPadded}>
-          <View style={styles.stepContainer}>
-            <View style={styles.progressCircle}>
-              <Text style={styles.progressText}>75%</Text>
+          <View style={globalStyles.stepContainer}>
+            <View style={[globalStyles.progressCircle, stepInfo.percent === 100 && globalStyles.progressCircleDone]}>
+              <Text style={[globalStyles.progressText, stepInfo.percent === 100 && globalStyles.progressTextDone]}>
+                {stepInfo.percent}%
+              </Text>
             </View>
-            <View style={styles.stepTextContainer}>
-              <Text style={styles.sectionLabel}>STEP 3 OF 4</Text>
-              <Text style={styles.stepDescription}>Analyzing symptoms & history</Text>
+            <View style={globalStyles.stepTextContainer}>
+              <Text style={globalStyles.sectionLabel}>{stepInfo.label}</Text>
+              <Text style={globalStyles.stepDescription}>{stepInfo.desc}</Text>
             </View>
           </View>
         </View>
 
+        {/* Selected Symptoms */}
+        {selectedSymptoms.length > 0 && (
+          <View style={globalStyles.cardPadded}>
+            <Text style={globalStyles.sectionTitle}>YOUR SYMPTOMS ({selectedSymptoms.length})</Text>
+            <View style={globalStyles.chipsContainer}>
+              {selectedSymptoms.map((symptom) => (
+                <TouchableOpacity
+                  key={symptom}
+                  style={[globalStyles.chip, globalStyles.chipSelected]}
+                  onPress={() => toggleSymptom(symptom)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[globalStyles.chipText, globalStyles.chipTextSelected]}>{symptom}</Text>
+                  <Feather name="x" size={14} color={colors.surface} style={globalStyles.chipIcon} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+
         {/* Add Symptom Card */}
         <View style={globalStyles.cardPadded}>
           <Text style={globalStyles.sectionTitle}>ADD SYMPTOM</Text>
-          <View style={styles.inputContainer}>
-            <Feather name="search" size={20} color="#888" style={styles.searchIcon} />
+          <View style={globalStyles.searchInputContainer}>
+            <Feather name="search" size={20} color={colors.iconLight} style={globalStyles.searchIcon} />
             <TextInput
-              style={styles.input}
+              style={globalStyles.searchInput}
               placeholder="e.g., Shortness of breath"
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.textSecondary}
               value={searchQuery}
               onChangeText={setSearchQuery}
+              onSubmitEditing={addCustomSymptom}
+              returnKeyType="done"
             />
+            {searchQuery.trim().length > 0 && (
+              <TouchableOpacity onPress={addCustomSymptom} style={globalStyles.addButton}>
+                <Feather name="plus" size={18} color={colors.surface} />
+              </TouchableOpacity>
+            )}
           </View>
+
+          {/* Search results dropdown */}
+          {isSearching && (
+            <View style={globalStyles.searchLoading}>
+              <ActivityIndicator size="small" color={colors.black} />
+              <Text style={globalStyles.searchLoadingText}>Searching...</Text>
+            </View>
+          )}
+          {searchResults.length > 0 && (
+            <View style={globalStyles.searchResultsContainer}>
+              {searchResults.slice(0, 5).map((result) => (
+                <TouchableOpacity
+                  key={result}
+                  style={globalStyles.searchResultItem}
+                  onPress={() => {
+                    toggleSymptom(result);
+                    setSearchQuery('');
+                    setSearchResults([]);
+                  }}
+                >
+                  <Feather name="plus-circle" size={16} color={colors.black} />
+                  <Text style={globalStyles.searchResultText}>{result}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Common Observations Card */}
         <View style={globalStyles.cardPadded}>
           <Text style={globalStyles.sectionTitle}>COMMON OBSERVATIONS</Text>
-          <View style={styles.chipsContainer}>
-            {allSymptoms.map((symptom) => {
+          <View style={globalStyles.chipsContainer}>
+            {commonSymptoms.map((symptom) => {
               const isSelected = selectedSymptoms.includes(symptom);
               return (
-                <View key={symptom} style={styles.chip}>
-                  <Text style={styles.chipText}>{symptom}</Text>
-                  {isSelected && <Feather name="check" size={14} color="#000" style={styles.chipIcon} />}
-                </View>
+                <TouchableOpacity
+                  key={symptom}
+                  style={[globalStyles.chip, isSelected && globalStyles.chipSelected]}
+                  onPress={() => toggleSymptom(symptom)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[globalStyles.chipText, isSelected && globalStyles.chipTextSelected]}>{symptom}</Text>
+                  {isSelected && <Feather name="check" size={14} color={colors.surface} style={globalStyles.chipIcon} />}
+                </TouchableOpacity>
               );
             })}
           </View>
@@ -68,329 +323,147 @@ export default function SymptomCheckerScreen() {
         {/* Duration Card */}
         <View style={globalStyles.cardPadded}>
           <Text style={globalStyles.sectionTitle}>DURATION</Text>
-          <View style={styles.durationRow}>
-            <Text style={styles.durationLabel}>Ongoing since:</Text>
-            <Text style={styles.durationValue}>3 days</Text>
+          <Text style={globalStyles.durationHint}>How long have you been experiencing these symptoms?</Text>
+          <View style={globalStyles.chipsContainer}>
+            {DURATION_OPTIONS.map((option) => {
+              const isActive = selectedDuration === option;
+              return (
+                <TouchableOpacity
+                  key={option}
+                  style={[globalStyles.selectionChip, isActive && globalStyles.selectionChipActive]}
+                  onPress={() => {
+                    setSelectedDuration(option);
+                    if (prediction) { setPrediction(null); setPredictionError(null); }
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[globalStyles.selectionChipText, isActive && globalStyles.selectionChipTextActive]}>
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
-          <View style={styles.progressBarContainer}>
-            <View style={styles.progressBarActive} />
-            <View style={styles.progressBarInactive} />
-          </View>
-          <View style={styles.infoRow}>
-            <Feather name="info" size={14} color="#666" />
-            <Text style={styles.infoText}>AI needs more context for precision</Text>
-          </View>
+        </View>
+
+        {/* Additional Notes */}
+        <View style={globalStyles.cardPadded}>
+          <Text style={globalStyles.sectionTitle}>ADDITIONAL NOTES (OPTIONAL)</Text>
+          <TextInput
+            style={globalStyles.notesInput}
+            placeholder="Any other details? (e.g., recent travel, medication, allergies...)"
+            placeholderTextColor={colors.textSecondary}
+            value={additionalNotes}
+            onChangeText={setAdditionalNotes}
+            multiline
+            numberOfLines={3}
+            textAlignVertical="top"
+          />
         </View>
 
         {/* Generate Prediction Button */}
-        <TouchableOpacity style={styles.generateButton}>
-          <Text style={styles.generateButtonText}>Generate Prediction</Text>
-          <MaterialCommunityIcons name="brain" size={20} color="#000" />
+        <TouchableOpacity
+          style={[
+            globalStyles.actionButton,
+            (selectedSymptoms.length === 0 || !selectedDuration || isAnalyzing) && globalStyles.disabled,
+          ]}
+          onPress={handleGenerate}
+          disabled={selectedSymptoms.length === 0 || !selectedDuration || isAnalyzing}
+          activeOpacity={0.8}
+        >
+          {isAnalyzing ? (
+            <>
+              <ActivityIndicator size="small" color={colors.black} style={{ marginRight: 10 }} />
+              <Text style={globalStyles.actionButtonText}>Analyzing...</Text>
+            </>
+          ) : (
+            <>
+              <Text style={globalStyles.actionButtonText}>Generate Prediction</Text>
+              <MaterialCommunityIcons name="brain" size={20} color={colors.black} />
+            </>
+          )}
         </TouchableOpacity>
 
         {/* Disclaimer */}
-        <Text style={styles.disclaimer}>
+        <Text style={globalStyles.disclaimer}>
           * This tool is for informational purposes and not a substitute for professional diagnosis.
         </Text>
 
-        {/* Preliminary Insights Card */}
-        <View style={globalStyles.cardPadded}>
-          <View style={styles.insightsHeader}>
-            <Text style={styles.insightsTitle}>Preliminary Insights</Text>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>LOW RISK</Text>
-            </View>
+        {/* Error State */}
+        {predictionError && !isAnalyzing && (
+          <View style={globalStyles.errorCard}>
+            <Feather name="alert-circle" size={20} color={colors.accent} />
+            <Text style={globalStyles.errorText}>{predictionError}</Text>
+            <TouchableOpacity onPress={handleGenerate} style={globalStyles.retryButton}>
+              <Text style={globalStyles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
           </View>
-          <Text style={styles.insightsSubtitle}>Based on 4 reported indicators</Text>
+        )}
 
-          <View style={styles.insightItem}>
-            <View style={styles.insightIconContainer}>
-              <MaterialCommunityIcons name="chart-bell-curve" size={24} color="#000" />
+        {/* Prediction Results */}
+        {prediction && (
+          <View style={globalStyles.cardPadded}>
+            <View style={globalStyles.insightsHeader}>
+              <Text style={globalStyles.insightsTitle}>AI Insights</Text>
+              <View style={[
+                globalStyles.badge,
+                { backgroundColor: getRiskBgColor(prediction.overall_risk) }
+              ]}>
+                <Text style={[
+                  globalStyles.badgeText,
+                  { color: getRiskColor(prediction.overall_risk) }
+                ]}>
+                  {prediction.overall_risk} RISK
+                </Text>
+              </View>
             </View>
-            <View style={styles.insightDetails}>
-              <Text style={styles.insightName}>Atrial Fibrillation</Text>
-              <Text style={styles.insightPossibility}>POSSIBILITY</Text>
-            </View>
-            <Text style={styles.insightPercentage}>12%</Text>
-          </View>
-
-          <View style={styles.insightItem}>
-            <View style={styles.insightIconContainer}>
-              <MaterialCommunityIcons name="yoga" size={24} color="#000" />
-            </View>
-            <View style={styles.insightDetails}>
-              <Text style={styles.insightName}>General Anxiety</Text>
-              <Text style={styles.insightPossibility}>POSSIBILITY</Text>
-            </View>
-            <Text style={styles.insightPercentage}>64%</Text>
-          </View>
-
-          <View style={styles.recommendationContainer}>
-            <Feather name="briefcase" size={16} color="#000" style={styles.recommendationIcon} />
-            <Text style={styles.recommendationText}>
-              High correlation with stress fatigue. We recommend a checkup with <Text style={styles.linkText}>Richard Brown</Text> to confirm these findings.
+            <Text style={globalStyles.insightsSubtitle}>
+              Based on {selectedSymptoms.length} reported symptom{selectedSymptoms.length > 1 ? 's' : ''}
             </Text>
+
+            {prediction.conditions.map((condition, index) => (
+              <View key={index} style={globalStyles.insightItem}>
+                <View style={globalStyles.insightIconContainer}>
+                  <Feather
+                    name={getFeatherIcon(condition.icon_name) as any}
+                    size={24}
+                    color={colors.black}
+                  />
+                </View>
+                <View style={globalStyles.insightDetails}>
+                  <Text style={globalStyles.insightName}>{condition.name}</Text>
+                  <Text style={[
+                    globalStyles.insightPossibility,
+                    { color: getRiskColor(condition.risk_level) }
+                  ]}>
+                    {condition.risk_level.toUpperCase()}
+                  </Text>
+                </View>
+                <Text style={globalStyles.insightPercentage}>{condition.possibility_percent}%</Text>
+              </View>
+            ))}
+
+            {/* Recommendation */}
+            <View style={globalStyles.recommendationContainer}>
+              <Feather name="briefcase" size={16} color={colors.black} style={globalStyles.recommendationIcon} />
+              <Text style={globalStyles.recommendationText}>
+                {prediction.recommendation}
+                {prediction.recommended_specialist && (
+                  <Text style={globalStyles.linkText}> Recommended: {prediction.recommended_specialist}</Text>
+                )}
+              </Text>
+            </View>
+
+            {/* New Analysis Button */}
+            <TouchableOpacity style={globalStyles.resetButton} onPress={handleReset} activeOpacity={0.7}>
+              <Feather name="refresh-cw" size={16} color={colors.surface} />
+              <Text style={globalStyles.resetButtonText}>New Analysis</Text>
+            </TouchableOpacity>
           </View>
-        </View>
-        <View style={styles.bottomPadding} />
+        )}
+
+        <View style={globalStyles.bottomPadding} />
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    padding: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 30,
-  },
-  headerIcon: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000',
-  },
-  headerAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#112233',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  mainTitle: {
-    fontSize: 40,
-    fontWeight: '700',
-    color: '#000',
-    marginBottom: 10,
-    lineHeight: 45,
-  },
-  stepContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  progressCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    borderWidth: 3,
-    borderColor: '#000',
-    borderRightColor: 'rgba(0,0,0,0.1)', // fake 75% progress
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 15,
-  },
-  progressText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#000',
-  },
-  stepTextContainer: {
-    flex: 1,
-  },
-  stepDescription: {
-    fontSize: 16,
-    color: '#000',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    height: 50,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
-  },
-  searchIcon: {
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: '#000',
-  },
-  chipsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginTop: 5,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.15)',
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-  },
-  chipText: {
-    fontSize: 14,
-    color: '#000',
-  },
-  chipIcon: {
-    marginLeft: 5,
-  },
-  durationRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  durationLabel: {
-    fontSize: 16,
-    color: '#000',
-  },
-  durationValue: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#000',
-  },
-  progressBarContainer: {
-    flexDirection: 'row',
-    height: 4,
-    borderRadius: 2,
-    overflow: 'hidden',
-    marginBottom: 15,
-  },
-  progressBarActive: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  progressBarInactive: {
-    flex: 2,
-    backgroundColor: 'rgba(0,0,0,0.1)',
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  infoText: {
-    fontSize: 14,
-    color: '#666',
-    marginLeft: 8,
-  },
-  generateButton: {
-    backgroundColor: '#C8E8FE',
-    borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    marginBottom: 15,
-  },
-  generateButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000',
-    marginRight: 10,
-  },
-  disclaimer: {
-    fontSize: 13,
-    color: '#666',
-    fontStyle: 'italic',
-    textAlign: 'center',
-    marginBottom: 30,
-    paddingHorizontal: 10,
-  },
-  insightsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 5,
-  },
-  insightsTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#000',
-  },
-  badge: {
-    backgroundColor: '#FFF',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#000',
-    letterSpacing: 1,
-  },
-  insightsSubtitle: {
-    fontSize: 14,
-    color: '#000',
-    marginBottom: 20,
-  },
-  insightItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 10,
-  },
-  insightIconContainer: {
-    width: 40,
-    height: 40,
-    backgroundColor: '#FFF',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 15,
-  },
-  insightDetails: {
-    flex: 1,
-  },
-  insightName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#000',
-    marginBottom: 4,
-  },
-  insightPossibility: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#666',
-    letterSpacing: 1,
-  },
-  insightPercentage: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#000',
-  },
-  recommendationContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginTop: 15,
-    paddingTop: 15,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.05)',
-  },
-  recommendationIcon: {
-    marginTop: 2,
-    marginRight: 10,
-  },
-  recommendationText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#333',
-    lineHeight: 20,
-  },
-  linkText: {
-    fontWeight: '700',
-    textDecorationLine: 'underline',
-  },
-  bottomPadding: {
-    height: 40,
-  },
-});

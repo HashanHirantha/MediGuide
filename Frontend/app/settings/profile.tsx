@@ -1,97 +1,90 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, ScrollView, Alert, Image } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
+import React, { useEffect, useState } from 'react';
+import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { TopBar } from '../../components/TopBar';
-import { colors, typography, spacing } from '../../constants/theme';
 import { useAuth } from '../../hooks/useAuth';
-import { globalStyles } from '../../constants/globalStyles';
-
+import { Input } from '../../components/ui/Input';
+import { Button } from '../../components/ui/Button';
+import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../../lib/supabase';
+import { globalStyles } from '../../constants/globalStyles';
+import { colors } from '../../constants/theme';
 
 export default function ProfileSettingsScreen() {
   const { user, profile, refreshProfile } = useAuth();
-  
-  const [firstName, setFirstName] = useState(profile?.first_name || '');
-  const [lastName, setLastName] = useState(profile?.last_name || '');
-  const [email, setEmail] = useState(user?.email || '');
-  const [phone, setPhone] = useState(profile?.phone || '');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [gender, setGender] = useState('');
+  const [bloodGroup, setBloodGroup] = useState('');
+  const [heightCm, setHeightCm] = useState('');
+  const [weightKg, setWeightKg] = useState('');
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      setFirstName(profile.first_name || '');
+      setLastName(profile.last_name || '');
+      setPhone(profile.phone || '');
+      setDateOfBirth(profile.date_of_birth || '');
+      setGender(profile.gender || '');
+      setBloodGroup(profile.blood_group || '');
+      setHeightCm(profile.height_cm?.toString() || '');
+      setWeightKg(profile.weight_kg?.toString() || '');
+    }
+  }, [profile]);
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true, aspect: [1, 1], quality: 0.7,
+    });
+    if (!result.canceled && result.assets?.[0] && user) {
+      // Upload to Supabase Storage
+      const uri = result.assets[0].uri;
+      const ext = uri.split('.').pop() || 'jpg';
+      const filePath = `${user.id}/avatar.${ext}`;
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      const { error } = await supabase.storage.from('avatars').upload(filePath, blob, { upsert: true });
+      if (error) {
+        Alert.alert('Upload Failed', error.message);
+      } else {
+        const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
+        await supabase.from('profiles').update({ profile_image: urlData.publicUrl }).eq('id', user.id);
+        refreshProfile();
+        Alert.alert('Success', 'Profile photo updated!');
+      }
+    }
+  };
 
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        first_name: firstName,
-        last_name: lastName,
-        phone: phone,
-      })
-      .eq('id', user.id);
-      
+    const h = parseFloat(heightCm);
+    const w = parseFloat(weightKg);
+    let bmi: number | undefined;
+    if (!isNaN(h) && !isNaN(w) && h > 0 && w > 0) {
+      bmi = parseFloat((w / ((h / 100) * (h / 100))).toFixed(2));
+    }
+    const { error } = await supabase.from('profiles').update({
+      first_name: firstName,
+      last_name: lastName,
+      phone,
+      date_of_birth: dateOfBirth || null,
+      gender: gender || null,
+      blood_group: bloodGroup || null,
+      height_cm: isNaN(h) ? null : h,
+      weight_kg: isNaN(w) ? null : w,
+      bmi: bmi || null,
+    }).eq('id', user.id);
     setSaving(false);
-    
     if (error) {
       Alert.alert('Error', error.message);
     } else {
       refreshProfile();
-      Alert.alert('Success', 'Profile updated successfully!');
-    }
-  };
-
-  const handleImagePick = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Sorry, we need camera roll permissions to make this work!');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-    });
-
-    if (!result.canceled && result.assets?.[0]) {
-      const uri = result.assets[0].uri;
-      await uploadProfileImage(uri);
-    }
-  };
-
-  const uploadProfileImage = async (uri: string) => {
-    if (!user) return;
-    try {
-      setSaving(true);
-      const ext = uri.split('.').pop() ?? 'jpg';
-      const filePath = `${user.id}/avatar.${ext}`;
-      
-      const response = await fetch(uri);
-      const blob = await response.blob();
-      
-      const { error: uploadError } = await supabase.storage.from('patients').upload(filePath, blob, {
-        upsert: true,
-        contentType: `image/${ext}`,
-      });
-      
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage.from('patients').getPublicUrl(filePath);
-      
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ profile_image: urlData.publicUrl })
-        .eq('id', user.id);
-        
-      if (updateError) throw updateError;
-      
-      await refreshProfile();
-      Alert.alert('Success', 'Profile photo updated successfully!');
-    } catch (e: any) {
-      Alert.alert('Upload Failed', e.message);
-    } finally {
-      setSaving(false);
+      Alert.alert('Saved', 'Your profile has been updated.');
     }
   };
 
@@ -99,93 +92,35 @@ export default function ProfileSettingsScreen() {
     <SafeAreaView style={globalStyles.safeArea}>
       <TopBar />
       <ScrollView contentContainerStyle={globalStyles.content}>
-        <Text style={globalStyles.pageTitle}>Profile Settings</Text>
-        <Text style={globalStyles.pageDescription}>Manage your profile information here.</Text>
-        
-        <View style={globalStyles.profileCard}>
-          <View style={globalStyles.avatarContainer}>
+        <Text style={globalStyles.pageTitle}>Edit Profile</Text>
+        <Text style={globalStyles.pageDescription}>Update your personal information and health data.</Text>
+
+        {/* Avatar */}
+        <View style={globalStyles.avatarWrapper}>
+          <TouchableOpacity onPress={pickImage} style={globalStyles.avatarPickerContainer}>
             {profile?.profile_image ? (
-              <Image 
-                source={{ uri: profile.profile_image }} 
-                style={globalStyles.avatarLarge} 
-              />
+              <Image source={{ uri: profile.profile_image }} style={globalStyles.avatarFull} />
             ) : (
-              <View style={[globalStyles.avatarLarge, { backgroundColor: '#E1E8ED', justifyContent: 'center', alignItems: 'center' }]}>
-                <Feather name="user" size={40} color="#88B0C8" />
+              <View style={globalStyles.avatarPlaceholder}>
+                <Feather name="camera" size={28} color={colors.iconLight} />
               </View>
             )}
-            <TouchableOpacity style={globalStyles.editBadge} onPress={handleImagePick}>
-              <Feather name="camera" size={14} color="#FFF" />
-            </TouchableOpacity>
-          </View>
-          <View style={globalStyles.profileInfo}>
-            <Text style={globalStyles.profileName}>Profile Photo</Text>
-            <Text style={globalStyles.profileTier}>Tap the camera icon to update</Text>
-          </View>
-        </View>
-        
-        <View style={styles.form}>
-          <View style={globalStyles.inputGroup}>
-            <Text style={globalStyles.label}>First Name</Text>
-            <TextInput 
-              style={globalStyles.input} 
-              value={firstName}
-              onChangeText={setFirstName}
-              placeholder="Enter first name"
-              placeholderTextColor="#999"
-            />
-          </View>
-          
-          <View style={globalStyles.inputGroup}>
-            <Text style={globalStyles.label}>Last Name</Text>
-            <TextInput 
-              style={globalStyles.input} 
-              value={lastName}
-              onChangeText={setLastName}
-              placeholder="Enter last name"
-              placeholderTextColor="#999"
-            />
-          </View>
-
-          <View style={globalStyles.inputGroup}>
-            <Text style={globalStyles.label}>Email Address</Text>
-            <TextInput 
-              style={globalStyles.input} 
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              placeholder="Enter email"
-              placeholderTextColor="#999"
-            />
-          </View>
-
-          <View style={globalStyles.inputGroup}>
-            <Text style={globalStyles.label}>Phone Number</Text>
-            <TextInput 
-              style={globalStyles.input} 
-              value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
-              placeholder="Enter phone number"
-              placeholderTextColor="#999"
-            />
-          </View>
-
-          <TouchableOpacity 
-            style={[globalStyles.buttonPrimary, { marginTop: spacing.lg, opacity: saving ? 0.7 : 1 }]} 
-            onPress={handleSave}
-            disabled={saving}
-          >
-            <Text style={globalStyles.buttonPrimaryText}>{saving ? 'Saving...' : 'Save Changes'}</Text>
           </TouchableOpacity>
+          <Text style={globalStyles.avatarLabel}>Tap to change photo</Text>
         </View>
+
+        <Input label="First Name" value={firstName} onChangeText={setFirstName} leftIcon="user" />
+        <Input label="Last Name" value={lastName} onChangeText={setLastName} leftIcon="user" />
+        <Input label="Email" value={user?.email || ''} editable={false} leftIcon="mail" />
+        <Input label="Phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" leftIcon="phone" />
+        <Input label="Date of Birth" value={dateOfBirth} onChangeText={setDateOfBirth} placeholder="YYYY-MM-DD" leftIcon="calendar" />
+        <Input label="Gender" value={gender} onChangeText={setGender} placeholder="Male / Female / Other" leftIcon="users" />
+        <Input label="Blood Group" value={bloodGroup} onChangeText={setBloodGroup} placeholder="A+, O-, etc." leftIcon="droplet" />
+        <Input label="Height (cm)" value={heightCm} onChangeText={setHeightCm} keyboardType="numeric" leftIcon="maximize-2" />
+        <Input label="Weight (kg)" value={weightKg} onChangeText={setWeightKg} keyboardType="numeric" leftIcon="activity" />
+
+        <Button title={saving ? 'Saving...' : 'Save Changes'} onPress={handleSave} loading={saving} />
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  form: {
-    gap: spacing.md,
-  },
-});

@@ -2,12 +2,12 @@ import { useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   TouchableOpacity,
   Modal,
+  Alert,
 } from 'react-native';
 import { Link, router } from 'expo-router';
 import { Input } from '../../components/ui/Input';
@@ -19,6 +19,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
+import { globalStyles } from '../../constants/globalStyles';
 
 export default function RegisterScreen() {
   const [firstName, setFirstName] = useState('');
@@ -112,7 +113,7 @@ export default function RegisterScreen() {
       weightKg = undefined as any;
     }
     
-    const { error: signUpError } = await signUp(email, password, { 
+    const { error: signUpError, imageError } = await signUp(email, password, { 
       firstName: first, 
       lastName: last,
       phone,
@@ -126,69 +127,82 @@ export default function RegisterScreen() {
     });
     if (signUpError) {
       setError(signUpError.message);
+      Alert.alert('Registration Failed', signUpError.message);
     } else {
-      router.replace('/(tabs)/home');
+      if (imageError) {
+        Alert.alert(
+          'Account Created',
+          `Your account was created successfully, but the profile image could not be uploaded: ${imageError}. You can upload it later from your profile settings.`,
+          [{ text: 'OK', onPress: () => router.replace('/(tabs)/home') }]
+        );
+      } else {
+        Alert.alert(
+          'Welcome to MediGuide!',
+          'Your account has been created successfully.',
+          [{ text: 'Get Started', onPress: () => router.replace('/(tabs)/home') }]
+        );
+      }
     }
     setLoading(false);
   };
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={globalStyles.authContainerAlt}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={globalStyles.authScroll} keyboardShouldPersistTaps="handled">
         {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
+        <View style={globalStyles.authHeaderCompact}>
+          <TouchableOpacity onPress={() => router.back()} style={globalStyles.authIconButton}>
             <Feather name="arrow-left" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>MediGuide</Text>
-          <TouchableOpacity style={[styles.iconButton, styles.userIconBg]}>
+          <Text style={globalStyles.authLogoText}>MediGuide</Text>
+          <TouchableOpacity style={[globalStyles.authIconButton, globalStyles.authUserIconBg]}>
             <Feather name="user" size={20} color={colors.textPrimary} />
           </TouchableOpacity>
         </View>
 
         {/* Title Area */}
-        <View style={styles.titleArea}>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join our wellness community and start your healing journey today.</Text>
+        <View style={globalStyles.authTitleAreaCompact}>
+          <Text style={globalStyles.authTitlePlain}>Create Account</Text>
+          <Text style={globalStyles.authSubtitle}>Join our wellness community and start your healing journey today.</Text>
         </View>
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+        {error ? <Text style={globalStyles.authError}>{error}</Text> : null}
 
         {/* Form Card */}
-        <View style={styles.card}>
-          <View style={styles.avatarWrapper}>
-            <TouchableOpacity onPress={pickImage} style={styles.avatarContainer}>
+        <View style={globalStyles.authCardPadded}>
+          <View style={globalStyles.avatarWrapper}>
+            <TouchableOpacity onPress={pickImage} style={globalStyles.avatarPickerContainer}>
               {profileImageUri ? (
-                <Image source={{ uri: profileImageUri }} style={styles.avatar} />
+                <Image source={{ uri: profileImageUri }} style={globalStyles.avatarFull} />
               ) : (
-                <View style={styles.avatarPlaceholder}>
+                <View style={globalStyles.avatarPlaceholder}>
                   <Feather name="camera" size={24} color={colors.textSecondary} />
                 </View>
               )}
             </TouchableOpacity>
-            <Text style={styles.avatarLabel}>Profile Photo (Optional)</Text>
+            <Text style={globalStyles.avatarLabel}>Profile Photo (Optional)</Text>
           </View>
 
-          <View style={styles.row}>
+          <View style={globalStyles.formRow}>
             <Input 
               label="First Name" 
               value={firstName} 
               onChangeText={setFirstName} 
               placeholder="John" 
               leftIcon="user"
-              style={styles.flexHalf}
+              style={globalStyles.flexHalf}
             />
-            <View style={styles.spacer} />
+            <View style={globalStyles.spacer} />
             <Input 
               label="Last Name" 
               value={lastName} 
               onChangeText={setLastName} 
               placeholder="Doe" 
               leftIcon="user"
-              style={styles.flexHalf}
+              style={globalStyles.flexHalf}
             />
           </View>
           <Input
@@ -242,21 +256,21 @@ export default function RegisterScreen() {
           </TouchableOpacity>
 
           <Modal visible={showGenderPicker} transparent animationType="slide">
-            <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowGenderPicker(false)} activeOpacity={1}>
-              <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Select Gender</Text>
+            <TouchableOpacity style={globalStyles.modalOverlay} onPress={() => setShowGenderPicker(false)} activeOpacity={1}>
+              <View style={globalStyles.modalContent}>
+                <Text style={globalStyles.modalTitle}>Select Gender</Text>
                 {genderOptions.map(option => (
                   <TouchableOpacity
                     key={option.value}
-                    style={styles.modalOption}
+                    style={globalStyles.modalOption}
                     onPress={() => {
                       setGender(option.value);
                       setShowGenderPicker(false);
                     }}
                   >
                     <Text style={[
-                      styles.modalOptionText,
-                      gender === option.value && styles.modalOptionTextSelected
+                      globalStyles.modalOptionText,
+                      gender === option.value && globalStyles.modalOptionTextSelected
                     ]}>
                       {option.label}
                     </Text>
@@ -310,12 +324,12 @@ export default function RegisterScreen() {
             leftIcon="shield"
           />
 
-          <TouchableOpacity style={styles.checkboxContainer} onPress={() => setAgreed(!agreed)} activeOpacity={0.8}>
-            <View style={[styles.checkbox, agreed && styles.checkboxChecked]}>
+          <TouchableOpacity style={globalStyles.checkboxContainer} onPress={() => setAgreed(!agreed)} activeOpacity={0.8}>
+            <View style={[globalStyles.checkbox, agreed && globalStyles.checkboxChecked]}>
               {agreed && <Feather name="check" size={14} color={colors.surface} />}
             </View>
-            <Text style={styles.checkboxText}>
-              I agree to the <Text style={styles.boldText}>Terms of Service</Text> and <Text style={styles.boldText}>Privacy Policy</Text> regarding my medical data.
+            <Text style={globalStyles.checkboxText}>
+              I agree to the <Text style={globalStyles.boldText}>Terms of Service</Text> and <Text style={globalStyles.boldText}>Privacy Policy</Text> regarding my medical data.
             </Text>
           </TouchableOpacity>
 
@@ -325,190 +339,22 @@ export default function RegisterScreen() {
             loading={loading} 
             variant="black"
             shape="pill"
-            style={styles.createBtn}
+            style={globalStyles.authSignInBtn}
           />
         </View>
 
         {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account?</Text>
+        <View style={globalStyles.authFooterCentered}>
+          <Text style={[globalStyles.authFooterText, { marginBottom: spacing.md }]}>Already have an account?</Text>
           <Button 
             title="Log In" 
             onPress={() => router.push('/(auth)/login')} 
             variant="outline"
             shape="pill"
-            style={styles.loginBtn}
+            style={{ paddingHorizontal: spacing.xxl, borderColor: colors.border }}
           />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surfaceAlt },
-  scroll: { flexGrow: 1, padding: spacing.lg, paddingTop: 60, paddingBottom: 40 },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.xl,
-  },
-  iconButton: {
-    padding: spacing.xs,
-  },
-  userIconBg: {
-    backgroundColor: colors.authCardBg,
-    borderRadius: 20,
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    ...typography.h2,
-    color: colors.textPrimary,
-  },
-  titleArea: {
-    marginBottom: spacing.lg,
-  },
-  title: {
-    ...typography.h1,
-    color: colors.textPrimary,
-    marginBottom: spacing.sm,
-  },
-  subtitle: {
-    ...typography.body,
-    color: colors.textSecondary,
-    fontSize: 16,
-  },
-  error: { color: colors.accent, marginBottom: spacing.md, ...typography.caption },
-  card: {
-    backgroundColor: colors.authCardBg,
-    borderRadius: 24,
-    padding: spacing.lg,
-    marginBottom: spacing.xl,
-  },
-  row: {
-    flexDirection: 'row',
-    width: '100%',
-  },
-  flexHalf: {
-    flex: 1,
-  },
-  spacer: {
-    width: spacing.md,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: spacing.lg,
-    paddingBottom: Platform.OS === 'ios' ? 40 : spacing.lg,
-  },
-  modalTitle: {
-    ...typography.h2,
-    color: colors.textPrimary,
-    marginBottom: spacing.md,
-    textAlign: 'center',
-  },
-  modalOption: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  modalOptionText: {
-    ...typography.body,
-    color: colors.textPrimary,
-    fontSize: 16,
-  },
-  modalOptionTextSelected: {
-    color: colors.primary,
-    fontWeight: '700',
-  },
-  avatarWrapper: {
-    alignItems: 'center',
-    marginBottom: spacing.xl,
-  },
-  avatarContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: colors.surface,
-    borderWidth: 2,
-    borderColor: colors.border,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-    marginBottom: spacing.sm,
-  },
-  avatar: {
-    width: '100%',
-    height: '100%',
-  },
-  avatarPlaceholder: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarLabel: {
-    ...typography.caption,
-    color: colors.textSecondary,
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: spacing.xl,
-    marginTop: spacing.sm,
-    paddingRight: spacing.lg,
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    borderWidth: 1.5,
-    borderColor: colors.textSecondary,
-    marginRight: spacing.sm,
-    marginTop: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surface,
-  },
-  checkboxChecked: {
-    backgroundColor: colors.black,
-    borderColor: colors.black,
-  },
-  checkboxText: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    lineHeight: 18,
-    flex: 1,
-  },
-  boldText: {
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  createBtn: {
-    paddingVertical: 18,
-  },
-  footer: { 
-    alignItems: 'center',
-    marginTop: 'auto',
-  },
-  footerText: { 
-    ...typography.body, 
-    color: colors.textSecondary,
-    marginBottom: spacing.md,
-  },
-  loginBtn: {
-    paddingHorizontal: spacing.xxl,
-    borderColor: colors.border,
-  }
-});
