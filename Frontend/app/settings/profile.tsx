@@ -89,6 +89,9 @@ export default function ProfileSettingsScreen() {
       date_of_birth: dateOfBirth || null,
       gender: gender || null,
       blood_group: bloodGroup || null,
+      height_cm: isNaN(h) ? null : h,
+      weight_kg: isNaN(w) ? null : w,
+      bmi: bmi || null,
     };
 
     let error;
