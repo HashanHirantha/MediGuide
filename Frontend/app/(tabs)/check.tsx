@@ -11,6 +11,9 @@ import {
   Alert,
 } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
 import { TopBar } from '../../components/TopBar';
 import { globalStyles } from '../../constants/globalStyles';
 import { colors } from '../../constants/theme';
@@ -22,6 +25,7 @@ import {
   PredictionCondition,
   PredictionResponse,
 } from '../../services/geminiService';
+import { RecommendedDoctors } from '../../components/RecommendedDoctors';
 import { searchSymptoms } from '../../services/symptomService';
 
 // ─── Duration options ────────────────────────────────────────
@@ -79,6 +83,9 @@ export default function SymptomCheckerScreen() {
 
   // Additional notes
   const [additionalNotes, setAdditionalNotes] = useState('');
+
+  // Attachments
+  const [attachments, setAttachments] = useState<{ uri: string; base64: string; mimeType: string }[]>([]);
 
   // Prediction state
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -150,6 +157,55 @@ export default function SymptomCheckerScreen() {
     }
   };
 
+  // ─── Attachments ─────────────────────────────────────────────
+
+  const handlePickImage = async () => {
+    if (attachments.length >= 3) {
+      Alert.alert('Limit Reached', 'You can only attach up to 3 reports/images.');
+      return;
+    }
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'Sorry, we need camera roll permissions to make this work!');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.7,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets?.[0]?.base64) {
+      const asset = result.assets[0];
+      const mimeType = asset.mimeType || 'image/jpeg';
+      setAttachments(prev => [...prev, { uri: asset.uri, base64: asset.base64!, mimeType }]);
+    }
+  };
+
+  const handlePickDocument = async () => {
+    if (attachments.length >= 3) {
+      Alert.alert('Limit Reached', 'You can only attach up to 3 reports/images.');
+      return;
+    }
+    const result = await DocumentPicker.getDocumentAsync({
+      type: ['image/*', 'application/pdf'],
+      copyToCacheDirectory: true,
+    });
+
+    if (!result.canceled && result.assets?.[0]) {
+      const asset = result.assets[0];
+      const base64 = await FileSystem.readAsStringAsync(asset.uri, { encoding: 'base64' as any });
+      const mimeType = asset.mimeType || 'application/pdf';
+      setAttachments(prev => [...prev, { uri: asset.uri, base64, mimeType }]);
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
   // ─── Generate prediction ────────────────────────────────────
 
   const handleGenerate = async () => {
@@ -174,7 +230,8 @@ export default function SymptomCheckerScreen() {
     const { data, error } = await analyzeSymptoms(
       selectedSymptoms,
       selectedDuration,
-      additionalNotes || undefined
+      additionalNotes || undefined,
+      attachments.length > 0 ? attachments.map(a => ({ base64: a.base64, mime_type: a.mimeType })) : undefined
     );
 
     setIsAnalyzing(false);
@@ -198,6 +255,7 @@ export default function SymptomCheckerScreen() {
     setSelectedSymptoms([]);
     setSelectedDuration('');
     setAdditionalNotes('');
+    setAttachments([]);
     setPrediction(null);
     setPredictionError(null);
     setSearchQuery('');
@@ -361,6 +419,39 @@ export default function SymptomCheckerScreen() {
           />
         </View>
 
+        {/* Attach Reports */}
+        <View style={globalStyles.cardPadded}>
+          <Text style={globalStyles.sectionTitle}>ATTACH REPORTS (OPTIONAL)</Text>
+          <Text style={globalStyles.durationHint}>
+            Upload up to 3 images or PDFs (e.g., lab results, prescriptions) for AI analysis.
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 15 }}>
+            <TouchableOpacity style={globalStyles.bookButtonSmall} onPress={handlePickImage}>
+              <Text style={globalStyles.bookButtonSmallText}>Add Photo</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={globalStyles.bookButtonSmall} onPress={handlePickDocument}>
+              <Text style={globalStyles.bookButtonSmallText}>Add Document</Text>
+            </TouchableOpacity>
+          </View>
+          {attachments.length > 0 && (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+              {attachments.map((att, index) => (
+                <View key={index} style={{ position: 'relative' }}>
+                  <View style={{ width: 60, height: 60, backgroundColor: colors.glassWhite, borderRadius: 8, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: colors.subtleBorder }}>
+                    <Feather name={att.mimeType.includes('pdf') ? 'file-text' : 'image'} size={24} color={colors.textSecondary} />
+                  </View>
+                  <TouchableOpacity
+                    style={{ position: 'absolute', top: -8, right: -8, backgroundColor: colors.errorText, borderRadius: 12, width: 24, height: 24, justifyContent: 'center', alignItems: 'center', zIndex: 2 }}
+                    onPress={() => removeAttachment(index)}
+                  >
+                    <Feather name="x" size={14} color={colors.surface} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
         {/* Generate Prediction Button */}
         <TouchableOpacity
           style={[
@@ -453,6 +544,11 @@ export default function SymptomCheckerScreen() {
                 )}
               </Text>
             </View>
+
+            {/* Recommended Doctors */}
+            {prediction.recommended_specialties && prediction.recommended_specialties.length > 0 && (
+              <RecommendedDoctors specialties={prediction.recommended_specialties} />
+            )}
 
             {/* New Analysis Button */}
             <TouchableOpacity style={globalStyles.resetButton} onPress={handleReset} activeOpacity={0.7}>

@@ -14,6 +14,12 @@ export interface PredictionResponse {
   recommendation: string;
   overall_risk: 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL';
   recommended_specialist: string;
+  recommended_specialties: string[];
+}
+
+export interface ImageAttachment {
+  base64: string;
+  mime_type: string;
 }
 
 export interface SymptomCheckResult {
@@ -34,16 +40,19 @@ export interface SymptomCheckResult {
  * @param symptoms - Array of symptom names (e.g., ["Headache", "Fatigue"])
  * @param duration - How long symptoms have lasted (e.g., "3-5 days")
  * @param additionalNotes - Optional extra context from the user
+ * @param images - Optional array of base64-encoded images (medical reports, lab results)
  * @returns Structured prediction result or error
  */
 export async function analyzeSymptoms(
   symptoms: string[],
   duration: string,
-  additionalNotes?: string
+  additionalNotes?: string,
+  images?: ImageAttachment[]
 ): Promise<{ data: SymptomCheckResult | null; error: string | null }> {
   console.log('[GeminiService] Calling gemini-symptom-check with', symptoms.length, 'symptoms');
   console.log('[GeminiService] Symptoms:', symptoms.join(', '));
   console.log('[GeminiService] Duration:', duration);
+  console.log('[GeminiService] Images:', images?.length ?? 0);
 
   try {
     const { data, error } = await supabase.functions.invoke('gemini-symptom-check', {
@@ -51,6 +60,7 @@ export async function analyzeSymptoms(
         symptoms,
         duration,
         additional_notes: additionalNotes,
+        images: images ?? undefined,
       },
     });
 
@@ -71,6 +81,7 @@ export async function analyzeSymptoms(
 
     console.log('[GeminiService] Prediction received:', data.prediction.conditions.length, 'conditions');
     console.log('[GeminiService] Overall risk:', data.prediction.overall_risk);
+    console.log('[GeminiService] Recommended specialties:', data.prediction.recommended_specialties?.join(', '));
 
     return { data: data as SymptomCheckResult, error: null };
   } catch (e: any) {

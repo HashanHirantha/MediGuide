@@ -6,10 +6,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface ImageAttachment {
+  base64: string;
+  mime_type: string;
+}
+
 interface SymptomCheckRequest {
   symptoms: string[];
   duration: string;
   additional_notes?: string;
+  images?: ImageAttachment[];
 }
 
 interface PredictionCondition {
@@ -24,6 +30,7 @@ interface PredictionResponse {
   recommendation: string;
   overall_risk: 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL';
   recommended_specialist: string;
+  recommended_specialties: string[];
 }
 
 serve(async (req) => {
@@ -80,8 +87,19 @@ serve(async (req) => {
       console.error('[GeminiCheck] Profile fetch error:', profileError.message);
     }
 
+    // ─── Fetch available doctor specialties from DB ──────────────
+    const { data: specialtyRows } = await supabase
+      .from('doctors')
+      .select('specialty')
+      .eq('is_verified', true);
+
+    const availableSpecialties = [
+      ...new Set((specialtyRows ?? []).map((r: any) => r.specialty).filter(Boolean)),
+    ];
+    console.log('[GeminiCheck] Available specialties:', availableSpecialties.join(', '));
+
     // Parse request body
-    const { symptoms, duration, additional_notes }: SymptomCheckRequest = await req.json();
+    const { symptoms, duration, additional_notes, images }: SymptomCheckRequest = await req.json();
 
     if (!symptoms || symptoms.length === 0) {
       return new Response(
@@ -92,6 +110,7 @@ serve(async (req) => {
 
     console.log('[GeminiCheck] Symptoms:', symptoms.join(', '));
     console.log('[GeminiCheck] Duration:', duration);
+    console.log('[GeminiCheck] Images attached:', images?.length ?? 0);
 
     // Calculate age from date_of_birth
     let age = 'Unknown';
@@ -112,6 +131,16 @@ serve(async (req) => {
       profile?.bmi ? `BMI: ${profile.bmi}` : null,
     ].filter(Boolean).join('\n');
 
+    // ─── Build the specialty constraint ──────────────────────────
+    const specialtyConstraint = availableSpecialties.length > 0
+      ? `\nAVAILABLE DOCTOR SPECIALTIES IN OUR SYSTEM:\n${availableSpecialties.join(', ')}\n\nIMPORTANT: "recommended_specialties" array MUST ONLY contain values from the above list. Pick 1-3 most relevant specialties.`
+      : '';
+
+    // ─── Build image context for prompt ──────────────────────────
+    const imageContext = images && images.length > 0
+      ? `\nATTACHED MEDICAL REPORTS/IMAGES:\nThe patient has attached ${images.length} image(s) of medical reports, lab results, prescriptions, or related documents. Carefully analyze any visible medical data (blood test values, diagnostic findings, medication names, X-ray observations, etc.) and incorporate the findings into your assessment. Mention key findings from the reports in your recommendation.`
+      : '';
+
     // Construct the Gemini prompt
     const prompt = `You are MediGuide AI, a medical symptom analysis assistant. Analyze the following patient's symptoms and provide a preliminary assessment.
 
@@ -128,6 +157,8 @@ ${symptoms.map((s, i) => `${i + 1}. ${s}`).join('\n')}
 
 DURATION: ${duration}
 ${additional_notes ? `ADDITIONAL NOTES: ${additional_notes}` : ''}
+${imageContext}
+${specialtyConstraint}
 
 Respond ONLY with valid JSON in exactly this format (no markdown, no code fences, no extra text):
 {
@@ -141,7 +172,8 @@ Respond ONLY with valid JSON in exactly this format (no markdown, no code fences
   ],
   "recommendation": "A brief, helpful recommendation for the patient including when to see a doctor.",
   "overall_risk": "LOW",
-  "recommended_specialist": "General Practitioner"
+  "recommended_specialist": "General Practitioner",
+  "recommended_specialties": ["General Medicine"]
 }
 
 RULES:
@@ -150,25 +182,42 @@ RULES:
 - icon_name must be one of: "activity", "heart", "thermometer", "brain", "eye", "wind", "zap", "shield", "alert-triangle", "clipboard" (these are Feather icon names)
 - risk_level must be one of: "low", "moderate", "high", "critical"  
 - overall_risk must be one of: "LOW", "MODERATE", "HIGH", "CRITICAL"
-- recommended_specialist should be a specific medical specialty
+- recommended_specialist should be a readable specialist title for display
+- recommended_specialties must be an array of 1-3 specialty names${availableSpecialties.length > 0 ? ' chosen ONLY from the AVAILABLE DOCTOR SPECIALTIES list above' : ''}
 - Keep recommendation under 200 characters
+- If medical report images are attached, reference key findings from them
 - Be medically responsible and conservative`;
 
     console.log('[GeminiCheck] Calling Gemini API...');
 
+    // ─── Build multimodal parts array ────────────────────────────
+    const parts: any[] = [{ text: prompt }];
+
+    // Add images as inline data for multimodal analysis
+    if (images && images.length > 0) {
+      for (const img of images.slice(0, 3)) {
+        parts.push({
+          inlineData: {
+            mimeType: img.mime_type,
+            data: img.base64,
+          },
+        });
+      }
+      console.log('[GeminiCheck] Added', Math.min(images.length, 3), 'images to Gemini request');
+    }
+
     // Call Gemini API
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`;
 
     const geminiResponse = await fetch(geminiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
+        contents: [{ parts }],
         generationConfig: {
           temperature: 0.3,
           topP: 0.8,
           topK: 40,
-          maxOutputTokens: 1024,
           responseMimeType: 'application/json',
         },
       }),
@@ -184,6 +233,7 @@ RULES:
     }
 
     const geminiData = await geminiResponse.json();
+    console.log('[GeminiCheck] Gemini finishReason:', geminiData?.candidates?.[0]?.finishReason);
     console.log('[GeminiCheck] Gemini response received');
 
     // Extract text from Gemini response
@@ -218,8 +268,16 @@ RULES:
       );
     }
 
+    // Ensure recommended_specialties is always an array
+    if (!Array.isArray(prediction.recommended_specialties)) {
+      prediction.recommended_specialties = prediction.recommended_specialist
+        ? [prediction.recommended_specialist]
+        : [];
+    }
+
     console.log('[GeminiCheck] Successfully parsed prediction with', prediction.conditions.length, 'conditions');
     console.log('[GeminiCheck] Overall risk:', prediction.overall_risk);
+    console.log('[GeminiCheck] Recommended specialties:', prediction.recommended_specialties.join(', '));
 
     return new Response(
       JSON.stringify({
