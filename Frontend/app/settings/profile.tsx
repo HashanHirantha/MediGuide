@@ -68,13 +68,20 @@ export default function ProfileSettingsScreen() {
     if (!isNaN(h) && !isNaN(w) && h > 0 && w > 0) {
       bmi = parseFloat((w / ((h / 100) * (h / 100))).toFixed(2));
     }
-    // First, check if the profile exists to avoid the upsert stack depth bug
-    const { data: existingProfile } = await supabase
+    // First, check if the profile exists
+    const { data: existingProfile, error: selectError } = await supabase
       .from('profiles')
       .select('id')
       .eq('id', user.id)
-      .single();
+      .maybeSingle(); // Use maybeSingle to avoid PGRST116 if no rows
 
+    if (selectError) {
+      setSaving(false);
+      Alert.alert('Database Error', selectError.message);
+      return;
+    }
+
+    // Only include columns that actually exist in the profiles table schema
     const payload = {
       first_name: firstName,
       last_name: lastName,
@@ -82,9 +89,6 @@ export default function ProfileSettingsScreen() {
       date_of_birth: dateOfBirth || null,
       gender: gender || null,
       blood_group: bloodGroup || null,
-      height_cm: isNaN(h) ? null : h,
-      weight_kg: isNaN(w) ? null : w,
-      bmi: bmi || null,
     };
 
     let error;
