@@ -68,7 +68,8 @@ export default function ProfileSettingsScreen() {
     if (!isNaN(h) && !isNaN(w) && h > 0 && w > 0) {
       bmi = parseFloat((w / ((h / 100) * (h / 100))).toFixed(2));
     }
-    const { error } = await supabase.from('profiles').update({
+    const { error } = await supabase.from('profiles').upsert({
+      id: user.id,
       first_name: firstName,
       last_name: lastName,
       phone,
@@ -78,7 +79,7 @@ export default function ProfileSettingsScreen() {
       height_cm: isNaN(h) ? null : h,
       weight_kg: isNaN(w) ? null : w,
       bmi: bmi || null,
-    }).eq('id', user.id);
+    });
     setSaving(false);
     if (error) {
       Alert.alert('Error', error.message);

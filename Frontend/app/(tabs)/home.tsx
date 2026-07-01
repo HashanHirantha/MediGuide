@@ -10,8 +10,8 @@ import { colors } from '../../constants/theme';
 export default function HomeScreen() {
   const { profile } = useAuth();
   
-  // Use profile name if available, otherwise fallback to "Alex" to match the mockup
-  const firstName = profile?.first_name || 'Alex';
+  // Use profile name if available, formatted with a comma
+  const firstName = profile?.first_name ? `, ${profile.first_name}` : '';
 
   // Determine greeting based on time of day
   const getGreeting = () => {
@@ -28,7 +28,7 @@ export default function HomeScreen() {
       <ScrollView style={globalStyles.container} contentContainerStyle={[globalStyles.content, { paddingBottom: 100 }]}>
         
         {/* Greeting */}
-        <Text style={globalStyles.greetingTitle}>{greeting}, {firstName}</Text>
+        <Text style={globalStyles.greetingTitle}>{greeting}{firstName}</Text>
         <Text style={globalStyles.greetingSubtitle}>Your heart vitality is at 94% today.</Text>
 
         {/* Search */}
