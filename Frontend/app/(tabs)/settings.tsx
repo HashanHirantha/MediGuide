@@ -1,6 +1,7 @@
 import React from 'react';
 import { router } from 'expo-router';
-import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, Image, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../hooks/useAuth';
 import { TopBar } from '../../components/TopBar';

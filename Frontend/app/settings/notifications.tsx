@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, SafeAreaView, Switch, ScrollView } from 'react-native';
+import { View, Text, Switch, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { TopBar } from '../../components/TopBar';
 import { colors } from '../../constants/theme';
 import { globalStyles } from '../../constants/globalStyles';
