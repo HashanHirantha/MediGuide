@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { TopBar } from '../../components/TopBar';
 import { useAuth } from '../../hooks/useAuth';
@@ -37,7 +38,7 @@ export default function ProfileSettingsScreen() {
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true, aspect: [1, 1], quality: 0.7,
     });
     if (!result.canceled && result.assets?.[0] && user) {
@@ -47,11 +48,11 @@ export default function ProfileSettingsScreen() {
       const filePath = `${user.id}/avatar.${ext}`;
       const response = await fetch(uri);
       const blob = await response.blob();
-      const { error } = await supabase.storage.from('avatars').upload(filePath, blob, { upsert: true });
+      const { error } = await supabase.storage.from('patients').upload(filePath, blob, { upsert: true });
       if (error) {
         Alert.alert('Upload Failed', error.message);
       } else {
-        const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
+        const { data: urlData } = supabase.storage.from('patients').getPublicUrl(filePath);
         await supabase.from('profiles').update({ profile_image: urlData.publicUrl }).eq('id', user.id);
         refreshProfile();
         Alert.alert('Success', 'Profile photo updated!');
