@@ -68,8 +68,14 @@ export default function ProfileSettingsScreen() {
     if (!isNaN(h) && !isNaN(w) && h > 0 && w > 0) {
       bmi = parseFloat((w / ((h / 100) * (h / 100))).toFixed(2));
     }
-    const { error } = await supabase.from('profiles').upsert({
-      id: user.id,
+    // First, check if the profile exists to avoid the upsert stack depth bug
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', user.id)
+      .single();
+
+    const payload = {
       first_name: firstName,
       last_name: lastName,
       phone,
@@ -79,7 +85,16 @@ export default function ProfileSettingsScreen() {
       height_cm: isNaN(h) ? null : h,
       weight_kg: isNaN(w) ? null : w,
       bmi: bmi || null,
-    });
+    };
+
+    let error;
+    if (existingProfile) {
+      const { error: updateError } = await supabase.from('profiles').update(payload).eq('id', user.id);
+      error = updateError;
+    } else {
+      const { error: insertError } = await supabase.from('profiles').insert({ id: user.id, ...payload });
+      error = insertError;
+    }
     setSaving(false);
     if (error) {
       Alert.alert('Error', error.message);
