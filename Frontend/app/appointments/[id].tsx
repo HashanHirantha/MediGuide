@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, ScrollView, Alert, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -110,61 +111,89 @@ export default function AppointmentDetailScreen() {
   };
 
   if (loading) return <LoadingSpinner />;
-  if (!appointment) return <Text style={globalStyles.appointmentError}>Appointment not found.</Text>;
+  if (!appointment) {
+    return (
+      <SafeAreaView style={globalStyles.safeArea}>
+        <TopBar />
+        <View style={[globalStyles.container, globalStyles.content]}>
+           <View style={globalStyles.errorCard}>
+             <Text style={globalStyles.errorText}>Appointment not found.</Text>
+           </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
-  const doctorName = `Dr. ${appointment.doctors?.profiles?.first_name} ${appointment.doctors?.profiles?.last_name}`;
+  const doctorName = `Dr. ${appointment.doctors?.profiles?.first_name || ''} ${appointment.doctors?.profiles?.last_name || ''}`;
   const canCancel = ['pending', 'confirmed'].includes(appointment.status);
+  const avatarUrl = appointment.doctors?.profiles?.profile_image || 'https://i.pravatar.cc/150?img=8';
 
   return (
-    <View style={globalStyles.safeArea}>
+    <SafeAreaView style={globalStyles.safeArea}>
       <TopBar />
       <ScrollView style={globalStyles.container} contentContainerStyle={globalStyles.content}>
         <Text style={globalStyles.pageTitle}>Appointment Details</Text>
+        <Text style={globalStyles.pageDescription}>View and manage your scheduled visit</Text>
 
         <View style={globalStyles.profileCard}>
-        <Text style={globalStyles.appointmentDoctorName}>{doctorName}</Text>
-        <Text style={globalStyles.appointmentSpecialty}>{appointment.doctors?.specialty}</Text>
-        <Text style={globalStyles.appointmentHospital}>{appointment.doctors?.hospital_name}</Text>
-        <View style={globalStyles.appointmentStatusRow}>
-          <Badge
-            label={appointment.status.toUpperCase()}
-            color={STATUS_COLORS[appointment.status]}
-          />
-        </View>
-      </View>
-
-      <View style={globalStyles.cardPadded}>
-        {[
-          { label: 'Date', value: new Date(appointment.appointment_date).toLocaleDateString('en', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) },
-          { label: 'Time', value: appointment.appointment_time },
-          { label: 'Consultation Fee', value: `LKR ${appointment.doctors?.consultation_fee || '3500'}` },
-        ].map((item, idx, arr) => (
-          <View key={item.label} style={[globalStyles.appointmentRow, idx < arr.length - 1 && globalStyles.appointmentRowBorder]}>
-            <Text style={globalStyles.appointmentRowLabel}>{item.label}</Text>
-            <Text style={globalStyles.appointmentRowValue}>{item.value}</Text>
+          <Image source={{ uri: avatarUrl }} style={globalStyles.avatarLarge} />
+          <View style={globalStyles.profileInfo}>
+            <Text style={globalStyles.profileName}>{doctorName}</Text>
+            <Text style={globalStyles.profileTier}>{appointment.doctors?.specialty}</Text>
+            <Text style={[globalStyles.profileTier, { color: colors.textSecondary, marginTop: 2 }]}>
+              {appointment.doctors?.hospital_name}
+            </Text>
+            <View style={{ marginTop: 8, alignSelf: 'flex-start' }}>
+              <Badge
+                label={appointment.status.toUpperCase()}
+                color={STATUS_COLORS[appointment.status] || colors.textSecondary}
+              />
+            </View>
           </View>
-        ))}
-      </View>
-
-      {appointment.notes ? (
-        <View style={globalStyles.cardPadded}>
-          <Text style={globalStyles.sectionTitle}>Notes</Text>
-          <Text style={globalStyles.appointmentNotes}>{appointment.notes}</Text>
         </View>
-      ) : null}
 
-      {canCancel && (
-        <Button title="Cancel Appointment" onPress={handleCancel} variant="danger" />
-      )}
+        <View style={globalStyles.cardPadded}>
+          <Text style={globalStyles.sectionTitle}>APPOINTMENT INFO</Text>
+          <View style={{ marginTop: 10 }}>
+            {[
+              { label: 'Date', value: new Date(appointment.appointment_date).toLocaleDateString('en', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) },
+              { label: 'Time', value: appointment.appointment_time },
+              { label: 'Consultation Fee', value: `LKR ${appointment.doctors?.consultation_fee || '3500'}` },
+            ].map((item, idx, arr) => (
+              <View key={item.label}>
+                <View style={globalStyles.rowSpaceBetween}>
+                  <Text style={globalStyles.rowTitle}>{item.label}</Text>
+                  <Text style={globalStyles.rowSubtitle}>{item.value}</Text>
+                </View>
+                {idx < arr.length - 1 && <View style={[globalStyles.divider, { marginVertical: 4 }]} />}
+              </View>
+            ))}
+          </View>
+        </View>
 
-      {appointment.status === 'completed' && (
-        <Button
-          title="Leave a Review"
-          onPress={() => router.push({ pathname: '/doctors/[id]', params: { id: appointment.doctor_id } })}
-          variant="outline"
-        />
-      )}
+        {appointment.notes ? (
+          <View style={globalStyles.cardPadded}>
+            <Text style={globalStyles.sectionTitle}>YOUR NOTES</Text>
+            <View style={{ marginTop: 10 }}>
+              <Text style={globalStyles.rowSubtitle}>{appointment.notes}</Text>
+            </View>
+          </View>
+        ) : null}
+
+        <View style={{ marginTop: 20, gap: 10 }}>
+          {canCancel && (
+            <Button title="Cancel Appointment" onPress={handleCancel} variant="danger" />
+          )}
+
+          {appointment.status === 'completed' && (
+            <Button
+              title="Leave a Review"
+              onPress={() => router.push({ pathname: '/doctors/[id]', params: { id: appointment.doctor_id } })}
+              variant="outline"
+            />
+          )}
+        </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
