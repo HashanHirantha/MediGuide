@@ -42,7 +42,7 @@ export default function HelpScreen() {
     if (type === 'email') {
       Linking.openURL('mailto:support@mediguide.com');
     } else {
-      Linking.openURL('tel:+1234567890');
+      Linking.openURL('tel:+94705665091');
     }
   };
 
@@ -110,7 +110,7 @@ export default function HelpScreen() {
             </View>
             <View style={globalStyles.rowTextContainer}>
               <Text style={globalStyles.rowTitle}>Call Us</Text>
-              <Text style={globalStyles.rowSubtitle}>+1 (234) 567-890</Text>
+              <Text style={globalStyles.rowSubtitle}>+94 566 5091</Text>
             </View>
             <Feather name="external-link" size={16} color={colors.iconLight} />
           </TouchableOpacity>
