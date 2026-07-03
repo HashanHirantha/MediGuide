@@ -16,6 +16,7 @@ interface SymptomCheckRequest {
   duration: string;
   additional_notes?: string;
   images?: ImageAttachment[];
+  language?: string;
 }
 
 interface PredictionCondition {
@@ -99,7 +100,7 @@ serve(async (req) => {
     console.log('[GeminiCheck] Available specialties:', availableSpecialties.join(', '));
 
     // Parse request body
-    const { symptoms, duration, additional_notes, images }: SymptomCheckRequest = await req.json();
+    const { symptoms, duration, additional_notes, images, language }: SymptomCheckRequest = await req.json();
 
     if (!symptoms || symptoms.length === 0) {
       return new Response(
@@ -159,6 +160,7 @@ DURATION: ${duration}
 ${additional_notes ? `ADDITIONAL NOTES: ${additional_notes}` : ''}
 ${imageContext}
 ${specialtyConstraint}
+${language ? `\nCRITICAL LANGUAGE REQUIREMENT:\nYou MUST output the 'name', 'recommendation', 'recommended_specialist', and 'recommended_specialties' fields in ${language} language. The JSON keys themselves and the risk level enumerations ("low", "HIGH", etc.) MUST remain in English.` : ''}
 
 Respond ONLY with valid JSON in exactly this format (no markdown, no code fences, no extra text):
 {

@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Picker } from '@react-native-picker/picker';
+import { Feather } from '@expo/vector-icons';
 import { TopBar } from '../../components/TopBar';
 import { globalStyles } from '../../constants/globalStyles';
 import { colors } from '../../constants/theme';
@@ -11,6 +11,12 @@ import i18n from '../../i18n';
 export default function LanguageSettingsScreen() {
   const { locale, setLanguage } = useLanguage();
 
+  const languages = [
+    { code: 'en', label: 'English (United States)', icon: 'globe' },
+    { code: 'si', label: 'සිංහල (Sinhala)', icon: 'map-pin' },
+    { code: 'ta', label: 'தமிழ் (Tamil)', icon: 'map' },
+  ];
+
   return (
     <SafeAreaView style={globalStyles.safeArea}>
       <TopBar />
@@ -18,15 +24,41 @@ export default function LanguageSettingsScreen() {
         <Text style={globalStyles.pageTitle}>{i18n.t('settings.language') || 'Language'}</Text>
         <Text style={globalStyles.pageDescription}>{i18n.t('settings.select_language') || 'Select your preferred language.'}</Text>
 
-        <View style={{ backgroundColor: colors.surface, borderRadius: 12, marginTop: 20, overflow: 'hidden' }}>
-          <Picker
-            selectedValue={locale}
-            onValueChange={(itemValue) => setLanguage(itemValue)}
-          >
-            <Picker.Item label="English (United States)" value="en" />
-            <Picker.Item label="සිංහල (Sinhala)" value="si" />
-            <Picker.Item label="தமிழ் (Tamil)" value="ta" />
-          </Picker>
+        <View style={[globalStyles.card, { marginTop: 20 }]}>
+          {languages.map((lang, index) => (
+            <React.Fragment key={lang.code}>
+              <TouchableOpacity 
+                style={globalStyles.row}
+                onPress={() => setLanguage(lang.code)}
+              >
+                <View style={[
+                  globalStyles.iconContainer, 
+                  locale === lang.code ? { backgroundColor: colors.primary + '20' } : {}
+                ]}>
+                  <Feather 
+                    name={lang.icon as any} 
+                    size={20} 
+                    color={locale === lang.code ? colors.primary : colors.iconDark} 
+                  />
+                </View>
+                <View style={globalStyles.rowTextContainer}>
+                  <Text style={[
+                    globalStyles.rowTitle,
+                    locale === lang.code ? { color: colors.primary, fontWeight: '700' } : {}
+                  ]}>
+                    {lang.label}
+                  </Text>
+                </View>
+                {locale === lang.code && (
+                  <Feather name="check" size={24} color={colors.primary} />
+                )}
+              </TouchableOpacity>
+              
+              {index < languages.length - 1 && (
+                <View style={[globalStyles.divider, { marginLeft: 72 }]} />
+              )}
+            </React.Fragment>
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>

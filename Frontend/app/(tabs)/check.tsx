@@ -18,6 +18,8 @@ import { TopBar } from '../../components/TopBar';
 import { globalStyles } from '../../constants/globalStyles';
 import { colors } from '../../constants/theme';
 import { useAuth } from '../../hooks/useAuth';
+import { useLanguage } from '../../contexts/LanguageContext';
+import i18n from '../../i18n';
 import {
   analyzeSymptoms,
   getRiskColor,
@@ -71,6 +73,7 @@ function getFeatherIcon(name: string): string {
 
 export default function SymptomCheckerScreen() {
   const { user, profile } = useAuth();
+  const { locale } = useLanguage();
 
   // Symptom state
   const [searchQuery, setSearchQuery] = useState('');
@@ -228,11 +231,15 @@ export default function SymptomCheckerScreen() {
     setPredictionError(null);
     setPrediction(null);
 
+    const languageMap: Record<string, string> = { en: 'English', si: 'Sinhala', ta: 'Tamil' };
+    const aiLanguage = languageMap[locale] || 'English';
+
     const { data, error } = await analyzeSymptoms(
       selectedSymptoms,
       selectedDuration,
       additionalNotes || undefined,
-      attachments.length > 0 ? attachments.map(a => ({ base64: a.base64, mime_type: a.mimeType })) : undefined
+      attachments.length > 0 ? attachments.map(a => ({ base64: a.base64, mime_type: a.mimeType })) : undefined,
+      aiLanguage
     );
 
     setIsAnalyzing(false);
@@ -298,9 +305,9 @@ export default function SymptomCheckerScreen() {
       <ScrollView style={globalStyles.container} contentContainerStyle={globalStyles.content}>
 
         {/* Huge Title */}
-        <Text style={globalStyles.mainTitle}>Symptom Checker</Text>
+        <Text style={globalStyles.mainTitle}>{i18n.t('check.title') || 'Symptom Checker'}</Text>
         <Text style={globalStyles.pageDescription}>
-          Tell us how you're feeling. Our AI analyzes your inputs for potential patterns.
+          {i18n.t('check.desc') || "Tell us how you're feeling. Our AI analyzes your inputs for potential patterns."}
         </Text>
 
         {/* Step Progress Card */}
@@ -340,7 +347,7 @@ export default function SymptomCheckerScreen() {
 
         {/* Add Symptom Card */}
         <View style={globalStyles.cardPadded}>
-          <Text style={globalStyles.sectionTitle}>ADD SYMPTOM</Text>
+          <Text style={globalStyles.sectionTitle}>{i18n.t('check.add_symptom') || 'ADD SYMPTOM'}</Text>
           <View style={globalStyles.searchInputContainer}>
             <Feather name="search" size={20} color={colors.iconLight} style={globalStyles.searchIcon} />
             <TextInput
@@ -388,7 +395,7 @@ export default function SymptomCheckerScreen() {
 
         {/* Common Observations Card */}
         <View style={globalStyles.cardPadded}>
-          <Text style={globalStyles.sectionTitle}>COMMON OBSERVATIONS</Text>
+          <Text style={globalStyles.sectionTitle}>{i18n.t('check.common_obs') || 'COMMON OBSERVATIONS'}</Text>
           <View style={globalStyles.chipsContainer}>
             {commonSymptoms.map((symptom) => {
               const isSelected = selectedSymptoms.includes(symptom);
@@ -409,8 +416,8 @@ export default function SymptomCheckerScreen() {
 
         {/* Duration Card */}
         <View style={globalStyles.cardPadded}>
-          <Text style={globalStyles.sectionTitle}>DURATION</Text>
-          <Text style={globalStyles.durationHint}>How long have you been experiencing these symptoms?</Text>
+          <Text style={globalStyles.sectionTitle}>{i18n.t('check.duration') || 'DURATION'}</Text>
+          <Text style={globalStyles.durationHint}>{i18n.t('check.duration_hint') || 'How long have you been experiencing these symptoms?'}</Text>
           <View style={globalStyles.chipsContainer}>
             {DURATION_OPTIONS.map((option) => {
               const isActive = selectedDuration === option;
@@ -435,7 +442,7 @@ export default function SymptomCheckerScreen() {
 
         {/* Additional Notes */}
         <View style={globalStyles.cardPadded}>
-          <Text style={globalStyles.sectionTitle}>ADDITIONAL NOTES (OPTIONAL)</Text>
+          <Text style={globalStyles.sectionTitle}>{i18n.t('check.notes') || 'ADDITIONAL NOTES (OPTIONAL)'}</Text>
           <TextInput
             style={globalStyles.notesInput}
             placeholder="Any other details? (e.g., recent travel, medication, allergies...)"
@@ -450,7 +457,7 @@ export default function SymptomCheckerScreen() {
 
         {/* Attach Reports */}
         <View style={globalStyles.cardPadded}>
-          <Text style={globalStyles.sectionTitle}>ATTACH REPORTS (OPTIONAL)</Text>
+          <Text style={globalStyles.sectionTitle}>{i18n.t('check.attach') || 'ATTACH REPORTS (OPTIONAL)'}</Text>
           <Text style={globalStyles.durationHint}>
             Upload up to 3 images or PDFs (e.g., lab results, prescriptions) for AI analysis.
           </Text>
@@ -498,7 +505,7 @@ export default function SymptomCheckerScreen() {
             </>
           ) : (
             <>
-              <Text style={globalStyles.actionButtonText}>Generate Prediction</Text>
+              <Text style={globalStyles.actionButtonText}>{i18n.t('check.generate') || 'Generate Prediction'}</Text>
               <MaterialCommunityIcons name="brain" size={20} color={colors.black} />
             </>
           )}
