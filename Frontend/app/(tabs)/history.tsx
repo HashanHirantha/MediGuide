@@ -32,7 +32,7 @@ const STATUS_COLORS: Record<string, string> = {
   confirmed: colors.secondary,
   completed: colors.primary,
   cancelled: colors.accent,
-  no_show:   '#8E8E93',
+  no_show:   '#4A90D9',
 };
 
 const RISK_COLORS: Record<string, string> = {
