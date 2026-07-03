@@ -191,7 +191,7 @@ export default function RegisterScreen() {
               label="First Name" 
               value={firstName} 
               onChangeText={setFirstName} 
-              placeholder="John" 
+              placeholder="Hashan" 
               leftIcon="user"
               style={globalStyles.flexHalf}
             />
@@ -200,7 +200,7 @@ export default function RegisterScreen() {
               label="Last Name" 
               value={lastName} 
               onChangeText={setLastName} 
-              placeholder="Doe" 
+              placeholder="Hiranta" 
               leftIcon="user"
               style={globalStyles.flexHalf}
             />
@@ -219,7 +219,7 @@ export default function RegisterScreen() {
             value={phone}
             onChangeText={setPhone}
             keyboardType="phone-pad"
-            placeholder="+1 234 567 8900"
+            placeholder="+94 70 567 8900"
             leftIcon="phone"
           />
           <TouchableOpacity onPress={() => setShowDatePicker(true)} style={{ width: '100%' }}>
