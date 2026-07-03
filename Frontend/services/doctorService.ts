@@ -54,20 +54,96 @@ export async function submitReview(review: {
 }
 
 /**
+ * Maps common AI-generated specialist job titles → actual DB specialty department names.
+ * Gemini often returns e.g. "General Practitioner" but the DB stores "General Medicine".
+ */
+const SPECIALTY_ALIASES: Record<string, string> = {
+  // General
+  'general practitioner':       'General Medicine',
+  'gp':                         'General Medicine',
+  'family medicine':            'General Medicine',
+  'family physician':           'General Medicine',
+  'internal medicine':          'General Medicine',
+  'internist':                  'General Medicine',
+  // Pulmonology
+  'pulmonologist':              'Pulmonology',
+  'respiratory specialist':     'Pulmonology',
+  'chest physician':            'Pulmonology',
+  // Cardiology
+  'cardiologist':               'Cardiology',
+  'heart specialist':           'Cardiology',
+  // Neurology
+  'neurologist':                'Neurology',
+  'brain specialist':           'Neurology',
+  // Endocrinology
+  'endocrinologist':            'Endocrinology',
+  'diabetes specialist':        'Endocrinology',
+  'thyroid specialist':         'Endocrinology',
+  // Gastroenterology
+  'gastroenterologist':         'Gastroenterology',
+  'gi specialist':              'Gastroenterology',
+  // ENT
+  'ent specialist':             'ENT',
+  'otolaryngologist':           'ENT',
+  'ear nose throat':            'ENT',
+  // Dermatology
+  'dermatologist':              'Dermatology',
+  'skin specialist':            'Dermatology',
+  // Orthopedics
+  'orthopedic surgeon':         'Orthopedics',
+  'orthopaedic surgeon':        'Orthopedics',
+  'orthopedist':                'Orthopedics',
+  'bone specialist':            'Orthopedics',
+  // Ophthalmology
+  'ophthalmologist':            'Ophthalmology',
+  'eye doctor':                 'Ophthalmology',
+  'eye specialist':             'Ophthalmology',
+};
+
+/**
+ * Normalize an array of specialty strings from AI output to DB-stored values.
+ * Falls through the alias map; if no alias found, keeps the original value.
+ */
+function normalizeSpecialties(specialties: string[]): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  for (const sp of specialties) {
+    const key = sp.toLowerCase().trim();
+    const normalized = SPECIALTY_ALIASES[key] ?? sp;
+    if (!seen.has(normalized.toLowerCase())) {
+      seen.add(normalized.toLowerCase());
+      result.push(normalized);
+    }
+  }
+
+  return result;
+}
+
+/**
  * Fetch verified doctors matching any of the given specialties, ordered by average rating (highest first).
- * Used by the RecommendedDoctors component after symptom analysis.
+ * Automatically normalizes AI-generated specialist titles to DB specialty department names.
  *
- * @param specialties - Array of specialty names (must match DB values exactly)
+ * @param specialties - Array of specialty names from AI (may include titles like "General Practitioner")
  */
 export async function getRecommendedDoctors(specialties: string[]) {
   if (specialties.length === 0) {
     return { data: [], error: null };
   }
 
+  // Normalize AI titles → DB department names (e.g. "General Practitioner" → "General Medicine")
+  const normalized = normalizeSpecialties(specialties);
+  console.log('[DoctorService] Querying specialties:', normalized.join(', '));
+
+  // Build case-insensitive OR filter
+  const orFilter = normalized
+    .map((s) => `specialty.ilike.${s}`)
+    .join(',');
+
   return supabase
     .from('doctors')
     .select('*, profiles(first_name, last_name, profile_image)')
     .eq('is_verified', true)
-    .in('specialty', specialties)
+    .or(orFilter)
     .order('average_rating', { ascending: false });
 }

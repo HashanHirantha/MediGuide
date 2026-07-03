@@ -79,9 +79,19 @@ export async function analyzeSymptoms(
       return { data: null, error: 'No prediction received from AI' };
     }
 
-    console.log('[GeminiService] Prediction received:', data.prediction.conditions.length, 'conditions');
-    console.log('[GeminiService] Overall risk:', data.prediction.overall_risk);
-    console.log('[GeminiService] Recommended specialties:', data.prediction.recommended_specialties?.join(', '));
+    // ── Client-side fallback: ensure recommended_specialties is always a non-empty array ──
+    const pred = data.prediction;
+    if (!Array.isArray(pred.recommended_specialties) || pred.recommended_specialties.length === 0) {
+      pred.recommended_specialties = pred.recommended_specialist
+        ? [pred.recommended_specialist]
+        : [];
+      console.log('[GeminiService] Derived specialties from recommended_specialist:', pred.recommended_specialties);
+    }
+
+    console.log('[GeminiService] Prediction received:', pred.conditions.length, 'conditions');
+    console.log('[GeminiService] Overall risk:', pred.overall_risk);
+    console.log('[GeminiService] Recommended specialties (final):', pred.recommended_specialties.join(', '));
+    console.log('[GeminiService] Raw prediction:', JSON.stringify(pred));
 
     return { data: data as SymptomCheckResult, error: null };
   } catch (e: any) {

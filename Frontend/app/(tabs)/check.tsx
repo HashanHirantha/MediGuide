@@ -27,6 +27,7 @@ import {
 } from '../../services/geminiService';
 import { RecommendedDoctors } from '../../components/RecommendedDoctors';
 import { searchSymptoms } from '../../services/symptomService';
+import { saveAiCheckHistory } from '../../services/aiCheckHistoryService';
 
 // ─── Duration options ────────────────────────────────────────
 
@@ -245,7 +246,23 @@ export default function SymptomCheckerScreen() {
 
     if (data?.prediction) {
       console.log('[Check] Prediction received successfully');
+      console.log('[Check] recommended_specialties:', data.prediction.recommended_specialties);
+      console.log('[Check] recommended_specialist:', data.prediction.recommended_specialist);
       setPrediction(data.prediction);
+
+      // ── Save to history (silent — don't block UI on failure) ──
+      if (user?.id) {
+        saveAiCheckHistory(
+          user.id,
+          selectedSymptoms,
+          selectedDuration,
+          data.prediction,
+          additionalNotes || undefined
+        ).then(({ error }) => {
+          if (error) console.warn('[Check] History save failed:', error);
+          else console.log('[Check] Saved to ai_check_history');
+        });
+      }
     }
   };
 
@@ -259,6 +276,18 @@ export default function SymptomCheckerScreen() {
     setPrediction(null);
     setPredictionError(null);
     setSearchQuery('');
+  };
+
+  // ─── Derive specialties for doctor recommendations ───────────
+
+  const getDoctorSpecialties = (pred: PredictionResponse): string[] => {
+    if (Array.isArray(pred.recommended_specialties) && pred.recommended_specialties.length > 0) {
+      return pred.recommended_specialties;
+    }
+    if (pred.recommended_specialist) {
+      return [pred.recommended_specialist];
+    }
+    return ['General Medicine'];
   };
 
   // ─── Render ─────────────────────────────────────────────────
@@ -545,16 +574,18 @@ export default function SymptomCheckerScreen() {
               </Text>
             </View>
 
-            {/* Recommended Doctors */}
-            {prediction.recommended_specialties && prediction.recommended_specialties.length > 0 && (
-              <RecommendedDoctors specialties={prediction.recommended_specialties} />
-            )}
-
             {/* New Analysis Button */}
             <TouchableOpacity style={globalStyles.resetButton} onPress={handleReset} activeOpacity={0.7}>
               <Feather name="refresh-cw" size={16} color={colors.surface} />
               <Text style={globalStyles.resetButtonText}>New Analysis</Text>
             </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Recommended Doctors — always shown when there is a prediction */}
+        {prediction && (
+          <View style={globalStyles.cardPadded}>
+            <RecommendedDoctors specialties={getDoctorSpecialties(prediction)} />
           </View>
         )}
 
