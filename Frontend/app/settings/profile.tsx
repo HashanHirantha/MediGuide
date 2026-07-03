@@ -10,9 +10,13 @@ import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../../lib/supabase';
 import { globalStyles } from '../../constants/globalStyles';
 import { colors } from '../../constants/theme';
+import { Picker } from '@react-native-picker/picker';
+import { useLanguage } from '../../contexts/LanguageContext';
+import i18n from '../../i18n';
 
 export default function ProfileSettingsScreen() {
   const { user, profile, refreshProfile } = useAuth();
+  const { locale, setLanguage } = useLanguage();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
@@ -116,7 +120,7 @@ export default function ProfileSettingsScreen() {
     <SafeAreaView style={globalStyles.safeArea}>
       <TopBar />
       <ScrollView contentContainerStyle={globalStyles.content}>
-        <Text style={globalStyles.pageTitle}>Edit Profile</Text>
+        <Text style={globalStyles.pageTitle}>{i18n.t('settings.edit_profile') || 'Edit Profile'}</Text>
         <Text style={globalStyles.pageDescription}>Update your personal information and health data.</Text>
 
         {/* Avatar */}
@@ -131,6 +135,18 @@ export default function ProfileSettingsScreen() {
             )}
           </TouchableOpacity>
           <Text style={globalStyles.avatarLabel}>Tap to change photo</Text>
+        </View>
+
+        <Text style={[globalStyles.sectionTitle, { marginTop: 10, marginBottom: 5 }]}>{i18n.t('settings.language')}</Text>
+        <View style={{ backgroundColor: colors.surface, borderRadius: 12, marginBottom: 20, overflow: 'hidden' }}>
+          <Picker
+            selectedValue={locale}
+            onValueChange={(itemValue) => setLanguage(itemValue)}
+          >
+            <Picker.Item label="English" value="en" />
+            <Picker.Item label="සිංහල (Sinhala)" value="si" />
+            <Picker.Item label="தமிழ் (Tamil)" value="ta" />
+          </Picker>
         </View>
 
         <Input label="First Name" value={firstName} onChangeText={setFirstName} leftIcon="user" />

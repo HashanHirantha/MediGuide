@@ -1,0 +1,32 @@
+{
+  "tabs": {
+    "home": "முகப்பு",
+    "doctors": "மருத்துவர்கள்",
+    "check": "AI பரிசோதனை",
+    "history": "வரலாறு",
+    "settings": "அமைப்புகள்"
+  },
+  "home": {
+    "greeting_morning": "காலை வணக்கம்",
+    "greeting_afternoon": "மதிய வணக்கம்",
+    "greeting_evening": "மாலை வணக்கம்",
+    "how_are_you": "இன்று நீங்கள் எப்படி உணர்கிறீர்கள்?",
+    "check_symptoms": "அறிகுறிகளைச் சரிபார்க்கவும்",
+    "check_symptoms_desc": "AI மூலம் நோயறிதல்",
+    "find_doctor": "மருத்துவரைக் கண்டறியவும்",
+    "find_doctor_desc": "முன்பதிவு செய்யவும்",
+    "my_history": "எனது வரலாறு",
+    "my_history_desc": "கடந்த சந்திப்புகள்",
+    "recent_activity": "சமீபத்திய செயல்பாடுகள்",
+    "see_all": "அனைத்தையும் காண்க",
+    "no_recent_activity": "சமீபத்திய செயல்பாடுகள் இல்லை.",
+    "search_placeholder": "மருத்துவர்கள், மருத்துவமனைகள் தேடுக..."
+  },
+  "settings": {
+    "profile": "சுயவிவரம்",
+    "language": "மொழி",
+    "select_language": "மொழியைத் தேர்ந்தெடுக்கவும்",
+    "sign_out": "வெளியேறு",
+    "edit_profile": "சுயவிவரத்தை திருத்து"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "tabs": {
+    "home": "Home",
+    "doctors": "Doctors",
+    "check": "AI Check",
+    "history": "History",
+    "settings": "Settings"
+  },
+  "home": {
+    "greeting_morning": "Good Morning",
+    "greeting_afternoon": "Good Afternoon",
+    "greeting_evening": "Good Evening",
+    "how_are_you": "How are you feeling today?",
+    "check_symptoms": "Check Symptoms",
+    "check_symptoms_desc": "AI powered diagnosis",
+    "find_doctor": "Find a Doctor",
+    "find_doctor_desc": "Book an appointment",
+    "my_history": "My History",
+    "my_history_desc": "Past visits & tests",
+    "recent_activity": "RECENT ACTIVITY",
+    "see_all": "See All",
+    "no_recent_activity": "No recent activity yet.",
+    "search_placeholder": "Search doctors, hospitals..."
+  },
+  "settings": {
+    "profile": "Profile",
+    "language": "Language",
+    "select_language": "Select Language",
+    "sign_out": "Sign Out",
+    "edit_profile": "Edit Profile"
+  }
+}

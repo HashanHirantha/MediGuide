@@ -1,0 +1,32 @@
+{
+  "tabs": {
+    "home": "මුල් පිටුව",
+    "doctors": "වෛද්‍යවරුන්",
+    "check": "AI පරීක්ෂාව",
+    "history": "ඉතිහාසය",
+    "settings": "සැකසීම්"
+  },
+  "home": {
+    "greeting_morning": "සුභ උදෑසනක්",
+    "greeting_afternoon": "සුභ දහවලක්",
+    "greeting_evening": "සුභ සන්ධ්‍යාවක්",
+    "how_are_you": "ඔබට අද කොහොමද?",
+    "check_symptoms": "රෝග ලක්ෂණ පරීක්ෂාව",
+    "check_symptoms_desc": "AI මගින් රෝග විනිශ්චය",
+    "find_doctor": "වෛද්‍යවරයෙකු සොයන්න",
+    "find_doctor_desc": "වෛද්‍ය හමුවක් වෙන්කරන්න",
+    "my_history": "මගේ ඉතිහාසය",
+    "my_history_desc": "පෙර හමුවීම් සහ පරීක්ෂණ",
+    "recent_activity": "මෑත කාලීන ක්‍රියාකාරකම්",
+    "see_all": "සියල්ල බලන්න",
+    "no_recent_activity": "මෑත කාලීන ක්‍රියාකාරකම් නොමැත.",
+    "search_placeholder": "වෛද්‍යවරුන්, රෝහල් සොයන්න..."
+  },
+  "settings": {
+    "profile": "ගිණුම",
+    "language": "භාෂාව",
+    "select_language": "භාෂාව තෝරන්න",
+    "sign_out": "ඉවත් වන්න",
+    "edit_profile": "ගිණුම සංස්කරණය"
+  }
+}

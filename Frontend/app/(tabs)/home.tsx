@@ -7,9 +7,12 @@ import { useAuth } from '../../hooks/useAuth';
 import { TopBar } from '../../components/TopBar';
 import { globalStyles } from '../../constants/globalStyles';
 import { colors } from '../../constants/theme';
+import i18n from '../../i18n';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export default function HomeScreen() {
   const { profile } = useAuth();
+  const { locale } = useLanguage();
   
   // Use profile name if available, formatted with a comma
   const firstName = profile?.first_name ? `, ${profile.first_name}` : '';
@@ -17,9 +20,9 @@ export default function HomeScreen() {
   // Determine greeting based on time of day
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 18) return 'Good Afternoon';
-    return 'Good Evening';
+    if (hour < 12) return i18n.t('home.greeting_morning');
+    if (hour < 18) return i18n.t('home.greeting_afternoon');
+    return i18n.t('home.greeting_evening');
   };
   const greeting = getGreeting();
 
@@ -30,14 +33,14 @@ export default function HomeScreen() {
         
         {/* Greeting */}
         <Text style={globalStyles.greetingTitle}>{greeting}{firstName}</Text>
-        <Text style={globalStyles.greetingSubtitle}>Your heart vitality is at 94% today.</Text>
+        <Text style={globalStyles.greetingSubtitle}>{i18n.t('home.how_are_you')}</Text>
 
         {/* Search */}
         <View style={globalStyles.searchContainer}>
           <Feather name="search" size={20} color={colors.iconLight} style={globalStyles.searchIcon} />
           <TextInput
             style={globalStyles.searchInput}
-            placeholder="Search doctors or programs..."
+            placeholder={i18n.t('home.search_placeholder')}
             placeholderTextColor={colors.iconLight}
           />
         </View>
@@ -54,8 +57,8 @@ export default function HomeScreen() {
             color={colors.iconDark} 
             style={globalStyles.homeCardIcon} 
           />
-          <Text style={globalStyles.homeCardTitle}>Disease{'\n'}Prediction</Text>
-          <Text style={globalStyles.homeCardSubtitle}>AI ANALYSIS</Text>
+          <Text style={globalStyles.homeCardTitle}>{i18n.t('home.check_symptoms')}</Text>
+          <Text style={globalStyles.homeCardSubtitle}>{i18n.t('home.check_symptoms_desc')}</Text>
         </TouchableOpacity>
 
         {/* Card: Book a Doctor */}
@@ -70,8 +73,8 @@ export default function HomeScreen() {
             color={colors.iconDark} 
             style={globalStyles.homeCardIcon} 
           />
-          <Text style={globalStyles.homeCardTitle}>Book a Doctor</Text>
-          <Text style={globalStyles.homeCardSubtitle}>24/7 AVAILABILITY</Text>
+          <Text style={globalStyles.homeCardTitle}>{i18n.t('home.find_doctor')}</Text>
+          <Text style={globalStyles.homeCardSubtitle}>{i18n.t('home.find_doctor_desc')}</Text>
         </TouchableOpacity>
 
       </ScrollView>
