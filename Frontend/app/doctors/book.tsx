@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, Image, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -9,6 +9,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { TopBar } from '../../components/TopBar';
 import { globalStyles } from '../../constants/globalStyles';
 import { colors } from '../../constants/theme';
+import i18n from '../../i18n';
 
 const TIME_SLOTS = [
   { time: '09:00', label: '9:00 AM' },
@@ -28,6 +29,7 @@ export default function BookScreen() {
   const [symptoms, setSymptoms] = useState('');
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
+  const isBookingRef = useRef(false);
 
   useEffect(() => {
     supabase
@@ -58,10 +60,12 @@ export default function BookScreen() {
   };
 
   const handleBook = async () => {
+    if (isBookingRef.current) return;
     if (!selectedDate || !selectedTime) {
       Alert.alert('Missing Info', 'Please select a date and time slot.');
       return;
     }
+    isBookingRef.current = true;
     setLoading(true);
 
     const doc = doctor;
@@ -117,6 +121,7 @@ export default function BookScreen() {
       ]);
     }
     setLoading(false);
+    isBookingRef.current = false;
   };
 
   if (fetchLoading) return <LoadingSpinner />;
@@ -131,9 +136,9 @@ export default function BookScreen() {
       <ScrollView style={globalStyles.container} contentContainerStyle={globalStyles.content}>
 
         {/* Page Title */}
-        <Text style={globalStyles.pageTitle}>Book Appointment</Text>
+        <Text style={globalStyles.pageTitle}>{i18n.t('book.title') || 'Book Appointment'}</Text>
         <Text style={globalStyles.pageDescription}>
-          Schedule your visit with your preferred specialist.
+          {i18n.t('book.desc') || 'Schedule your visit with your preferred specialist.'}
         </Text>
 
         {/* Doctor Mini Card */}
@@ -158,7 +163,7 @@ export default function BookScreen() {
         <View style={globalStyles.cardPadded}>
           <View style={globalStyles.sectionHeader}>
             <Feather name="calendar" size={16} color={colors.iconDark} />
-            <Text style={globalStyles.sectionTitle}>SELECT DATE</Text>
+            <Text style={globalStyles.sectionTitle}>{i18n.t('book.select_date') || 'SELECT DATE'}</Text>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={globalStyles.dateChipRow}>
@@ -185,7 +190,7 @@ export default function BookScreen() {
         <View style={globalStyles.cardPadded}>
           <View style={globalStyles.sectionHeader}>
             <Feather name="clock" size={16} color={colors.iconDark} />
-            <Text style={globalStyles.sectionTitle}>SELECT TIME</Text>
+            <Text style={globalStyles.sectionTitle}>{i18n.t('book.time') || 'SELECT TIME'}</Text>
           </View>
           <View style={globalStyles.timeGrid}>
             {TIME_SLOTS.map((slot) => {
@@ -208,11 +213,11 @@ export default function BookScreen() {
         <View style={globalStyles.cardPadded}>
           <View style={globalStyles.sectionHeader}>
             <Feather name="edit-3" size={16} color={colors.iconDark} />
-            <Text style={globalStyles.sectionTitle}>ADDITIONAL NOTES</Text>
+            <Text style={globalStyles.sectionTitle}>{i18n.t('book.notes') || 'ADDITIONAL NOTES'}</Text>
           </View>
           <TextInput
             style={[globalStyles.notesInput, { minHeight: 100, borderRadius: 12, padding: 16, fontSize: 14 }]}
-            placeholder="Describe your symptoms or reason for visit..."
+            placeholder={i18n.t('book.notes_placeholder') || "Describe your symptoms or reason for visit..."}
             placeholderTextColor={colors.iconLight}
             multiline
             numberOfLines={4}
@@ -225,7 +230,7 @@ export default function BookScreen() {
         {/* Summary */}
         {selectedDate && selectedTime && (
           <View style={globalStyles.summaryCard}>
-            <Text style={globalStyles.summaryLabel}>BOOKING SUMMARY</Text>
+            <Text style={globalStyles.summaryLabel}>{i18n.t('book.summary') || 'BOOKING SUMMARY'}</Text>
             <View style={globalStyles.summaryRow}>
               <Feather name="user" size={14} color={colors.iconDark} />
               <Text style={globalStyles.summaryText}>{doctorName}</Text>
@@ -258,10 +263,10 @@ export default function BookScreen() {
           disabled={loading}
         >
           {loading ? (
-            <Text style={globalStyles.buttonPrimaryText}>Booking...</Text>
+            <Text style={globalStyles.buttonPrimaryText}>{i18n.t('book.booking') || 'Booking...'}</Text>
           ) : (
             <>
-              <Text style={globalStyles.buttonPrimaryText}>Confirm Booking</Text>
+              <Text style={globalStyles.buttonPrimaryText}>{i18n.t('book.confirm') || 'Confirm Booking'}</Text>
               <Feather name="check-circle" size={20} color={colors.surface} />
             </>
           )}

@@ -15,9 +15,9 @@ export default function SettingsScreen() {
   const { locale } = useLanguage();
 
   const handleSignOut = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: signOut },
+    Alert.alert(i18n.t('settings.sign_out') || 'Sign Out', 'Are you sure you want to sign out?', [
+      { text: i18n.t('history.cancel') || 'Cancel', style: 'cancel' },
+      { text: i18n.t('settings.sign_out') || 'Sign Out', style: 'destructive', onPress: signOut },
     ]);
   };
 
@@ -54,7 +54,7 @@ export default function SettingsScreen() {
         </View>
 
         {/* General Section */}
-        <Text style={globalStyles.sectionTitle}>GENERAL</Text>
+        <Text style={globalStyles.sectionTitle}>{i18n.t('settings.general') || 'GENERAL'}</Text>
         <View style={globalStyles.card}>
           
           <TouchableOpacity style={globalStyles.row} onPress={() => router.push('/settings/profile')}>
@@ -62,8 +62,8 @@ export default function SettingsScreen() {
               <Feather name="user" size={20} color={colors.iconDark} />
             </View>
             <View style={globalStyles.rowTextContainer}>
-              <Text style={globalStyles.rowTitle}>Profile Settings</Text>
-              <Text style={globalStyles.rowSubtitle}>Manage your personal health data</Text>
+              <Text style={globalStyles.rowTitle}>{i18n.t('settings.profile_settings') || 'Profile Settings'}</Text>
+              <Text style={globalStyles.rowSubtitle}>{i18n.t('settings.profile_settings_desc') || 'Manage your personal health data'}</Text>
             </View>
             <Feather name="chevron-right" size={20} color={colors.iconLight} />
           </TouchableOpacity>
@@ -75,8 +75,8 @@ export default function SettingsScreen() {
               <Feather name="bell" size={20} color={colors.iconDark} />
             </View>
             <View style={globalStyles.rowTextContainer}>
-              <Text style={globalStyles.rowTitle}>Notifications</Text>
-              <Text style={globalStyles.rowSubtitle}>Alerts, sounds, and health reminders</Text>
+              <Text style={globalStyles.rowTitle}>{i18n.t('settings.notifications') || 'Notifications'}</Text>
+              <Text style={globalStyles.rowSubtitle}>{i18n.t('settings.notifications_desc') || 'Alerts, sounds, and health reminders'}</Text>
             </View>
             <Feather name="chevron-right" size={20} color={colors.iconLight} />
           </TouchableOpacity>
@@ -88,8 +88,8 @@ export default function SettingsScreen() {
               <Feather name="shield" size={20} color={colors.iconDark} />
             </View>
             <View style={globalStyles.rowTextContainer}>
-              <Text style={globalStyles.rowTitle}>Security</Text>
-              <Text style={globalStyles.rowSubtitle}>Biometrics and data encryption</Text>
+              <Text style={globalStyles.rowTitle}>{i18n.t('settings.security') || 'Security'}</Text>
+              <Text style={globalStyles.rowSubtitle}>{i18n.t('settings.security_desc') || 'Biometrics and data encryption'}</Text>
             </View>
             <Feather name="chevron-right" size={20} color={colors.iconLight} />
           </TouchableOpacity>
@@ -97,7 +97,7 @@ export default function SettingsScreen() {
         </View>
 
         {/* Preference Section */}
-        <Text style={globalStyles.sectionTitle}>PREFERENCE</Text>
+        <Text style={globalStyles.sectionTitle}>{i18n.t('settings.preference') || 'PREFERENCE'}</Text>
         <View style={globalStyles.card}>
           
           <TouchableOpacity style={globalStyles.row} onPress={() => router.push('/settings/language')}>
@@ -120,8 +120,8 @@ export default function SettingsScreen() {
               <Feather name="help-circle" size={20} color={colors.iconDark} />
             </View>
             <View style={globalStyles.rowTextContainer}>
-              <Text style={globalStyles.rowTitle}>Help/Support</Text>
-              <Text style={globalStyles.rowSubtitle}>FAQ and contact center</Text>
+              <Text style={globalStyles.rowTitle}>{i18n.t('settings.help') || 'Help & Support'}</Text>
+              <Text style={globalStyles.rowSubtitle}>{i18n.t('settings.help_desc') || 'FAQ and customer service'}</Text>
             </View>
             <Feather name="chevron-right" size={20} color={colors.iconLight} />
           </TouchableOpacity>
@@ -130,7 +130,7 @@ export default function SettingsScreen() {
 
         {/* Sign Out Button */}
         <TouchableOpacity style={globalStyles.signOutButton} onPress={handleSignOut}>
-          <Text style={globalStyles.signOutText}>Sign Out</Text>
+          <Text style={globalStyles.signOutText}>{i18n.t('settings.sign_out') || 'Sign Out'}</Text>
         </TouchableOpacity>
 
       </ScrollView>

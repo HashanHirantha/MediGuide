@@ -27,7 +27,17 @@
     "language": "Language",
     "select_language": "Select Language",
     "sign_out": "Sign Out",
-    "edit_profile": "Edit Profile"
+    "edit_profile": "Edit Profile",
+    "general": "GENERAL",
+    "profile_settings": "Profile Settings",
+    "profile_settings_desc": "Manage your personal health data",
+    "notifications": "Notifications",
+    "notifications_desc": "Alerts, sounds, and health reminders",
+    "security": "Security",
+    "security_desc": "Biometrics and data encryption",
+    "preference": "PREFERENCE",
+    "help": "Help & Support",
+    "help_desc": "FAQ and customer service"
   },
   "check": {
     "title": "Symptom Checker",
@@ -39,5 +49,57 @@
     "notes": "ADDITIONAL NOTES (OPTIONAL)",
     "attach": "ATTACH REPORTS (OPTIONAL)",
     "generate": "Generate Prediction"
+  },
+  "doctors": {
+    "title": "Find Your Specialist",
+    "desc": "Consult with our world-class medical professionals specializing in cardiac vitality and neurological flow.",
+    "all_doctors": "All Doctors",
+    "cardiologist": "Cardiologist",
+    "neurologist": "Neurologist",
+    "general_medicine": "General Medicine",
+    "next_slot": "NEXT SLOT",
+    "experience": "EXPERIENCE",
+    "years": "Years",
+    "book_now": "Book Now",
+    "book": "Book",
+    "no_doctors": "No doctors found."
+  },
+  "history": {
+    "title": "My History",
+    "desc": "Your appointment and AI diagnosis records.",
+    "appointments": "Appointments",
+    "diagnoses": "AI Diagnoses",
+    "duration": "Duration:",
+    "conditions": "conditions",
+    "recommended": "Recommended:",
+    "check_again": "Check Again",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "no_diagnoses_title": "No diagnosis records yet",
+    "no_diagnoses_desc": "Use the Symptom Checker to get AI-powered health insights. Your checks will be saved here automatically.",
+    "start_check": "Start Symptom Check",
+    "no_appointments_title": "No appointments yet",
+    "no_appointments_desc": "Book a consultation with a specialist to see your appointments here.",
+    "find_doctor": "Find a Doctor"
+  },
+  "profile": {
+    "tap_photo": "Tap to change photo",
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "phone": "Phone Number",
+    "blood_group": "Blood Group",
+    "save": "Save Changes"
+  },
+  "appointment": {
+    "details": "Appointment Details",
+    "reschedule": "Reschedule",
+    "cancel": "Cancel Appointment"
+  },
+  "book": {
+    "title": "Book Appointment",
+    "select_date": "Select Date",
+    "select_time": "Available Time Slots",
+    "confirm": "Confirm Booking",
+    "success": "Booking Successful!"
   }
 }

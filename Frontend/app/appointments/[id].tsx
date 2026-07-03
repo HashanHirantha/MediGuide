@@ -10,6 +10,7 @@ import { TopBar } from '../../components/TopBar';
 import { useAuth } from '../../hooks/useAuth';
 import { globalStyles } from '../../constants/globalStyles';
 import { colors } from '../../constants/theme';
+import i18n from '../../i18n';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: colors.starColorAlt,
@@ -94,10 +95,10 @@ export default function AppointmentDetailScreen() {
   };
 
   const handleCancel = () => {
-    Alert.alert('Cancel Appointment', 'Are you sure you want to cancel this appointment?', [
-      { text: 'No', style: 'cancel' },
+    Alert.alert(i18n.t('appointment.cancel') || 'Cancel Appointment', 'Are you sure you want to cancel this appointment?', [
+      { text: i18n.t('history.cancel') || 'No', style: 'cancel' },
       {
-        text: 'Yes, Cancel',
+        text: i18n.t('appointment.cancel') || 'Yes, Cancel',
         style: 'destructive',
         onPress: async () => {
           await supabase
@@ -132,8 +133,8 @@ export default function AppointmentDetailScreen() {
     <SafeAreaView style={globalStyles.safeArea}>
       <TopBar />
       <ScrollView style={globalStyles.container} contentContainerStyle={globalStyles.content}>
-        <Text style={globalStyles.pageTitle}>Appointment Details</Text>
-        <Text style={globalStyles.pageDescription}>View and manage your scheduled visit</Text>
+        <Text style={globalStyles.pageTitle}>{i18n.t('appointment.details') || 'Appointment Details'}</Text>
+        <Text style={globalStyles.pageDescription}>{i18n.t('appointment.view_manage') || 'View and manage your scheduled visit'}</Text>
 
         <View style={globalStyles.profileCard}>
           <Image source={{ uri: avatarUrl }} style={globalStyles.avatarLarge} />
@@ -153,12 +154,12 @@ export default function AppointmentDetailScreen() {
         </View>
 
         <View style={globalStyles.cardPadded}>
-          <Text style={globalStyles.sectionTitle}>APPOINTMENT INFO</Text>
+          <Text style={globalStyles.sectionTitle}>{i18n.t('appointment.info') || 'APPOINTMENT INFO'}</Text>
           <View style={{ marginTop: 10 }}>
             {[
-              { label: 'Date', value: new Date(appointment.appointment_date).toLocaleDateString('en', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) },
-              { label: 'Time', value: appointment.appointment_time },
-              { label: 'Consultation Fee', value: `LKR ${appointment.doctors?.consultation_fee || '3500'}` },
+              { label: i18n.t('book.select_date') || 'Date', value: new Date(appointment.appointment_date).toLocaleDateString('en', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) },
+              { label: i18n.t('book.time') || 'Time', value: appointment.appointment_time },
+              { label: i18n.t('appointment.fee') || 'Consultation Fee', value: `LKR ${appointment.doctors?.consultation_fee || '3500'}` },
             ].map((item, idx, arr) => (
               <View key={item.label}>
                 <View style={globalStyles.rowSpaceBetween}>
@@ -182,12 +183,12 @@ export default function AppointmentDetailScreen() {
 
         <View style={{ marginTop: 20, gap: 10 }}>
           {canCancel && (
-            <Button title="Cancel Appointment" onPress={handleCancel} variant="danger" />
+            <Button title={i18n.t('appointment.cancel') || "Cancel Appointment"} onPress={handleCancel} variant="danger" />
           )}
 
           {appointment.status === 'completed' && (
             <Button
-              title="Leave a Review"
+              title={i18n.t('appointment.review') || "Leave a Review"}
               onPress={() => router.push({ pathname: '/doctors/[id]', params: { id: appointment.doctor_id } })}
               variant="outline"
             />

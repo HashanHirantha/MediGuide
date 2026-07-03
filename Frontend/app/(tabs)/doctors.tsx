@@ -9,6 +9,8 @@ import { colors, typography, spacing, radius } from '../../constants/theme';
 import { Avatar } from '../../components/ui/Avatar';
 import { TopBar } from '../../components/TopBar';
 import { globalStyles } from '../../constants/globalStyles';
+import i18n from '../../i18n';
+
 const SPECIALTIES = ['All Doctors', 'Cardiologist', 'Neurologist', 'General Medicine'];
 
 const MOCK_DOCTORS = [
@@ -42,13 +44,23 @@ export default function DoctorsScreen() {
     fetchDoctors(activeSpecialty === 'All Doctors' ? undefined : activeSpecialty);
   }, [activeSpecialty]);
 
+  const getSpecialtyTranslation = (specialty: string) => {
+    switch (specialty) {
+      case 'All Doctors': return i18n.t('doctors.all_doctors') || 'All Doctors';
+      case 'Cardiologist': return i18n.t('doctors.cardiologist') || 'Cardiologist';
+      case 'Neurologist': return i18n.t('doctors.neurologist') || 'Neurologist';
+      case 'General Medicine': return i18n.t('doctors.general_medicine') || 'General Medicine';
+      default: return specialty;
+    }
+  };
+
 
 
   const renderTitle = () => (
     <View style={globalStyles.titleContainer}>
-      <Text style={globalStyles.pageTitle}>Find Your Specialist</Text>
+      <Text style={globalStyles.pageTitle}>{i18n.t('doctors.title') || 'Find Your Specialist'}</Text>
       <Text style={globalStyles.pageDescription}>
-        Consult with our world-class medical professionals specializing in cardiac vitality and neurological flow.
+        {i18n.t('doctors.desc') || 'Consult with our world-class medical professionals specializing in cardiac vitality and neurological flow.'}
       </Text>
     </View>
   );
@@ -69,7 +81,7 @@ export default function DoctorsScreen() {
             activeOpacity={0.8}
           >
             <Text style={[globalStyles.filterText, isActive ? globalStyles.filterTextActive : globalStyles.filterTextInactive]}>
-              {item}
+              {getSpecialtyTranslation(item)}
             </Text>
           </TouchableOpacity>
         );
@@ -101,7 +113,9 @@ export default function DoctorsScreen() {
                 </View>
               </View>
               <View style={globalStyles.specialtyBadge}>
-                <Text style={globalStyles.specialtyText}>{item.specialty?.toUpperCase() || 'CARDIOLOGIST'}</Text>
+                <Text style={globalStyles.specialtyText}>
+                  {getSpecialtyTranslation(item.specialty || 'Cardiologist').toUpperCase()}
+                </Text>
               </View>
               <Text style={globalStyles.featuredBio} numberOfLines={2}>
                 {item.bio || `${item.profiles?.first_name} is an experienced specialist dedicated to providing exceptional patient care and advanced treatments.`}
@@ -111,17 +125,17 @@ export default function DoctorsScreen() {
           
           <View style={globalStyles.statsRow}>
             <View style={globalStyles.statBox}>
-              <Text style={globalStyles.statLabel}>NEXT SLOT</Text>
+              <Text style={globalStyles.statLabel}>{i18n.t('doctors.next_slot') || 'NEXT SLOT'}</Text>
               <Text style={globalStyles.statValue}>Today, 14:30</Text>
             </View>
             <View style={globalStyles.statBox}>
-              <Text style={globalStyles.statLabel}>EXPERIENCE</Text>
-              <Text style={globalStyles.statValue}>{item.experience_years || 15} Years</Text>
+              <Text style={globalStyles.statLabel}>{i18n.t('doctors.experience') || 'EXPERIENCE'}</Text>
+              <Text style={globalStyles.statValue}>{item.experience_years || 15} {i18n.t('doctors.years') || 'Years'}</Text>
             </View>
           </View>
 
           <TouchableOpacity style={globalStyles.buttonPrimary} onPress={() => router.push({ pathname: '/doctors/book', params: { doctorId: item.id } })}>
-            <Text style={globalStyles.buttonPrimaryText}>Book Now</Text>
+            <Text style={globalStyles.buttonPrimaryText}>{i18n.t('doctors.book_now') || 'Book Now'}</Text>
           </TouchableOpacity>
         </TouchableOpacity>
       );
@@ -139,14 +153,16 @@ export default function DoctorsScreen() {
         />
         <View style={globalStyles.compactInfo}>
           <Text style={globalStyles.compactName}>{item.profiles?.first_name} {item.profiles?.last_name}</Text>
-          <Text style={globalStyles.compactSpecialty}>{item.specialty?.toUpperCase() || 'NEUROLOGIST'}</Text>
+          <Text style={globalStyles.compactSpecialty}>
+            {getSpecialtyTranslation(item.specialty || 'Neurologist').toUpperCase()}
+          </Text>
           <View style={globalStyles.compactRating}>
             <Ionicons name="star-outline" size={12} color={colors.black} />
             <Text style={globalStyles.compactRatingText}>{item.average_rating?.toFixed(1) || '4.8'}</Text>
           </View>
         </View>
         <TouchableOpacity style={globalStyles.bookButtonSmall} onPress={() => router.push({ pathname: '/doctors/book', params: { doctorId: item.id } })}>
-          <Text style={globalStyles.bookButtonSmallText}>Book</Text>
+          <Text style={globalStyles.bookButtonSmallText}>{i18n.t('doctors.book') || 'Book'}</Text>
         </TouchableOpacity>
       </TouchableOpacity>
     );
@@ -169,7 +185,7 @@ export default function DoctorsScreen() {
         contentContainerStyle={globalStyles.listContainer}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          loading ? <LoadingSpinner /> : <Text style={globalStyles.emptyText}>No doctors found.</Text>
+          loading ? <LoadingSpinner /> : <Text style={globalStyles.emptyText}>{i18n.t('doctors.no_doctors') || 'No doctors found.'}</Text>
         }
       />
     </SafeAreaView>

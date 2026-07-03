@@ -24,6 +24,7 @@ import {
   deleteAiCheckHistory,
   AiCheckHistoryEntry,
 } from '../../services/aiCheckHistoryService';
+import i18n from '../../i18n';
 
 // ─── Helpers ─────────────────────────────────────────────────
 
@@ -105,9 +106,9 @@ export default function HistoryScreen() {
         if (supaIds.has(localA.id)) return false;
         
         const isDuplicate = supaAppts.some((supaA: any) => 
-          supaA.appointment_date === localA.appointment_date &&
-          supaA.appointment_time === localA.appointment_time &&
-          supaA.doctor_id === localA.doctor_id
+          supaA.appointment_date == localA.appointment_date &&
+          supaA.appointment_time == localA.appointment_time &&
+          supaA.doctor_id == localA.doctor_id
         );
         
         return !isDuplicate;
@@ -201,7 +202,7 @@ export default function HistoryScreen() {
           </View>
           {['pending', 'confirmed'].includes(item.status) && (
             <TouchableOpacity style={globalStyles.cancelBtn} onPress={() => handleCancel(item.id)}>
-              <Text style={globalStyles.cancelBtnText}>Cancel</Text>
+              <Text style={globalStyles.cancelBtnText}>{i18n.t('history.cancel') || 'Cancel'}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -273,10 +274,10 @@ export default function HistoryScreen() {
         {/* Duration */}
         <View style={styles.metaRow}>
           <Feather name="clock" size={12} color={colors.textSecondary} />
-          <Text style={styles.metaText}>Duration: {item.duration}</Text>
+          <Text style={styles.metaText}>{i18n.t('history.duration') || 'Duration:'} {item.duration}</Text>
           <Text style={styles.bulletSep}>·</Text>
           <Feather name="layers" size={12} color={colors.textSecondary} />
-          <Text style={styles.metaText}>{item.conditions?.length ?? 0} conditions</Text>
+          <Text style={styles.metaText}>{item.conditions?.length ?? 0} {i18n.t('history.conditions') || 'conditions'}</Text>
         </View>
 
         {/* Expanded detail */}
@@ -307,7 +308,7 @@ export default function HistoryScreen() {
               <View style={styles.specialistRow}>
                 <MaterialCommunityIcons name="doctor" size={14} color={colors.textSecondary} />
                 <Text style={styles.specialistText}>
-                  Recommended: <Text style={{ color: colors.primary, fontWeight: '700' }}>{item.recommended_specialist}</Text>
+                  {i18n.t('history.recommended') || 'Recommended:'} <Text style={{ color: colors.primary, fontWeight: '700' }}>{item.recommended_specialist}</Text>
                 </Text>
               </View>
             )}
@@ -320,7 +321,7 @@ export default function HistoryScreen() {
                 activeOpacity={0.8}
               >
                 <Feather name="refresh-cw" size={13} color={colors.primary} />
-                <Text style={styles.bookAgainText}>Check Again</Text>
+                <Text style={styles.bookAgainText}>{i18n.t('history.check_again') || 'Check Again'}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.deleteBtn}
@@ -328,7 +329,7 @@ export default function HistoryScreen() {
                 activeOpacity={0.8}
               >
                 <Feather name="trash-2" size={13} color={colors.accent} />
-                <Text style={styles.deleteText}>Delete</Text>
+                <Text style={styles.deleteText}>{i18n.t('history.delete') || 'Delete'}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -345,9 +346,9 @@ export default function HistoryScreen() {
       return (
         <View style={styles.emptyContainer}>
           <MaterialCommunityIcons name="stethoscope" size={48} color={colors.border} />
-          <Text style={styles.emptyTitle}>No diagnosis records yet</Text>
+          <Text style={styles.emptyTitle}>{i18n.t('history.no_diagnoses_title') || 'No diagnosis records yet'}</Text>
           <Text style={styles.emptyDesc}>
-            Use the Symptom Checker to get AI-powered health insights. Your checks will be saved here automatically.
+            {i18n.t('history.no_diagnoses_desc') || 'Use the Symptom Checker to get AI-powered health insights. Your checks will be saved here automatically.'}
           </Text>
           <TouchableOpacity
             style={styles.emptyAction}
@@ -355,7 +356,7 @@ export default function HistoryScreen() {
             activeOpacity={0.8}
           >
             <MaterialCommunityIcons name="brain" size={16} color="#fff" />
-            <Text style={styles.emptyActionText}>Start Symptom Check</Text>
+            <Text style={styles.emptyActionText}>{i18n.t('history.start_check') || 'Start Symptom Check'}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -363,15 +364,15 @@ export default function HistoryScreen() {
     return (
       <View style={styles.emptyContainer}>
         <Ionicons name="calendar-outline" size={48} color={colors.border} />
-        <Text style={styles.emptyTitle}>No appointments yet</Text>
-        <Text style={styles.emptyDesc}>Book a consultation with a specialist to see your appointments here.</Text>
+        <Text style={styles.emptyTitle}>{i18n.t('history.no_appointments_title') || 'No appointments yet'}</Text>
+        <Text style={styles.emptyDesc}>{i18n.t('history.no_appointments_desc') || 'Book a consultation with a specialist to see your appointments here.'}</Text>
         <TouchableOpacity
           style={styles.emptyAction}
           onPress={() => router.push('/(tabs)/doctors' as any)}
           activeOpacity={0.8}
         >
           <Feather name="search" size={16} color="#fff" />
-          <Text style={styles.emptyActionText}>Find a Doctor</Text>
+          <Text style={styles.emptyActionText}>{i18n.t('history.find_doctor') || 'Find a Doctor'}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -388,9 +389,9 @@ export default function HistoryScreen() {
           <>
             {/* Title */}
             <View style={globalStyles.titleContainer}>
-              <Text style={globalStyles.pageTitle}>My History</Text>
+              <Text style={globalStyles.pageTitle}>{i18n.t('history.title') || 'My History'}</Text>
               <Text style={globalStyles.pageDescription}>
-                Your appointment and AI diagnosis records.
+                {i18n.t('history.desc') || 'Your appointment and AI diagnosis records.'}
               </Text>
             </View>
 
@@ -407,7 +408,7 @@ export default function HistoryScreen() {
                     activeOpacity={0.8}
                   >
                     <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
-                      {tab === 'appointments' ? 'Appointments' : 'AI Diagnoses'}
+                      {tab === 'appointments' ? (i18n.t('history.appointments') || 'Appointments') : (i18n.t('history.diagnoses') || 'AI Diagnoses')}
                     </Text>
                     {count > 0 && (
                       <View style={[styles.tabCount, isActive && styles.tabCountActive]}>
