@@ -50,7 +50,7 @@ export default function LoginScreen() {
             <Feather name="feather" size={24} color={colors.textPrimary} />
             <Text style={globalStyles.authLogoText}>MediGuide</Text>
           </View>
-          <TouchableOpacity style={globalStyles.authHelpButton}>
+          <TouchableOpacity style={globalStyles.authHelpButton} onPress={() => router.push('/settings/help')}>
             <Feather name="help-circle" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
         </View>
