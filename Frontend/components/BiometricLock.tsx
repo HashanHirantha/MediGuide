@@ -48,7 +48,8 @@ export const BiometricLock: React.FC<{ children: React.ReactNode }> = ({ childre
     setIsLocked(true);
     const result = await LocalAuthentication.authenticateAsync({
       promptMessage: 'Unlock MediGuide',
-      fallbackLabel: 'Use Passcode',
+      disableDeviceFallback: true,
+      cancelLabel: 'Cancel',
     });
     
     if (result.success) {

@@ -41,6 +41,8 @@ export default function SecuritySettingsScreen() {
       // Trying to enable
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage: 'Authenticate to enable Biometric Login',
+        disableDeviceFallback: true,
+        cancelLabel: 'Cancel',
       });
       if (result.success) {
         setBiometricsEnabled(true);
@@ -88,37 +90,10 @@ export default function SecuritySettingsScreen() {
       <ScrollView contentContainerStyle={[globalStyles.content, { paddingBottom: 40 }]}>
         <Text style={globalStyles.pageTitle}>{i18n.t('settings.security') || 'Security'}</Text>
         <Text style={globalStyles.pageDescription}>
-          {i18n.t('security.desc') || 'Manage your password and biometric login'}
+          {i18n.t('security.desc') || 'Manage your password'}
         </Text>
 
-        <Text style={[globalStyles.sectionTitle, { marginTop: 20 }]}>BIOMETRICS</Text>
-        <View style={globalStyles.card}>
-          <View style={globalStyles.row}>
-            <View style={globalStyles.iconContainer}>
-              <Feather name="smartphone" size={20} color={colors.iconDark} />
-            </View>
-            <View style={globalStyles.rowTextContainer}>
-              <Text style={globalStyles.rowTitle}>{i18n.t('security.biometrics') || 'Biometric Authentication'}</Text>
-              <Text style={globalStyles.rowSubtitle}>
-                {i18n.t('security.biometrics_desc') || 'Use Face ID / Touch ID to sign in'}
-              </Text>
-            </View>
-            <Switch
-              value={biometricsEnabled}
-              onValueChange={handleToggleBiometrics}
-              disabled={!biometricsSupported}
-              trackColor={{ false: '#d1d1d6', true: colors.primary }}
-              thumbColor={biometricsEnabled ? '#fff' : '#f4f3f4'}
-            />
-          </View>
-          {!biometricsSupported && (
-            <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
-              <Text style={{ color: colors.errorText, fontSize: 12 }}>
-                * Biometric authentication is not supported or enrolled on this device.
-              </Text>
-            </View>
-          )}
-        </View>
+
 
         <Text style={[globalStyles.sectionTitle, { marginTop: 24 }]}>CHANGE PASSWORD</Text>
         <View style={globalStyles.card}>
