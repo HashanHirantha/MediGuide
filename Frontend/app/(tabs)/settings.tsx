@@ -115,7 +115,7 @@ export default function SettingsScreen() {
 
           <View style={[globalStyles.divider, { marginLeft: 72 }]} />
 
-          <TouchableOpacity style={globalStyles.row}>
+          <TouchableOpacity style={globalStyles.row} onPress={() => router.push('/settings/help')}>
             <View style={globalStyles.iconContainer}>
               <Feather name="help-circle" size={20} color={colors.iconDark} />
             </View>
