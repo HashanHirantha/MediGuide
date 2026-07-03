@@ -7,9 +7,12 @@ import { useAuth } from '../../hooks/useAuth';
 import { TopBar } from '../../components/TopBar';
 import { globalStyles } from '../../constants/globalStyles';
 import { colors } from '../../constants/theme';
+import { useLanguage } from '../../contexts/LanguageContext';
+import i18n from '../../i18n';
 
 export default function SettingsScreen() {
   const { user, profile, signOut } = useAuth();
+  const { locale } = useLanguage();
 
   const handleSignOut = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -97,13 +100,15 @@ export default function SettingsScreen() {
         <Text style={globalStyles.sectionTitle}>PREFERENCE</Text>
         <View style={globalStyles.card}>
           
-          <TouchableOpacity style={globalStyles.row}>
+          <TouchableOpacity style={globalStyles.row} onPress={() => router.push('/settings/language')}>
             <View style={globalStyles.iconContainer}>
               <Feather name="globe" size={20} color={colors.iconDark} />
             </View>
             <View style={globalStyles.rowTextContainer}>
-              <Text style={globalStyles.rowTitle}>Language</Text>
-              <Text style={globalStyles.rowSubtitle}>English (United States)</Text>
+              <Text style={globalStyles.rowTitle}>{i18n.t('settings.language') || 'Language'}</Text>
+              <Text style={globalStyles.rowSubtitle}>
+                {locale === 'si' ? 'සිංහල (Sinhala)' : locale === 'ta' ? 'தமிழ் (Tamil)' : 'English (United States)'}
+              </Text>
             </View>
             <Feather name="chevron-right" size={20} color={colors.iconLight} />
           </TouchableOpacity>
