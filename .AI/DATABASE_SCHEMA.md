@@ -59,6 +59,10 @@ The application uses **Supabase** as its Backend-as-a-Service platform. Supabase
   │ diagnosis_history│──N:1── profiles
   │                  │──N:1── diseases
   └──────────────────┘
+
+  ┌──────────────────┐
+  │ ai_check_history │──N:1── profiles
+  └──────────────────┘
 ```
 
 ---
@@ -359,7 +363,7 @@ Patient's persistent medical records.
 
 ### 11. `diagnosis_history`
 
-Logs of all symptom checks and predictions made by users.
+Logs of all symptom checks and predictions made by users (old implementation).
 
 | Column                 | Type            | Constraints                                              | Description                  |
 | :--------------------- | :-------------- | :------------------------------------------------------- | :--------------------------- |
@@ -399,6 +403,35 @@ Logs of all symptom checks and predictions made by users.
   }
 ]
 ```
+
+---
+
+### 12. `ai_check_history`
+
+Stores AI symptom check results from the Gemini-based checker.
+
+| Column                   | Type          | Constraints                                  | Description                    |
+| :----------------------- | :------------ | :------------------------------------------- | :----------------------------- |
+| `id`                     | `UUID`        | PK, DEFAULT gen_random_uuid()                | Unique record ID               |
+| `user_id`                | `UUID`        | FK → profiles.id ON DELETE CASCADE           | Patient who performed check    |
+| `symptoms`               | `TEXT[]`      | NOT NULL, DEFAULT '{}'                       | Symptoms reported              |
+| `duration`               | `TEXT`        | NOT NULL, DEFAULT ''                         | Duration of symptoms           |
+| `additional_notes`       | `TEXT`        | NULLABLE                                     | Additional user notes          |
+| `overall_risk`           | `TEXT`        | NOT NULL, DEFAULT 'LOW'                      | Overall risk assessment        |
+| `conditions`             | `JSONB`       | NOT NULL, DEFAULT '[]'                       | Array of predicted conditions  |
+| `recommendation`         | `TEXT`        | NULLABLE                                     | AI recommendation text         |
+| `recommended_specialist` | `TEXT`        | NULLABLE                                     | Suggested specialist title     |
+| `recommended_specialties`| `TEXT[]`      | DEFAULT '{}'                                 | Array of specialty tags        |
+| `created_at`             | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW()                      | Timestamp of prediction        |
+
+**Indexes**: `user_id`, `created_at`
+
+**RLS Policies**:
+| Policy Name                          | Operation    | Rule                                                      |
+| :----------------------------------- | :----------- | :-------------------------------------------------------- |
+| `ai_check_history_select_own`        | SELECT       | `auth.uid() = user_id`                                    |
+| `ai_check_history_insert_own`        | INSERT       | `auth.uid() = user_id`                                    |
+| `ai_check_history_delete_own`        | DELETE       | `auth.uid() = user_id`                                    |
 
 ---
 
@@ -499,6 +532,7 @@ CREATE TRIGGER set_updated_at BEFORE UPDATE ON diseases FOR EACH ROW EXECUTE FUN
 | `profiles` → `diagnosis_history`| 1:N     | A patient can run many symptom checks                   |
 | `profiles` → `reviews`          | 1:N     | A patient can write many reviews                        |
 | `profiles` → `doctors`          | 1:1     | A doctor user has one doctor profile                    |
+| `profiles` → `ai_check_history` | 1:N     | A patient can have multiple AI check histories          |
 | `doctors` → `appointments`      | 1:N     | A doctor can have many appointments                     |
 | `doctors` → `reviews`           | 1:N     | A doctor can receive many reviews                       |
 | `diseases` ↔ `symptoms`         | M:N     | Via `disease_symptoms` junction table                   |
@@ -576,4 +610,5 @@ ALTER TABLE appointments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE medical_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE diagnosis_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_check_history ENABLE ROW LEVEL SECURITY;
 ```

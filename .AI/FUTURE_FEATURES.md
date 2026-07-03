@@ -61,7 +61,7 @@ This document tracks all planned features, enhancements, and technical improveme
 - [x] Overall risk assessment with color-coded display
 - [x] Recommended specialist and recommended_specialties in response
 - [x] Disease database seeding (30+ diseases with symptom mappings)
-- [ ] Save diagnosis results to `diagnosis_history` table — service exists but not fully wired in check.tsx
+- [x] Save diagnosis results to `ai_check_history` table — service wired in check.tsx
 
 ### 1.5 Doctor Listing & Recommendation ✅ DONE
 - [x] Doctor database seeding (15+ doctors across specialties)
