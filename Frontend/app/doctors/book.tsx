@@ -96,20 +96,19 @@ export default function BookScreen() {
       status: 'pending',
     });
 
-    // Save locally regardless (as fallback for history display)
-    try {
-      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-      const existing = await AsyncStorage.getItem('local_appointments');
-      const localAppointments = existing ? JSON.parse(existing) : [];
-      localAppointments.unshift(newAppointment);
-      await AsyncStorage.setItem('local_appointments', JSON.stringify(localAppointments));
-    } catch (e) {
-      // AsyncStorage save failed silently
-    }
-
     if (error) {
-      // Still show success since we saved locally
-      Alert.alert('Booking Confirmed! ✅', 'Your appointment has been booked successfully.', [
+      // Save locally as fallback if Supabase fails (offline mode)
+      try {
+        const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+        const existing = await AsyncStorage.getItem('local_appointments');
+        const localAppointments = existing ? JSON.parse(existing) : [];
+        localAppointments.unshift(newAppointment);
+        await AsyncStorage.setItem('local_appointments', JSON.stringify(localAppointments));
+      } catch (e) {
+        // AsyncStorage save failed silently
+      }
+
+      Alert.alert('Booking Saved Locally ⚠️', 'We could not reach the server, but your appointment is saved locally.', [
         { text: 'View Appointments', onPress: () => router.replace('/(tabs)/history') },
       ]);
     } else {

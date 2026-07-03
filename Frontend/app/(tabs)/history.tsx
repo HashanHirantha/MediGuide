@@ -100,7 +100,19 @@ export default function HistoryScreen() {
 
       const supaAppts = apptRes.data ?? [];
       const supaIds   = new Set(supaAppts.map((a: any) => a.id));
-      const uniqueLocal = localAppts.filter((a: any) => !supaIds.has(a.id));
+      
+      const uniqueLocal = localAppts.filter((localA: any) => {
+        if (supaIds.has(localA.id)) return false;
+        
+        const isDuplicate = supaAppts.some((supaA: any) => 
+          supaA.appointment_date === localA.appointment_date &&
+          supaA.appointment_time === localA.appointment_time &&
+          supaA.doctor_id === localA.doctor_id
+        );
+        
+        return !isDuplicate;
+      });
+      
       setAppointments([...supaAppts, ...uniqueLocal]);
       setDiagnosisHistory(aiRes.data ?? []);
     } else {
