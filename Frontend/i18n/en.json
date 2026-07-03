@@ -101,5 +101,20 @@
     "select_time": "Available Time Slots",
     "confirm": "Confirm Booking",
     "success": "Booking Successful!"
+  },
+  "security": {
+    "title": "Security Settings",
+    "desc": "Manage your password and biometric login",
+    "change_password": "Change Password",
+    "current_password": "Current Password",
+    "new_password": "New Password",
+    "confirm_password": "Confirm New Password",
+    "update": "Update Password",
+    "biometrics": "Biometric Authentication",
+    "biometrics_desc": "Use Face ID / Fingerprint to login",
+    "success": "Success",
+    "error": "Error",
+    "passwords_match": "Passwords do not match",
+    "password_updated": "Password updated successfully"
   }
 }

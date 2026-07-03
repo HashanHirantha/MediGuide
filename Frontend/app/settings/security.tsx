@@ -1,80 +1,160 @@
-import React, { useState } from 'react';
-import { View, Text, Switch, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, Switch, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { TopBar } from '../../components/TopBar';
-import { colors } from '../../constants/theme';
 import { Feather } from '@expo/vector-icons';
+import * as LocalAuthentication from 'expo-local-authentication';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { TopBar } from '../../components/TopBar';
 import { globalStyles } from '../../constants/globalStyles';
+import { colors } from '../../constants/theme';
+import i18n from '../../i18n';
+import { supabase } from '../../lib/supabase';
+import { Input } from '../../components/ui/Input';
 
 export default function SecuritySettingsScreen() {
-  const [biometrics, setBiometrics] = useState(true);
-  const [twoFactor, setTwoFactor] = useState(false);
+  const [biometricsEnabled, setBiometricsEnabled] = useState(false);
+  const [biometricsSupported, setBiometricsSupported] = useState(false);
 
-  const handleChangePassword = () => {
-    Alert.alert('Change Password', 'A password reset link will be sent to your email.');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    checkBiometrics();
+  }, []);
+
+  const checkBiometrics = async () => {
+    const compatible = await LocalAuthentication.hasHardwareAsync();
+    const enrolled = await LocalAuthentication.isEnrolledAsync();
+    setBiometricsSupported(compatible && enrolled);
+
+    if (compatible && enrolled) {
+      const stored = await AsyncStorage.getItem('biometrics_enabled');
+      if (stored === 'true') {
+        setBiometricsEnabled(true);
+      }
+    }
+  };
+
+  const handleToggleBiometrics = async (value: boolean) => {
+    if (value) {
+      // Trying to enable
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Authenticate to enable Biometric Login',
+      });
+      if (result.success) {
+        setBiometricsEnabled(true);
+        await AsyncStorage.setItem('biometrics_enabled', 'true');
+        Alert.alert('Success', 'Biometric authentication enabled.');
+      } else {
+        setBiometricsEnabled(false);
+      }
+    } else {
+      // Trying to disable
+      setBiometricsEnabled(false);
+      await AsyncStorage.setItem('biometrics_enabled', 'false');
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    if (!newPassword || !confirmPassword) {
+      Alert.alert('Error', 'Please enter a new password and confirm it.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      Alert.alert('Error', i18n.t('security.passwords_match') || 'Passwords do not match');
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+
+    setLoading(false);
+
+    if (error) {
+      Alert.alert('Error', error.message);
+    } else {
+      Alert.alert('Success', i18n.t('security.password_updated') || 'Password updated successfully');
+      setNewPassword('');
+      setConfirmPassword('');
+    }
   };
 
   return (
     <SafeAreaView style={globalStyles.safeArea}>
       <TopBar />
-      <ScrollView contentContainerStyle={globalStyles.content}>
-        <Text style={globalStyles.pageTitle}>Security</Text>
-        <Text style={globalStyles.pageDescription}>Manage biometrics and data encryption here.</Text>
+      <ScrollView contentContainerStyle={[globalStyles.content, { paddingBottom: 40 }]}>
+        <Text style={globalStyles.pageTitle}>{i18n.t('settings.security') || 'Security'}</Text>
+        <Text style={globalStyles.pageDescription}>
+          {i18n.t('security.desc') || 'Manage your password and biometric login'}
+        </Text>
 
-        <View style={globalStyles.section}>
-          <Text style={globalStyles.sectionTitle}>Authentication</Text>
-          <View style={globalStyles.card}>
-            <TouchableOpacity style={globalStyles.row} onPress={handleChangePassword}>
-              <View style={globalStyles.iconContainer}>
-                <Feather name="lock" size={20} color={colors.iconDark} />
-              </View>
-              <View style={globalStyles.rowTextContainer}>
-                <Text style={globalStyles.rowTitle}>Change Password</Text>
-                <Text style={globalStyles.rowSubtitle}>Update your account password</Text>
-              </View>
-              <Feather name="chevron-right" size={20} color={colors.iconLight} />
-            </TouchableOpacity>
-            
-            <View style={globalStyles.divider} />
-            
-            <View style={globalStyles.rowSpaceBetween}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                <View style={globalStyles.iconContainer}>
-                  <Feather name="shield" size={20} color={colors.iconDark} />
-                </View>
-                <View style={globalStyles.rowTextContainer}>
-                  <Text style={globalStyles.rowTitle}>Two-Factor Authentication</Text>
-                  <Text style={globalStyles.rowSubtitle}>Require a code when logging in</Text>
-                </View>
-              </View>
-              <Switch 
-                value={twoFactor} 
-                onValueChange={setTwoFactor}
-                trackColor={{ false: colors.border, true: colors.iconDark }}
-              />
+        <Text style={[globalStyles.sectionTitle, { marginTop: 20 }]}>BIOMETRICS</Text>
+        <View style={globalStyles.card}>
+          <View style={globalStyles.row}>
+            <View style={globalStyles.iconContainer}>
+              <Feather name="smartphone" size={20} color={colors.iconDark} />
             </View>
+            <View style={globalStyles.rowTextContainer}>
+              <Text style={globalStyles.rowTitle}>{i18n.t('security.biometrics') || 'Biometric Authentication'}</Text>
+              <Text style={globalStyles.rowSubtitle}>
+                {i18n.t('security.biometrics_desc') || 'Use Face ID / Touch ID to sign in'}
+              </Text>
+            </View>
+            <Switch
+              value={biometricsEnabled}
+              onValueChange={handleToggleBiometrics}
+              disabled={!biometricsSupported}
+              trackColor={{ false: '#d1d1d6', true: colors.primary }}
+              thumbColor={biometricsEnabled ? '#fff' : '#f4f3f4'}
+            />
           </View>
+          {!biometricsSupported && (
+            <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
+              <Text style={{ color: colors.errorText, fontSize: 12 }}>
+                * Biometric authentication is not supported or enrolled on this device.
+              </Text>
+            </View>
+          )}
         </View>
 
-        <View style={globalStyles.section}>
-          <Text style={globalStyles.sectionTitle}>Device & Privacy</Text>
-          <View style={globalStyles.card}>
-            <View style={globalStyles.rowSpaceBetween}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                <View style={globalStyles.iconContainer}>
-                  <Feather name="smartphone" size={20} color={colors.iconDark} />
-                </View>
-                <View style={globalStyles.rowTextContainer}>
-                  <Text style={globalStyles.rowTitle}>Biometric Login</Text>
-                  <Text style={globalStyles.rowSubtitle}>Use Face ID / Touch ID to sign in</Text>
-                </View>
-              </View>
-              <Switch 
-                value={biometrics} 
-                onValueChange={setBiometrics}
-                trackColor={{ false: colors.border, true: colors.iconDark }}
-              />
-            </View>
+        <Text style={[globalStyles.sectionTitle, { marginTop: 24 }]}>CHANGE PASSWORD</Text>
+        <View style={globalStyles.card}>
+          <View style={{ padding: 16 }}>
+            <Input
+              label=""
+              placeholder={i18n.t('security.new_password') || 'New Password'}
+              value={newPassword}
+              onChangeText={setNewPassword}
+              secureTextEntry
+              leftIcon="shield"
+            />
+
+            <Input
+              label=""
+              placeholder={i18n.t('security.confirm_password') || 'Confirm New Password'}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+              leftIcon="check-circle"
+            />
+
+            <TouchableOpacity
+              style={[globalStyles.buttonPrimary, loading && globalStyles.disabled]}
+              onPress={handleUpdatePassword}
+              disabled={loading}
+              activeOpacity={0.8}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <Text style={globalStyles.buttonPrimaryText}>
+                  {i18n.t('security.update') || 'Update Password'}
+                </Text>
+              )}
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
