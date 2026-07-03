@@ -70,7 +70,7 @@ function getFeatherIcon(name: string): string {
 // ─── Component ───────────────────────────────────────────────
 
 export default function SymptomCheckerScreen() {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
 
   // Symptom state
   const [searchQuery, setSearchQuery] = useState('');
