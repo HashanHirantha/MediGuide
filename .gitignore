@@ -37,3 +37,6 @@ supabase/dump.sql
 
 # AI context files (optional, but good to ignore if you don't want them in version control)
 # .AI/
+
+# Ignore migration containing sensitive Service Role Key
+supabase/migrations/00015_schedule_article_generation.sql
