@@ -111,7 +111,7 @@ Output the articles in valid JSON format exactly matching this structure (do not
         category: article.category,
         read_time_minutes: article.read_time_minutes,
         tags: article.tags,
-        image_url: `https://source.unsplash.com/600x400/?${searchQuery},medical`,
+        image_url: `https://loremflickr.com/600/400/${searchQuery},medical`,
       };
     });
 
