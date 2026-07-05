@@ -148,8 +148,8 @@ This document tracks all planned features, enhancements, and technical improveme
 - [x] Notifications sub-screen (appointment reminders, health tips, email notifications, SMS alerts — all toggleable)
 - [x] Security sub-screen (change password, two-factor authentication, biometric login — all toggleable)
 - [x] Sign Out with confirmation dialog
-- [ ] Language selection — placeholder UI only
-- [ ] Help & Support — placeholder UI only
+- [x] Language selection — `settings/language.tsx` with English, Sinhala, Tamil (i18n)
+- [x] Help & Support — `settings/help.tsx` screen
 
 ---
 
@@ -175,12 +175,17 @@ This document tracks all planned features, enhancements, and technical improveme
 - [ ] Digital prescription generation
 - [ ] Consultation recording (with consent)
 
-### 3.3 Health Articles & Content — TODO
-- [ ] Curated health articles stored in Supabase (articles table)
-- [ ] Preventive care tips & lifestyle recommendations
-- [ ] Seasonal health alerts (flu season, dengue, etc.)
-- [ ] Bookmarking articles
-- [ ] Article search & categories
+### 3.3 Health Articles & Content ✅ DONE
+- [x] Curated health articles stored in Supabase (`articles` table)
+- [x] AI-generated articles via `generate-articles` Edge Function (Gemini AI)
+- [x] Auto-scheduled article generation every 2 days via `pg_cron` + `pg_net`
+- [x] Auto-cleanup of articles older than 7 days
+- [x] Preventive care tips & lifestyle recommendations (generated categories)
+- [x] Seasonal health alerts (generated categories)
+- [x] Bookmarking articles (`user_article_bookmarks` table)
+- [x] Article search & categories (`articles/index.tsx`)
+- [x] Article detail view (`articles/[id].tsx`)
+- [x] `articleService.ts` for CRUD & bookmark management
 
 ### 3.4 Interactive Symptom Input — PARTIALLY DONE
 - [x] Common symptom chip selection
@@ -219,11 +224,14 @@ This document tracks all planned features, enhancements, and technical improveme
 - [ ] Doctor payout management
 - [ ] Refund processing for cancellations
 
-### 4.3 Multi-language Support
-- [ ] i18n framework integration (react-i18next)
-- [ ] Sinhala language support
-- [ ] Tamil language support
-- [ ] Language switcher in settings
+### 4.3 Multi-language Support ✅ DONE
+- [x] i18n framework integration (`i18n/` module)
+- [x] Sinhala language support (`si.json`)
+- [x] Tamil language support (`ta.json`)
+- [x] English language support (`en.json`)
+- [x] Language switcher in settings (`settings/language.tsx`)
+- [x] `LanguageContext` for app-wide locale state management
+- [x] All UI strings use `i18n.t()` keys
 
 ### 4.4 Accessibility
 - [ ] Screen reader support (VoiceOver / TalkBack)
@@ -246,7 +254,7 @@ This document tracks all planned features, enhancements, and technical improveme
 
 | Item                                    | Priority | Description                                               |
 | :-------------------------------------- | :------- | :-------------------------------------------------------- |
-| Diagnosis history save                  | High     | Wire up `diagnosis_history` insert after Gemini prediction in `check.tsx` |
+| Diagnosis history save                  | ~~High~~ | ~~Wire up `diagnosis_history` insert after Gemini prediction in `check.tsx`~~ ✅ Done — saved to `ai_check_history` |
 | Appointment cancellation UI             | High     | Add cancel button/flow to appointment detail screen       |
 | Realtime subscriptions wiring           | High     | Connect `useRealtime` hook to appointment status updates  |
 | RLS policy audit                        | High     | Review all RLS policies for data leaks and edge cases     |
@@ -303,11 +311,12 @@ Phase 2 (Enhanced) 🔜 IN PROGRESS
 Phase 3 (Advanced) 🔮 PARTIALLY STARTED
 ├── 3.1 AI Prediction ─────────── ✅ Gemini integrated
 ├── 3.2 Telemedicine ──────────── TODO
-├── 3.3 Health Articles ───────── TODO
+├── 3.3 Health Articles ───────── ✅ Done (AI-generated, bookmarks, cron)
 ├── 3.4 Interactive Input ─────── Partially Done (image attachments)
 └── 3.5 Maps & Navigation ────── TODO
 
-Phase 4 (Scale) ──────────────── TODO
+Phase 4 (Scale) ──────────────── PARTIALLY STARTED
+├── 4.3 Multi-language (i18n) ─── ✅ Done (EN, SI, TA)
 ```
 
 ---

@@ -152,11 +152,27 @@
 
 9. **AI-Enhanced Prediction** (Partially Implemented)
     - ✅ Gemini AI integration via Edge Function (multi-modal: text + images)
+    - ✅ AI Check History — persists every Gemini analysis to `ai_check_history` table with symptoms, risk, conditions, and recommendations
     - NLP-based symptom input ("I have headache and fever") — future
     - Continuous model improvement from feedback — future
 
-10. **Telemedicine / Video Consultation** — Future
-11. **Health Articles & Awareness** — Future
+10. **Health Articles & Awareness** (Implemented)
+    - ✅ `articles` table with Gemini AI-generated health content
+    - ✅ `user_article_bookmarks` table for per-user bookmark persistence
+    - ✅ `generate-articles` Edge Function — deletes articles older than 7 days, generates 4 new articles via Gemini AI, inserts with Unsplash images
+    - ✅ `pg_cron` scheduled job runs `generate-articles` every 2 days at midnight UTC via `pg_net` HTTP POST
+    - ✅ Articles list screen (`app/articles/index.tsx`) with category filtering & bookmarking
+    - ✅ Article detail screen (`app/articles/[id].tsx`) with full content rendering
+    - ✅ `articleService.ts` — CRUD for articles & bookmarks
+
+11. **Internationalization (i18n)** (Implemented)
+    - ✅ Multi-language support: English, Sinhala (සිංහල), Tamil (தமிழ்)
+    - ✅ `i18n/` directory with `en.json`, `si.json`, `ta.json` translation files
+    - ✅ `LanguageContext` for app-wide locale state management
+    - ✅ Language selector settings screen (`app/settings/language.tsx`)
+    - ✅ All UI strings use `i18n.t()` keys for translation
+
+12. **Telemedicine / Video Consultation** — Future
 
 ---
 
@@ -202,6 +218,9 @@ Mobile-Computing/
 │   │   │   ├── _layout.tsx
 │   │   │   ├── [id].tsx          # Doctor detail screen with reviews
 │   │   │   └── book.tsx          # Booking screen (date/time picker, symptom input)
+│   │   ├── articles/
+│   │   │   ├── index.tsx         # Articles list with category filters & bookmarking
+│   │   │   └── [id].tsx          # Article detail (full content view)
 │   │   ├── appointments/
 │   │   │   ├── _layout.tsx
 │   │   │   ├── index.tsx         # All appointments
@@ -209,7 +228,9 @@ Mobile-Computing/
 │   │   └── settings/
 │   │       ├── profile.tsx       # Edit profile (avatar, name, health data, BMI calc)
 │   │       ├── notifications.tsx # Notification preferences (push, email, SMS toggles)
-│   │       └── security.tsx      # Security settings (password, 2FA, biometrics)
+│   │       ├── security.tsx      # Security settings (password, 2FA, biometrics)
+│   │       ├── language.tsx      # Language selector (English, Sinhala, Tamil)
+│   │       └── help.tsx          # Help & support screen
 │   ├── components/
 │   │   ├── ui/                   # Reusable UI components
 │   │   │   ├── Avatar.tsx
@@ -220,6 +241,7 @@ Mobile-Computing/
 │   │   │   └── LoadingSpinner.tsx
 │   │   ├── TopBar.tsx            # Unified top navigation bar (← arrow, "MediGuide" title, profile avatar)
 │   │   ├── RecommendedDoctors.tsx # Post-analysis doctor recommendations (fetches by specialty, paginated)
+│   │   ├── BiometricLock.tsx     # Biometric authentication lock screen component
 │   │   ├── SymptomCard.tsx
 │   │   ├── DiseaseCard.tsx
 │   │   ├── DoctorCard.tsx
@@ -228,7 +250,8 @@ Mobile-Computing/
 │   │   └── RatingStars.tsx
 │   ├── contexts/
 │   │   ├── AuthContext.tsx        # Wraps Supabase Auth state (signIn, signUp with metadata, signOut, refreshProfile)
-│   │   └── HealthContext.tsx
+│   │   ├── HealthContext.tsx
+│   │   └── LanguageContext.tsx    # App-wide locale state (English, Sinhala, Tamil)
 │   ├── lib/
 │   │   └── supabase.ts           # Supabase client initialization
 │   ├── services/
@@ -238,6 +261,8 @@ Mobile-Computing/
 │   │   ├── diseaseService.ts     # Disease queries & prediction
 │   │   ├── doctorService.ts      # Doctor queries (list, detail, reviews, recommended)
 │   │   ├── appointmentService.ts # Appointment CRUD
+│   │   ├── articleService.ts     # Article CRUD & bookmark management
+│   │   ├── aiCheckHistoryService.ts # AI check history persistence & retrieval
 │   │   └── storageService.ts     # Supabase Storage wrappers
 │   ├── hooks/
 │   │   ├── useAuth.ts
@@ -247,9 +272,14 @@ Mobile-Computing/
 │   ├── types/
 │   │   ├── database.types.ts     # Auto-generated Supabase DB types
 │   │   └── index.ts              # App-level type definitions
+│   ├── i18n/                     # Internationalization
+│   │   ├── index.ts             # i18n config & initialization
+│   │   ├── en.json              # English translations
+│   │   ├── si.json              # Sinhala (සිංහල) translations
+│   │   └── ta.json              # Tamil (தமிழ்) translations
 │   ├── constants/
 │   │   ├── theme.ts              # Colors, fonts, spacing, radius, shadows
-│   │   ├── globalStyles.ts       # Shared StyleSheet (1400+ lines of reusable styles)
+│   │   ├── globalStyles.ts       # Shared StyleSheet (reusable styles)
 │   │   └── config.ts             # Supabase URL & anon key
 │   ├── utils/
 │   │   └── helpers.ts            # Utility functions
@@ -274,13 +304,19 @@ Mobile-Computing/
 │   │   ├── 00008_create_reviews.sql
 │   │   ├── 00009_create_medical_history.sql
 │   │   ├── 00010_create_diagnosis_history.sql
-│   │   └── 00011_enable_rls_policies.sql
+│   │   ├── 00011_enable_rls_policies.sql
+│   │   ├── 00012_add_profile_fields.sql         # Adds height_cm, weight_kg, bmi to profiles
+│   │   ├── 00013_create_ai_check_history.sql    # AI symptom check history table + RLS
+│   │   ├── 00014_create_articles.sql            # Articles + user_article_bookmarks tables + seed data
+│   │   └── 00015_schedule_article_generation.sql # pg_cron + pg_net to auto-generate articles every 2 days
 │   ├── seed.sql                  # Seed data (symptoms, diseases, doctors)
 │   └── functions/                # Supabase Edge Functions
 │       ├── gemini-symptom-check/
 │       │   └── index.ts          # Gemini AI symptom analysis (primary prediction engine)
 │       ├── predict-disease/
 │       │   └── index.ts          # Rule-based disease prediction (fallback)
+│       ├── generate-articles/
+│       │   └── index.ts          # Gemini AI article generation (deletes old, generates new, auto-scheduled)
 │       └── send-notification/
 │           └── index.ts          # Push notification dispatcher
 │
@@ -333,6 +369,7 @@ Mobile-Computing/
 | :---------------------- | :--------------------------------------- | :------------------------------------ |
 | `gemini-symptom-check`  | `supabase.functions.invoke('gemini-symptom-check', { body: { symptoms, duration, additional_notes, images } })` | **Primary**: Gemini AI symptom analysis with multi-modal support (text + images). Returns structured predictions with confidence %, risk levels, and recommended specialties. |
 | `predict-disease`       | `supabase.functions.invoke('predict-disease', { body: { symptom_ids } })` | **Fallback**: Rule-based prediction using weighted symptom matching |
+| `generate-articles`     | `supabase.functions.invoke('generate-articles', { body: {} })` | Deletes articles older than 7 days, generates 4 new health articles via Gemini AI (general health, seasonal, lifestyle, preventive care), inserts into `articles` table. Auto-scheduled via `pg_cron` every 2 days. |
 | `send-notification`     | `supabase.functions.invoke('send-notification', { body: { ... } })`       | Dispatch push notifications       |
 
 ### Realtime Subscriptions
@@ -430,6 +467,7 @@ supabase gen types typescript --linked > Frontend/types/database.types.ts
 # Deploy Edge Functions
 supabase functions deploy gemini-symptom-check
 supabase functions deploy predict-disease
+supabase functions deploy generate-articles
 supabase functions deploy send-notification
 
 # Set Edge Function secrets
@@ -558,9 +596,13 @@ npx expo start
 8. **Realtime for Live Updates**: Appointment status changes use Supabase Realtime Postgres Changes subscriptions.
 9. **Storage for Files**: Profile images stored in Supabase Storage `patients` bucket with appropriate access policies. Upload uses `upsert: true` for idempotent overwrites.
 10. **Error Handling**: Supabase client returns `{ data, error }` — all service functions check and handle errors consistently. Gemini service includes try/catch with descriptive error messages.
-11. **Context Providers**: `AuthContext` for auth state (signIn, signUp, signOut, refreshProfile); `HealthContext` for symptom/prediction state.
+11. **Context Providers**: `AuthContext` for auth state (signIn, signUp, signOut, refreshProfile); `HealthContext` for symptom/prediction state; `LanguageContext` for app-wide locale management.
 12. **Unified TopBar Component**: All screens use a shared `TopBar` component (`components/TopBar.tsx`) for consistent header styling — back arrow, centered "MediGuide" title, and profile avatar.
-13. **Global Styles System**: `constants/globalStyles.ts` is a massive shared StyleSheet (1400+ lines) providing reusable styles across all screens — layouts, cards, rows, buttons, form elements, avatars, etc. Screens import `globalStyles` instead of defining local styles.
+13. **Global Styles System**: `constants/globalStyles.ts` is a massive shared StyleSheet providing reusable styles across all screens — layouts, cards, rows, buttons, form elements, avatars, etc. Screens import `globalStyles` instead of defining local styles.
 14. **Mock Data Fallback**: The `doctors.tsx` and `history.tsx` screens include hardcoded mock data arrays that are displayed when no real data is returned from Supabase, enabling UI development and demos without a live backend.
-15. **Settings Sub-Routes**: Settings is a dedicated route group (`app/settings/`) with sub-screens for profile editing, notification preferences, and security settings. Each uses the shared `TopBar` and `globalStyles`.
+15. **Settings Sub-Routes**: Settings is a dedicated route group (`app/settings/`) with sub-screens for profile editing, notification preferences, security settings, language selection, and help/support. Each uses the shared `TopBar` and `globalStyles`.
 16. **Post-Analysis Doctor Recommendations**: After Gemini AI returns predictions with `recommended_specialties`, the `RecommendedDoctors` component fetches matching verified doctors and displays them with "Load More" pagination.
+17. **Internationalization (i18n)**: All user-facing strings use `i18n.t('key')` from the `i18n/` module. Supports English, Sinhala, and Tamil. Language preference managed via `LanguageContext` and persisted.
+18. **AI Check History Persistence**: Every Gemini AI symptom analysis is saved to the `ai_check_history` table via `aiCheckHistoryService.ts`, enabling users to review past AI consultations in the History tab.
+19. **Automated Article Generation**: The `generate-articles` Edge Function uses Gemini AI to create fresh health articles every 2 days (via `pg_cron` + `pg_net`), automatically cleaning up articles older than 7 days.
+20. **VS Code Deno Configuration**: `.vscode/settings.json` enables the Deno language server only for `supabase/functions/` via `deno.enablePaths`, preventing conflicts with the Node.js-based Frontend.

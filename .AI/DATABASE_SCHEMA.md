@@ -435,7 +435,52 @@ Stores AI symptom check results from the Gemini-based checker.
 
 ---
 
-## Supabase Storage Buckets
+### 13. `articles`
+
+Stores AI-generated and seed health articles for the Health Articles & Awareness feature.
+
+| Column             | Type          | Constraints                                  | Description                    |
+| :----------------- | :------------ | :------------------------------------------- | :----------------------------- |
+| `id`               | `UUID`        | PK, DEFAULT gen_random_uuid()                | Unique article ID              |
+| `title`            | `TEXT`        | NOT NULL                                     | Article title                  |
+| `summary`          | `TEXT`        | NOT NULL                                     | Brief 2-sentence summary       |
+| `content`          | `TEXT`        | NOT NULL                                     | Full article content (markdown)|
+| `category`         | `TEXT`        | NOT NULL                                     | One of: General Health, Seasonal, Preventive Care, Lifestyle |
+| `image_url`        | `TEXT`        | NULLABLE                                     | Cover image URL                |
+| `tags`             | `TEXT[]`      | DEFAULT '{}'                                 | Array of tags for filtering    |
+| `read_time_minutes`| `INTEGER`     | DEFAULT 5                                    | Estimated reading time         |
+| `created_at`       | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW()                      | Creation timestamp             |
+| `updated_at`       | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW()                      | Last updated timestamp         |
+
+**RLS Policies**:
+| Policy Name                               | Operation | Rule                    |
+| :---------------------------------------- | :-------- | :---------------------- |
+| `Articles are viewable by everyone`       | SELECT    | `true` (public read)   |
+| `Articles can only be modified by admins` | ALL       | `false` (insert via service_role key only) |
+
+---
+
+### 14. `user_article_bookmarks`
+
+Stores per-user article bookmarks.
+
+| Column       | Type          | Constraints                                        | Description               |
+| :----------- | :------------ | :------------------------------------------------- | :------------------------ |
+| `id`         | `UUID`        | PK, DEFAULT gen_random_uuid()                      | Unique bookmark ID        |
+| `user_id`    | `UUID`        | FK → profiles.id ON DELETE CASCADE                 | User who bookmarked       |
+| `article_id` | `UUID`        | FK → articles.id ON DELETE CASCADE                 | Bookmarked article        |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW()                            | When bookmarked           |
+
+**Constraints**: UNIQUE(user_id, article_id)
+
+**RLS Policies**:
+| Policy Name                       | Operation | Rule                    |
+| :-------------------------------- | :-------- | :---------------------- |
+| `Users can view own bookmarks`    | SELECT    | `auth.uid() = user_id` |
+| `Users can create own bookmarks`  | INSERT    | `auth.uid() = user_id` |
+| `Users can delete own bookmarks`  | DELETE    | `auth.uid() = user_id` |
+
+---
 
 | Bucket Name   | Public | Description                        | Access Policy                          |
 | :------------ | :----- | :--------------------------------- | :------------------------------------- |
@@ -533,6 +578,8 @@ CREATE TRIGGER set_updated_at BEFORE UPDATE ON diseases FOR EACH ROW EXECUTE FUN
 | `profiles` → `reviews`          | 1:N     | A patient can write many reviews                        |
 | `profiles` → `doctors`          | 1:1     | A doctor user has one doctor profile                    |
 | `profiles` → `ai_check_history` | 1:N     | A patient can have multiple AI check histories          |
+| `profiles` → `user_article_bookmarks` | 1:N | A patient can have many article bookmarks              |
+| `articles` → `user_article_bookmarks` | 1:N | An article can be bookmarked by many users             |
 | `doctors` → `appointments`      | 1:N     | A doctor can have many appointments                     |
 | `doctors` → `reviews`           | 1:N     | A doctor can receive many reviews                       |
 | `diseases` ↔ `symptoms`         | M:N     | Via `disease_symptoms` junction table                   |
@@ -586,6 +633,7 @@ supabase gen types typescript --linked > Frontend/types/database.types.ts
 
 # Deploy Edge Functions
 supabase functions deploy predict-disease
+supabase functions deploy generate-articles
 supabase functions deploy send-notification
 
 # View logs
@@ -611,4 +659,6 @@ ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE medical_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE diagnosis_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_check_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE articles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_article_bookmarks ENABLE ROW LEVEL SECURITY;
 ```
