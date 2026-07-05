@@ -93,12 +93,16 @@
   "appointment": {
     "details": "Appointment Details",
     "reschedule": "Reschedule",
-    "cancel": "Cancel Appointment"
+    "cancel": "Cancel Appointment",
+    "view_manage": "View and manage your appointment details",
+    "info": "Appointment Information",
+    "fee": "Consultation Fee"
   },
   "book": {
     "title": "Book Appointment",
     "select_date": "Select Date",
     "select_time": "Available Time Slots",
+    "time": "Time",
     "confirm": "Confirm Booking",
     "success": "Booking Successful!"
   },
