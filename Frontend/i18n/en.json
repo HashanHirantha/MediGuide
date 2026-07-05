@@ -103,6 +103,8 @@
     "select_date": "Select Date",
     "select_time": "Available Time Slots",
     "time": "Time",
+    "notes": "Additional Notes",
+    "notes_placeholder": "Enter any additional information...",
     "confirm": "Confirm Booking",
     "success": "Booking Successful!"
   },
