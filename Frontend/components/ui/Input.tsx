@@ -1,4 +1,5 @@
-import { View, Text, TextInput, StyleSheet, TextInputProps, ViewStyle, StyleProp } from 'react-native';
+import { useState } from 'react';
+import { View, Text, TextInput, StyleSheet, TextInputProps, ViewStyle, StyleProp, TouchableOpacity } from 'react-native';
 import { colors, typography, spacing } from '../../constants/theme';
 import { Feather } from '@expo/vector-icons';
 
@@ -9,7 +10,9 @@ interface InputProps extends Omit<TextInputProps, 'style'> {
   leftIcon?: keyof typeof Feather.glyphMap;
 }
 
-export function Input({ label, error, style, leftIcon, ...props }: InputProps) {
+export function Input({ label, error, style, leftIcon, secureTextEntry, ...props }: InputProps) {
+  const [isSecure, setIsSecure] = useState(secureTextEntry);
+
   return (
     <View style={[styles.container, style]}>
       {label ? <Text style={styles.label}>{label.toUpperCase()}</Text> : null}
@@ -20,8 +23,14 @@ export function Input({ label, error, style, leftIcon, ...props }: InputProps) {
         <TextInput
           style={styles.input}
           placeholderTextColor={colors.textSecondary}
+          secureTextEntry={isSecure}
           {...props}
         />
+        {secureTextEntry && (
+          <TouchableOpacity onPress={() => setIsSecure(!isSecure)} style={styles.rightIconContainer}>
+            <Feather name={isSecure ? 'eye-off' : 'eye'} size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+        )}
       </View>
       {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>
@@ -48,6 +57,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     color: colors.textPrimary,
     ...typography.body,
+  },
+  rightIconContainer: {
+    padding: spacing.sm,
   },
   inputError: { borderColor: colors.accent },
   error: { ...typography.caption, color: colors.accent, marginTop: spacing.xs },

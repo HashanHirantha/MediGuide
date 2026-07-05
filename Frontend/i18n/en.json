@@ -100,6 +100,7 @@
   },
   "book": {
     "title": "Book Appointment",
+    "desc": "Select a date and time for your consultation",
     "select_date": "Select Date",
     "select_time": "Available Time Slots",
     "time": "Time",

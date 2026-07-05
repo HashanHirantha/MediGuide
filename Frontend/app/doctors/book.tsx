@@ -127,7 +127,10 @@ export default function BookScreen() {
   if (fetchLoading) return <LoadingSpinner />;
 
   const doc = doctor;
-  const doctorName = `Dr. ${doc?.profiles?.first_name} ${doc?.profiles?.last_name}`;
+  const firstName = doc?.profiles?.first_name || '';
+  const lastName = doc?.profiles?.last_name || '';
+  const doctorName = (firstName || lastName) ? `Dr. ${firstName} ${lastName}`.trim() : 'Doctor';
+  const profileImage = doc?.profiles?.profile_image || doc?.profile_image || 'https://i.pravatar.cc/150?img=11';
   const dates = getDates();
 
   return (
@@ -144,7 +147,7 @@ export default function BookScreen() {
         {/* Doctor Mini Card */}
         <View style={globalStyles.profileCard}>
           <Image
-            source={{ uri: doc?.profiles?.profile_image || 'https://i.pravatar.cc/150?img=11' }}
+            source={{ uri: profileImage }}
             style={globalStyles.avatarLarge}
           />
           <View style={globalStyles.profileInfo}>
