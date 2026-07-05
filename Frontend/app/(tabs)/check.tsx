@@ -131,14 +131,43 @@ export default function SymptomCheckerScreen() {
     return () => clearTimeout(timer);
   }, [searchQuery, selectedSymptoms]);
 
+  // ─── Emergency Check ────────────────────────────────────────
+
+  const EMERGENCY_KEYWORDS = [
+    'chest pain',
+    'difficulty breathing',
+    'severe bleeding',
+    'bleeding',
+    'shortness of breath',
+    'heart attack',
+    'stroke',
+    'choking',
+    'unconscious',
+  ];
+
+  const checkEmergency = (symptom: string) => {
+    const lower = symptom.toLowerCase();
+    const isEmergency = EMERGENCY_KEYWORDS.some(kw => lower.includes(kw));
+    if (isEmergency) {
+      Alert.alert(
+        'EMERGENCY ALERT ⚠️',
+        'You have entered a symptom that may require immediate medical attention.\n\nPlease call your local emergency services (e.g., 911 or 1990) or visit the nearest emergency room immediately.',
+        [{ text: 'Understood', style: 'destructive' }]
+      );
+    }
+  };
+
   // ─── Toggle symptom ─────────────────────────────────────────
 
   const toggleSymptom = (symptom: string) => {
-    setSelectedSymptoms(prev =>
-      prev.includes(symptom)
-        ? prev.filter(s => s !== symptom)
-        : [...prev, symptom]
-    );
+    setSelectedSymptoms(prev => {
+      if (prev.includes(symptom)) {
+        return prev.filter(s => s !== symptom);
+      } else {
+        checkEmergency(symptom);
+        return [...prev, symptom];
+      }
+    });
     // Reset prediction when symptoms change
     if (prediction) {
       setPrediction(null);
@@ -151,6 +180,7 @@ export default function SymptomCheckerScreen() {
   const addCustomSymptom = () => {
     const trimmed = searchQuery.trim();
     if (trimmed && !selectedSymptoms.includes(trimmed)) {
+      checkEmergency(trimmed);
       setSelectedSymptoms(prev => [...prev, trimmed]);
       setSearchQuery('');
       setSearchResults([]);
@@ -298,6 +328,11 @@ export default function SymptomCheckerScreen() {
   };
 
   // ─── Render ─────────────────────────────────────────────────
+
+  const hasEmergencySymptom = selectedSymptoms.some(s => {
+    const lower = s.toLowerCase();
+    return EMERGENCY_KEYWORDS.some(kw => lower.includes(kw));
+  });
 
   return (
     <SafeAreaView style={globalStyles.safeArea}>
@@ -547,6 +582,23 @@ export default function SymptomCheckerScreen() {
             <Text style={globalStyles.insightsSubtitle}>
               Based on {selectedSymptoms.length} reported symptom{selectedSymptoms.length > 1 ? 's' : ''}
             </Text>
+
+            {hasEmergencySymptom && (
+              <View style={[
+                globalStyles.errorCard, 
+                { backgroundColor: colors.accent, marginBottom: 15, flexDirection: 'column', alignItems: 'flex-start', gap: 5 }
+              ]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Feather name="alert-triangle" size={20} color={colors.white} />
+                  <Text style={{ color: colors.white, fontWeight: '700', fontSize: 16, marginLeft: 8 }}>
+                    EMERGENCY ALERT
+                  </Text>
+                </View>
+                <Text style={{ color: colors.white, fontSize: 14, lineHeight: 20 }}>
+                  Based on your symptoms, we strongly recommend calling emergency services immediately (e.g., 911 or 1990) or visiting the nearest emergency room.
+                </Text>
+              </View>
+            )}
 
             {prediction.conditions.map((condition, index) => (
               <View key={index} style={globalStyles.insightItem}>
