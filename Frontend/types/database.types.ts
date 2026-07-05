@@ -172,6 +172,32 @@ export type Database = {
         Insert: Omit<Database['public']['Tables']['doctor_specialties']['Row'], 'id'>;
         Update: Partial<Database['public']['Tables']['doctor_specialties']['Insert']>;
       };
+      articles: {
+        Row: {
+          id: string;
+          title: string;
+          summary: string;
+          content: string;
+          category: string;
+          image_url: string | null;
+          tags: string[];
+          read_time_minutes: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['articles']['Row'], 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Database['public']['Tables']['articles']['Insert']>;
+      };
+      user_article_bookmarks: {
+        Row: {
+          id: string;
+          user_id: string;
+          article_id: string;
+          created_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['user_article_bookmarks']['Row'], 'id' | 'created_at'>;
+        Update: Partial<Database['public']['Tables']['user_article_bookmarks']['Insert']>;
+      };
     };
     Views: {
       [_ in never]: never

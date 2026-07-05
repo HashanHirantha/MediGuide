@@ -76,6 +76,21 @@ export default function HomeScreen() {
           <Text style={globalStyles.homeCardTitle}>{i18n.t('home.find_doctor')}</Text>
           <Text style={globalStyles.homeCardSubtitle}>{i18n.t('home.find_doctor_desc')}</Text>
         </TouchableOpacity>
+        {/* Card: Articles & Tips */}
+        <TouchableOpacity 
+          style={globalStyles.homeCard} 
+          activeOpacity={0.8} 
+          onPress={() => router.push('/articles')}
+        >
+          <MaterialCommunityIcons 
+            name="book-open-page-variant" 
+            size={32} 
+            color={colors.iconDark} 
+            style={globalStyles.homeCardIcon} 
+          />
+          <Text style={globalStyles.homeCardTitle}>{i18n.t('articles.discover_card_title') || 'Health Articles & Tips'}</Text>
+          <Text style={globalStyles.homeCardSubtitle}>{i18n.t('articles.discover_card_desc') || 'Read curated health content'}</Text>
+        </TouchableOpacity>
 
       </ScrollView>
 

@@ -123,5 +123,22 @@
     "error": "Error",
     "passwords_match": "Passwords do not match",
     "password_updated": "Password updated successfully"
+  },
+  "articles": {
+    "title": "Health Articles",
+    "desc": "Curated health content and preventive care tips",
+    "search_placeholder": "Search articles...",
+    "discover": "Discover",
+    "bookmarks": "Bookmarks",
+    "no_articles": "No articles found.",
+    "no_bookmarks": "You haven't bookmarked any articles yet.",
+    "read_more": "Read More",
+    "min_read": "min read",
+    "discover_card_title": "Health Articles & Tips",
+    "discover_card_desc": "Read curated health content",
+    "all": "All",
+    "seasonal": "Seasonal",
+    "preventive": "Preventive Care",
+    "lifestyle": "Lifestyle"
   }
 }
