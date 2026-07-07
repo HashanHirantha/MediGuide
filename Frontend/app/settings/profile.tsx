@@ -11,7 +11,7 @@ import { supabase } from '../../lib/supabase';
 import { globalStyles } from '../../constants/globalStyles';
 import { colors } from '../../constants/theme';
 import i18n from '../../i18n';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { decode } from 'base64-arraybuffer';
 
 export default function ProfileSettingsScreen() {
