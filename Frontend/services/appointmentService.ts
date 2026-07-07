@@ -55,3 +55,41 @@ export async function updateAppointmentStatus(id: string, status: string, reason
 export async function cancelAppointment(id: string, reason?: string) {
   return updateAppointmentStatus(id, 'cancelled', reason);
 }
+
+/**
+ * Fetch all appointments for a specific doctor.
+ */
+export async function getDoctorAppointments(doctorId: string) {
+  return supabase
+    .from('appointments')
+    .select('*, profiles(first_name, last_name, profile_image, phone), diseases(name, severity)')
+    .eq('doctor_id', doctorId)
+    .order('appointment_date', { ascending: true })
+    .order('appointment_time', { ascending: true });
+}
+
+/**
+ * Subscribe to real-time appointment updates for a specific doctor.
+ */
+export function subscribeDoctorAppointments(doctorId: string, callback: () => void) {
+  const channel = supabase
+    .channel(`doctor_appointments_${doctorId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'appointments',
+        filter: `doctor_id=eq.${doctorId}`,
+      },
+      (payload) => {
+        console.log('Realtime appointment update:', payload);
+        callback();
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}

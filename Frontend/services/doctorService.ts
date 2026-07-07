@@ -147,3 +147,35 @@ export async function getRecommendedDoctors(specialties: string[]) {
     .or(orFilter)
     .order('average_rating', { ascending: false });
 }
+
+/**
+ * Fetch a doctor's profile by their user_id.
+ */
+export async function getDoctorProfileByUserId(userId: string) {
+  return supabase
+    .from('doctors')
+    .select('*, profiles(first_name, last_name, profile_image, email, phone)')
+    .eq('user_id', userId)
+    .single();
+}
+
+/**
+ * Update a doctor's profile and schedule details.
+ */
+export async function updateDoctorProfile(
+  userId: string,
+  doctorData: {
+    specialty?: string;
+    qualification?: string;
+    hospital_name?: string;
+    consultation_fee?: number;
+    available_days?: string;
+    available_from?: string;
+    available_to?: string;
+  }
+) {
+  return supabase
+    .from('doctors')
+    .update(doctorData)
+    .eq('user_id', userId);
+}

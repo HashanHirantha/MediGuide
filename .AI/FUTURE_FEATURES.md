@@ -89,13 +89,13 @@ This document tracks all planned features, enhancements, and technical improveme
 
 > **Goal**: Add rich user experience features, doctor-side portal, and review system.
 
-### 2.1 Doctor Dashboard (Doctor Role) — TODO
-- [ ] Doctor registration flow (separate from patient)
-- [ ] Doctor profile editor (specialty, qualifications, hospital, fees)
-- [ ] Availability schedule management (days & hours)
-- [ ] Incoming appointment requests view (realtime via Supabase)
-- [ ] Accept / Reject / Reschedule appointments
-- [ ] Patient symptom summary view before appointment
+### 2.1 Doctor Dashboard (Doctor Role) — ✅ DONE
+- [x] Doctor registration flow (separate from patient)
+- [x] Doctor profile editor (specialty, qualifications, hospital, fees)
+- [x] Availability schedule management (days & hours)
+- [x] Incoming appointment requests view (realtime via Supabase)
+- [x] Accept / Reject / Reschedule appointments
+- [x] Patient symptom summary view before appointment
 
 ### 2.2 Ratings & Reviews System ✅ PARTIALLY DONE
 - [ ] Post-appointment review prompt
