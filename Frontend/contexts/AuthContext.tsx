@@ -26,7 +26,7 @@ interface AuthContextValue {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: any; role?: string }>;
   signUp: (email: string, password: string, meta?: { firstName?: string; lastName?: string; phone?: string; dateOfBirth?: string; gender?: string; bloodGroup?: string; profileImageUri?: string; heightCm?: number; weightKg?: number; bmi?: number }) => Promise<{ error: any; imageError: string | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -81,8 +81,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
+    const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+    let role = 'patient'; // default
+    if (!error && data.user) {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+      if (profileData?.role) {
+        role = profileData.role;
+      }
+    }
+    return { error, role };
   };
 
   const signUp = async (email: string, password: string, meta?: { firstName?: string; lastName?: string; phone?: string; dateOfBirth?: string; gender?: string; bloodGroup?: string; profileImageUri?: string; heightCm?: number; weightKg?: number; bmi?: number }) => {

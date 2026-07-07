@@ -29,11 +29,15 @@ export default function LoginScreen() {
     }
     setLoading(true);
     setError('');
-    const { error: signInError } = await signIn(email, password);
+    const { error: signInError, role } = await signIn(email, password);
     if (signInError) {
       setError(signInError.message);
     } else {
-      router.replace('/(tabs)/home');
+      if (role === 'doctor') {
+        router.replace('/(doctor)/dashboard');
+      } else {
+        router.replace('/(tabs)/home');
+      }
     }
     setLoading(false);
   };
