@@ -1,9 +1,11 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useAuth } from '../../hooks/useAuth';
+import { useDoctors } from '../../hooks/useDoctors';
+import { getDoctorImageUrl } from '../../utils/getDoctorImageUrl';
 import { TopBar } from '../../components/TopBar';
 import { globalStyles } from '../../constants/globalStyles';
 import { colors } from '../../constants/theme';
@@ -26,6 +28,23 @@ export default function HomeScreen() {
   };
   const greeting = getGreeting();
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const { doctors, fetchDoctors, loading } = useDoctors();
+
+  // Fetch doctors once on mount so we can search them locally
+  useEffect(() => {
+    fetchDoctors();
+  }, []);
+
+  const filteredDoctors = searchQuery.trim() === '' 
+    ? [] 
+    : doctors.filter(doc => {
+        const fullName = `${doc.profiles?.first_name || ''} ${doc.profiles?.last_name || ''}`.toLowerCase();
+        const specialty = (doc.specialty || '').toLowerCase();
+        const q = searchQuery.toLowerCase();
+        return fullName.includes(q) || specialty.includes(q);
+      });
+
   return (
     <SafeAreaView style={globalStyles.safeArea}>
       <TopBar />
@@ -36,13 +55,52 @@ export default function HomeScreen() {
         <Text style={globalStyles.greetingSubtitle}>{i18n.t('home.how_are_you')}</Text>
 
         {/* Search */}
-        <View style={globalStyles.searchContainer}>
-          <Feather name="search" size={20} color={colors.iconLight} style={globalStyles.searchIcon} />
-          <TextInput
-            style={globalStyles.searchInput}
-            placeholder={i18n.t('home.search_placeholder')}
-            placeholderTextColor={colors.iconLight}
-          />
+        <View style={{ marginBottom: searchQuery.trim() !== '' ? 30 : 0 }}>
+          <View style={[globalStyles.searchContainer, { marginBottom: searchQuery.trim() !== '' ? 0 : 30 }]}>
+            <Feather name="search" size={20} color={colors.iconLight} style={globalStyles.searchIcon} />
+            <TextInput
+              style={globalStyles.searchInput}
+              placeholder={i18n.t('home.search_placeholder')}
+              placeholderTextColor={colors.iconLight}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+          
+          {searchQuery.trim() !== '' && (
+            <View style={globalStyles.searchResultsContainer}>
+              {loading && filteredDoctors.length === 0 ? (
+                <View style={[globalStyles.searchResultItem, { justifyContent: 'center' }]}>
+                  <ActivityIndicator color={colors.primary} size="small" />
+                </View>
+              ) : filteredDoctors.length > 0 ? (
+                filteredDoctors.slice(0, 5).map((doc) => (
+                  <TouchableOpacity 
+                    key={doc.id} 
+                    style={globalStyles.searchResultItem}
+                    onPress={() => router.push(`/doctors/${doc.id}`)}
+                  >
+                    <Image 
+                      source={{ uri: getDoctorImageUrl(doc) }} 
+                      style={{ width: 36, height: 36, borderRadius: 18 }} 
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text style={globalStyles.searchResultText}>
+                        Dr. {doc.profiles?.first_name} {doc.profiles?.last_name}
+                      </Text>
+                      <Text style={{ fontSize: 12, color: colors.textTertiary }}>
+                        {doc.specialty}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <View style={globalStyles.searchResultItem}>
+                  <Text style={{ fontSize: 14, color: colors.textTertiary }}>No doctors found</Text>
+                </View>
+              )}
+            </View>
+          )}
         </View>
 
         {/* Card: Disease Prediction */}
