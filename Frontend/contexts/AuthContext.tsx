@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const filePath = `${data.user.id}/avatar.${ext}`;
         console.log('[Storage] Uploading profile image to patients/' + filePath);
         try {
-          const base64 = await FileSystem.readAsStringAsync(meta.profileImageUri, { encoding: FileSystem.EncodingType.Base64 });
+          const base64 = await FileSystem.readAsStringAsync(meta.profileImageUri, { encoding: 'base64' });
           const arrayBuffer = decode(base64);
           
           const { error: uploadError } = await supabase.storage.from('patients').upload(filePath, arrayBuffer, {

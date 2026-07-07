@@ -51,7 +51,7 @@ export default function ProfileSettingsScreen() {
         const ext = uri.split('.').pop() || 'jpg';
         const filePath = `${user.id}/avatar.${ext}`;
         
-        const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+        const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' });
         const arrayBuffer = decode(base64);
 
         const { error } = await supabase.storage.from('patients').upload(filePath, arrayBuffer, { 

@@ -36,7 +36,7 @@ export async function pickAndUploadImage(
   const filePath = `${userId}/avatar.${ext}`;
 
   try {
-    const base64 = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.Base64 });
+    const base64 = await FileSystem.readAsStringAsync(asset.uri, { encoding: 'base64' });
     const arrayBuffer = decode(base64);
 
     // Upload
