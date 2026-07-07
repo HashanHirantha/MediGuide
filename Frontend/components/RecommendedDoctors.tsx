@@ -11,6 +11,7 @@ import {
 import { router } from 'expo-router';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { getRecommendedDoctors } from '../services/doctorService';
+import { getDoctorImageUrl } from '../utils/getDoctorImageUrl';
 import { colors, spacing } from '../constants/theme';
 
 interface RecommendedDoctorsProps {
@@ -163,9 +164,7 @@ export function RecommendedDoctors({ specialties }: RecommendedDoctorsProps) {
         {topDoctors.map((doc, index) => {
           const firstName = doc.profiles?.first_name ?? '';
           const lastName = doc.profiles?.last_name ?? '';
-          const imageUri =
-            doc.profiles?.profile_image ||
-            `https://i.pravatar.cc/150?img=${index + 30}`;
+          const imageUri = getDoctorImageUrl(doc);
           const accentColor = getSpecialtyColor(doc.specialty);
           const rating = doc.average_rating?.toFixed(1) ?? '0.0';
           const reviews = doc.total_reviews ?? 0;

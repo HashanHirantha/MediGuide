@@ -19,6 +19,7 @@ import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { colors, spacing, radius } from '../../constants/theme';
 import { TopBar } from '../../components/TopBar';
 import { globalStyles } from '../../constants/globalStyles';
+import { getDoctorImageUrl } from '../../utils/getDoctorImageUrl';
 import {
   getAiCheckHistory,
   deleteAiCheckHistory,
@@ -179,7 +180,7 @@ export default function HistoryScreen() {
         activeOpacity={0.9}
       >
         <Image
-          source={{ uri: doctor?.profiles?.profile_image || 'https://i.pravatar.cc/150?img=11' }}
+          source={{ uri: getDoctorImageUrl(doctor) }}
           style={globalStyles.compactImage}
         />
         <View style={globalStyles.compactInfo}>

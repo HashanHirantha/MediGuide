@@ -113,8 +113,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           });
           
           if (uploadError) {
+            const isBucketError = uploadError.message?.toLowerCase().includes('bucket') || uploadError.message?.toLowerCase().includes('not found');
             console.error('[Storage] Upload failed:', uploadError.message);
-            imageError = `Image upload failed: ${uploadError.message}`;
+            imageError = isBucketError
+              ? 'Storage bucket "patients" not found. Please run the 00016_create_storage_bucket.sql migration in the Supabase SQL Editor.'
+              : `Image upload failed: ${uploadError.message}`;
           } else {
             const { data: urlData } = supabase.storage.from('patients').getPublicUrl(filePath);
             profile_image = urlData.publicUrl;

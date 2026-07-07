@@ -10,6 +10,7 @@ import { TopBar } from '../../components/TopBar';
 import { useAuth } from '../../hooks/useAuth';
 import { globalStyles } from '../../constants/globalStyles';
 import { colors } from '../../constants/theme';
+import { getDoctorImageUrl } from '../../utils/getDoctorImageUrl';
 import i18n from '../../i18n';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -127,7 +128,7 @@ export default function AppointmentDetailScreen() {
 
   const doctorName = `Dr. ${appointment.doctors?.profiles?.first_name || ''} ${appointment.doctors?.profiles?.last_name || ''}`;
   const canCancel = ['pending', 'confirmed'].includes(appointment.status);
-  const avatarUrl = appointment.doctors?.profiles?.profile_image || 'https://i.pravatar.cc/150?img=8';
+  const avatarUrl = getDoctorImageUrl(appointment.doctors);
 
   return (
     <SafeAreaView style={globalStyles.safeArea}>

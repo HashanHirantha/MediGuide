@@ -43,7 +43,16 @@ export async function pickAndUploadImage(
     contentType: `image/${ext}`,
   });
 
-  if (uploadError) return { url: null, error: uploadError.message };
+  if (uploadError) {
+    // Provide a clearer message for the common "Bucket not found" error
+    if (uploadError.message?.toLowerCase().includes('bucket') || uploadError.message?.toLowerCase().includes('not found')) {
+      return {
+        url: null,
+        error: `Storage bucket "${bucket}" does not exist. Please run the 00016_create_storage_bucket.sql migration in the Supabase SQL Editor to create it.`,
+      };
+    }
+    return { url: null, error: uploadError.message };
+  }
 
   // Get public URL
   const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);

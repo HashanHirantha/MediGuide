@@ -8,6 +8,7 @@ import { supabase } from '../../lib/supabase';
 import { TopBar } from '../../components/TopBar';
 import { globalStyles } from '../../constants/globalStyles';
 import { colors } from '../../constants/theme';
+import { getDoctorImageUrl } from '../../utils/getDoctorImageUrl';
 
 const MOCK_DOCTORS_DETAIL: Record<string, any> = {
   '1': {
@@ -106,7 +107,7 @@ export default function DoctorDetailScreen() {
         {/* Doctor Profile Card */}
         <View style={globalStyles.profileCard}>
           <Image
-            source={{ uri: doc.profiles?.profile_image || 'https://i.pravatar.cc/150?img=11' }}
+            source={{ uri: getDoctorImageUrl(doc) }}
             style={globalStyles.doctorImage}
           />
           <View style={globalStyles.profileInfo}>

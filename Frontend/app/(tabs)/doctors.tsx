@@ -9,6 +9,7 @@ import { colors, typography, spacing, radius } from '../../constants/theme';
 import { Avatar } from '../../components/ui/Avatar';
 import { TopBar } from '../../components/TopBar';
 import { globalStyles } from '../../constants/globalStyles';
+import { getDoctorImageUrl } from '../../utils/getDoctorImageUrl';
 import i18n from '../../i18n';
 
 const SPECIALTIES = ['All Doctors', 'Cardiologist', 'Neurologist', 'General Medicine'];
@@ -101,7 +102,7 @@ export default function DoctorsScreen() {
         >
           <View style={globalStyles.featuredTop}>
             <Image 
-              source={{ uri: item.profiles?.profile_image || 'https://i.pravatar.cc/150?img=11' }} 
+              source={{ uri: getDoctorImageUrl(item) }} 
               style={globalStyles.featuredImage} 
             />
             <View style={globalStyles.featuredInfo}>
@@ -148,7 +149,7 @@ export default function DoctorsScreen() {
         activeOpacity={0.9}
       >
         <Image 
-          source={{ uri: item.profiles?.profile_image || `https://i.pravatar.cc/150?img=${index + 20}` }} 
+          source={{ uri: getDoctorImageUrl(item) }} 
           style={globalStyles.compactImage} 
         />
         <View style={globalStyles.compactInfo}>

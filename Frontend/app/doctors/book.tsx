@@ -9,6 +9,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { TopBar } from '../../components/TopBar';
 import { globalStyles } from '../../constants/globalStyles';
 import { colors } from '../../constants/theme';
+import { getDoctorImageUrl } from '../../utils/getDoctorImageUrl';
 import i18n from '../../i18n';
 
 const TIME_SLOTS = [
@@ -84,7 +85,7 @@ export default function BookScreen() {
         profiles: {
           first_name: doc?.profiles?.first_name || 'Doctor',
           last_name: doc?.profiles?.last_name || '',
-          profile_image: doc?.profiles?.profile_image || 'https://i.pravatar.cc/150?img=11',
+          profile_image: getDoctorImageUrl(doc),
         },
       },
     };
@@ -130,7 +131,7 @@ export default function BookScreen() {
   const firstName = doc?.profiles?.first_name || '';
   const lastName = doc?.profiles?.last_name || '';
   const doctorName = (firstName || lastName) ? `Dr. ${firstName} ${lastName}`.trim() : 'Doctor';
-  const profileImage = doc?.profiles?.profile_image || doc?.profile_image || 'https://i.pravatar.cc/150?img=11';
+  const profileImage = getDoctorImageUrl(doc);
   const dates = getDates();
 
   return (
