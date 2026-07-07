@@ -120,7 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               : `Image upload failed: ${uploadError.message}`;
           } else {
             const { data: urlData } = supabase.storage.from('patients').getPublicUrl(filePath);
-            profile_image = urlData.publicUrl;
+            profile_image = `${urlData.publicUrl}?t=${Date.now()}`;
             console.log('[Storage] Upload successful! Public URL:', profile_image);
           }
         } catch (e: any) {

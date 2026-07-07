@@ -54,7 +54,9 @@ export default function ProfileSettingsScreen() {
         Alert.alert('Upload Failed', error.message);
       } else {
         const { data: urlData } = supabase.storage.from('patients').getPublicUrl(filePath);
-        await supabase.from('profiles').update({ profile_image: urlData.publicUrl }).eq('id', user.id);
+        // Append a timestamp to bypass React Native's aggressive image caching
+        const imageUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+        await supabase.from('profiles').update({ profile_image: imageUrl }).eq('id', user.id);
         refreshProfile();
         Alert.alert('Success', 'Profile photo updated!');
       }
