@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { router } from 'expo-router';
+import * as FileSystem from 'expo-file-system';
+import { decode } from 'base64-arraybuffer';
 
 interface Profile {
   id: string;
@@ -103,13 +105,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const filePath = `${data.user.id}/avatar.${ext}`;
         console.log('[Storage] Uploading profile image to patients/' + filePath);
         try {
-          const response = await fetch(meta.profileImageUri);
-          const blob = await response.blob();
-          console.log('[Storage] Image blob size:', blob.size, 'bytes, type:', blob.type);
+          const base64 = await FileSystem.readAsStringAsync(meta.profileImageUri, { encoding: FileSystem.EncodingType.Base64 });
+          const arrayBuffer = decode(base64);
           
-          const { error: uploadError } = await supabase.storage.from('patients').upload(filePath, blob, {
+          const { error: uploadError } = await supabase.storage.from('patients').upload(filePath, arrayBuffer, {
             upsert: true,
-            contentType: `image/${ext}`,
+            contentType: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
           });
           
           if (uploadError) {

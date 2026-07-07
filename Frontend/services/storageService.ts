@@ -1,4 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
+import { decode } from 'base64-arraybuffer';
 import { supabase } from '../lib/supabase';
 
 /**
@@ -33,30 +35,33 @@ export async function pickAndUploadImage(
   const ext = asset.uri.split('.').pop() ?? 'jpg';
   const filePath = `${userId}/avatar.${ext}`;
 
-  // Fetch as blob
-  const response = await fetch(asset.uri);
-  const blob = await response.blob();
+  try {
+    const base64 = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.Base64 });
+    const arrayBuffer = decode(base64);
 
-  // Upload
-  const { error: uploadError } = await supabase.storage.from(bucket).upload(filePath, blob, {
-    upsert: true,
-    contentType: `image/${ext}`,
-  });
+    // Upload
+    const { error: uploadError } = await supabase.storage.from(bucket).upload(filePath, arrayBuffer, {
+      upsert: true,
+      contentType: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+    });
 
-  if (uploadError) {
-    // Provide a clearer message for the common "Bucket not found" error
-    if (uploadError.message?.toLowerCase().includes('bucket') || uploadError.message?.toLowerCase().includes('not found')) {
-      return {
-        url: null,
-        error: `Storage bucket "${bucket}" does not exist. Please run the 00016_create_storage_bucket.sql migration in the Supabase SQL Editor to create it.`,
-      };
+    if (uploadError) {
+      // Provide a clearer message for the common "Bucket not found" error
+      if (uploadError.message?.toLowerCase().includes('bucket') || uploadError.message?.toLowerCase().includes('not found')) {
+        return {
+          url: null,
+          error: `Storage bucket "${bucket}" does not exist. Please run the 00016_create_storage_bucket.sql migration in the Supabase SQL Editor to create it.`,
+        };
+      }
+      return { url: null, error: uploadError.message };
     }
-    return { url: null, error: uploadError.message };
-  }
 
-  // Get public URL
-  const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
-  return { url: data.publicUrl, error: null };
+    // Get public URL
+    const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
+    return { url: data.publicUrl, error: null };
+  } catch (err: any) {
+    return { url: null, error: err.message || 'Failed to process image' };
+  }
 }
 
 /**

@@ -11,6 +11,8 @@ import { supabase } from '../../lib/supabase';
 import { globalStyles } from '../../constants/globalStyles';
 import { colors } from '../../constants/theme';
 import i18n from '../../i18n';
+import * as FileSystem from 'expo-file-system';
+import { decode } from 'base64-arraybuffer';
 
 export default function ProfileSettingsScreen() {
   const { user, profile, refreshProfile } = useAuth();
@@ -43,22 +45,32 @@ export default function ProfileSettingsScreen() {
       allowsEditing: true, aspect: [1, 1], quality: 0.7,
     });
     if (!result.canceled && result.assets?.[0] && user) {
-      // Upload to Supabase Storage
-      const uri = result.assets[0].uri;
-      const ext = uri.split('.').pop() || 'jpg';
-      const filePath = `${user.id}/avatar.${ext}`;
-      const response = await fetch(uri);
-      const blob = await response.blob();
-      const { error } = await supabase.storage.from('patients').upload(filePath, blob, { upsert: true });
-      if (error) {
-        Alert.alert('Upload Failed', error.message);
-      } else {
-        const { data: urlData } = supabase.storage.from('patients').getPublicUrl(filePath);
-        // Append a timestamp to bypass React Native's aggressive image caching
-        const imageUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-        await supabase.from('profiles').update({ profile_image: imageUrl }).eq('id', user.id);
-        refreshProfile();
-        Alert.alert('Success', 'Profile photo updated!');
+      try {
+        // Upload to Supabase Storage using base64 to avoid 0-byte blob bug in React Native
+        const uri = result.assets[0].uri;
+        const ext = uri.split('.').pop() || 'jpg';
+        const filePath = `${user.id}/avatar.${ext}`;
+        
+        const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+        const arrayBuffer = decode(base64);
+
+        const { error } = await supabase.storage.from('patients').upload(filePath, arrayBuffer, { 
+          upsert: true,
+          contentType: `image/${ext === 'jpg' ? 'jpeg' : ext}`
+        });
+
+        if (error) {
+          Alert.alert('Upload Failed', error.message);
+        } else {
+          const { data: urlData } = supabase.storage.from('patients').getPublicUrl(filePath);
+          // Append a timestamp to bypass React Native's aggressive image caching
+          const imageUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+          await supabase.from('profiles').update({ profile_image: imageUrl }).eq('id', user.id);
+          refreshProfile();
+          Alert.alert('Success', 'Profile photo updated!');
+        }
+      } catch (err: any) {
+        Alert.alert('Error', err.message || 'Failed to process image');
       }
     }
   };
