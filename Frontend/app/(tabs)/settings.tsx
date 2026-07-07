@@ -49,7 +49,6 @@ export default function SettingsScreen() {
           </View>
           <View style={globalStyles.profileInfo}>
             <Text style={globalStyles.profileName}>{fullName}</Text>
-            <Text style={globalStyles.profileTier}>VITALITY TIER: GOLD MEMBER</Text>
           </View>
         </View>
 
