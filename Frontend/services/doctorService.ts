@@ -18,6 +18,21 @@ export async function getDoctors(specialty?: string) {
 }
 
 /**
+ * Fetch unique specialties from verified doctors.
+ */
+export async function getUniqueSpecialties() {
+  const { data, error } = await supabase
+    .from('doctors')
+    .select('specialty')
+    .eq('is_verified', true);
+  
+  if (error || !data) return [];
+  
+  const unique = Array.from(new Set(data.map(d => d.specialty)));
+  return unique.sort();
+}
+
+/**
  * Get a single doctor's full profile with reviews.
  */
 export async function getDoctorById(id: string) {
@@ -59,45 +74,55 @@ export async function submitReview(review: {
  */
 const SPECIALTY_ALIASES: Record<string, string> = {
   // General
-  'general practitioner':       'General Medicine',
-  'gp':                         'General Medicine',
-  'family medicine':            'General Medicine',
-  'family physician':           'General Medicine',
-  'internal medicine':          'General Medicine',
-  'internist':                  'General Medicine',
+  'general practitioner':       'General Practitioner',
+  'gp':                         'General Practitioner',
+  'general medicine':           'General Practitioner',
+  'family medicine':            'General Practitioner',
+  'family physician':           'General Practitioner',
+  'internal medicine':          'General Practitioner',
+  'internist':                  'General Practitioner',
   // Pulmonology
-  'pulmonologist':              'Pulmonology',
-  'respiratory specialist':     'Pulmonology',
-  'chest physician':            'Pulmonology',
+  'pulmonologist':              'Pulmonologist',
+  'pulmonology':                'Pulmonologist',
+  'respiratory specialist':     'Pulmonologist',
+  'chest physician':            'Pulmonologist',
   // Cardiology
-  'cardiologist':               'Cardiology',
-  'heart specialist':           'Cardiology',
+  'cardiologist':               'Cardiologist',
+  'cardiology':                 'Cardiologist',
+  'heart specialist':           'Cardiologist',
   // Neurology
-  'neurologist':                'Neurology',
-  'brain specialist':           'Neurology',
+  'neurologist':                'Neurologist',
+  'neurology':                  'Neurologist',
+  'brain specialist':           'Neurologist',
   // Endocrinology
-  'endocrinologist':            'Endocrinology',
-  'diabetes specialist':        'Endocrinology',
-  'thyroid specialist':         'Endocrinology',
+  'endocrinologist':            'Endocrinologist',
+  'endocrinology':              'Endocrinologist',
+  'diabetes specialist':        'Endocrinologist',
+  'thyroid specialist':         'Endocrinologist',
   // Gastroenterology
-  'gastroenterologist':         'Gastroenterology',
-  'gi specialist':              'Gastroenterology',
+  'gastroenterologist':         'Gastroenterologist',
+  'gastroenterology':           'Gastroenterologist',
+  'gi specialist':              'Gastroenterologist',
   // ENT
-  'ent specialist':             'ENT',
-  'otolaryngologist':           'ENT',
-  'ear nose throat':            'ENT',
+  'ent specialist':             'ENT Specialist',
+  'ent':                        'ENT Specialist',
+  'otolaryngologist':           'ENT Specialist',
+  'ear nose throat':            'ENT Specialist',
   // Dermatology
-  'dermatologist':              'Dermatology',
-  'skin specialist':            'Dermatology',
+  'dermatologist':              'Dermatologist',
+  'dermatology':                'Dermatologist',
+  'skin specialist':            'Dermatologist',
   // Orthopedics
-  'orthopedic surgeon':         'Orthopedics',
-  'orthopaedic surgeon':        'Orthopedics',
-  'orthopedist':                'Orthopedics',
-  'bone specialist':            'Orthopedics',
+  'orthopedic surgeon':         'Orthopedic Surgeon',
+  'orthopedics':                'Orthopedic Surgeon',
+  'orthopaedic surgeon':        'Orthopedic Surgeon',
+  'orthopedist':                'Orthopedic Surgeon',
+  'bone specialist':            'Orthopedic Surgeon',
   // Ophthalmology
-  'ophthalmologist':            'Ophthalmology',
-  'eye doctor':                 'Ophthalmology',
-  'eye specialist':             'Ophthalmology',
+  'ophthalmologist':            'Ophthalmologist',
+  'ophthalmology':              'Ophthalmologist',
+  'eye doctor':                 'Ophthalmologist',
+  'eye specialist':             'Ophthalmologist',
 };
 
 /**
