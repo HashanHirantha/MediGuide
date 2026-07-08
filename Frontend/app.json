@@ -48,7 +48,7 @@
           "icon": "./assets/images/notification-icon.png",
           "color": "#4A90D9"
         }
-      ]
+      ],
     ],
     "experiments": {
       "typedRoutes": true
