@@ -93,3 +93,29 @@ export function subscribeDoctorAppointments(doctorId: string, callback: () => vo
     supabase.removeChannel(channel);
   };
 }
+
+/**
+ * Subscribe to real-time appointment updates for a specific patient.
+ */
+export function subscribePatientAppointments(patientId: string, callback: () => void) {
+  const channel = supabase
+    .channel(`patient_appointments_${patientId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'appointments',
+        filter: `patient_id=eq.${patientId}`,
+      },
+      (payload) => {
+        console.log('Realtime patient appointment update:', payload);
+        callback();
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}

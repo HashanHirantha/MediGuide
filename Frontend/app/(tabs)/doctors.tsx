@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +18,13 @@ export default function DoctorsScreen() {
   const { doctors, loading, fetchDoctors } = useDoctors();
   const [activeSpecialty, setActiveSpecialty] = useState(specialty || 'All Doctors');
   const [filterList, setFilterList] = useState<string[]>(['All Doctors']);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchDoctors(activeSpecialty === 'All Doctors' ? undefined : activeSpecialty);
+    setRefreshing(false);
+  };
 
   useEffect(() => {
     const loadSpecialties = async () => {
@@ -189,6 +196,9 @@ export default function DoctorsScreen() {
         renderItem={renderDoctor}
         contentContainerStyle={globalStyles.listContainer}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+        }
         ListEmptyComponent={
           loading ? <LoadingSpinner /> : <Text style={globalStyles.emptyText}>{i18n.t('doctors.no_doctors') || 'No doctors found.'}</Text>
         }

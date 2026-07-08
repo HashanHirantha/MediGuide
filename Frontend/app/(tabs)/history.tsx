@@ -8,6 +8,7 @@ import {
   Image,
   Alert,
   ScrollView,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
@@ -25,6 +26,7 @@ import {
   deleteAiCheckHistory,
   AiCheckHistoryEntry,
 } from '../../services/aiCheckHistoryService';
+import { subscribePatientAppointments } from '../../services/appointmentService';
 import i18n from '../../i18n';
 
 // ─── Helpers ─────────────────────────────────────────────────
@@ -73,12 +75,22 @@ export default function HistoryScreen() {
   const [loading, setLoading]                 = useState(true);
   const [activeTab, setActiveTab]             = useState<'appointments' | 'diagnoses'>('appointments');
   const [expandedId, setExpandedId]           = useState<string | null>(null);
+  const [refreshing, setRefreshing]           = useState(false);
 
   useEffect(() => { fetchHistory(); }, [user]);
 
   useFocusEffect(
     useCallback(() => { fetchHistory(); }, [user])
   );
+
+  useEffect(() => {
+    if (user?.id) {
+      const unsubscribe = subscribePatientAppointments(user.id, () => {
+        fetchHistory();
+      });
+      return unsubscribe;
+    }
+  }, [user?.id]);
 
   const fetchHistory = async () => {
     setLoading(true);
@@ -123,6 +135,12 @@ export default function HistoryScreen() {
     }
 
     setLoading(false);
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchHistory();
+    setRefreshing(false);
   };
 
   // ─── Cancel appointment ─────────────────────────────────────
@@ -429,6 +447,9 @@ export default function HistoryScreen() {
         renderItem={activeTab === 'appointments' ? renderAppointmentCard : renderDiagnosisCard}
         contentContainerStyle={[globalStyles.listContainer, { paddingBottom: 32 }]}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
+        }
         ListEmptyComponent={renderEmpty}
       />
     </SafeAreaView>
