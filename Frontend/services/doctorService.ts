@@ -181,7 +181,7 @@ export async function getDoctorProfileByUserId(userId: string) {
     .from('doctors')
     .select('*, profiles(first_name, last_name, profile_image, email, phone)')
     .eq('user_id', userId)
-    .single();
+    .maybeSingle();
 }
 
 /**
@@ -199,8 +199,31 @@ export async function updateDoctorProfile(
     available_to?: string;
   }
 ) {
-  return supabase
+  // Check if doctor exists
+  const { data: existingDoc } = await supabase
     .from('doctors')
-    .update(doctorData)
-    .eq('user_id', userId);
+    .select('id')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (existingDoc) {
+    return supabase
+      .from('doctors')
+      .update({ ...doctorData, is_verified: true })
+      .eq('user_id', userId);
+  } else {
+    // Insert new doctor record if it doesn't exist
+    return supabase
+      .from('doctors')
+      .insert([
+        {
+          user_id: userId,
+          registration_no: `REG-${Date.now()}`,
+          specialty: doctorData.specialty || 'General',
+          qualification: doctorData.qualification || 'MBBS',
+          ...doctorData,
+          is_verified: true
+        }
+      ]);
+  }
 }
