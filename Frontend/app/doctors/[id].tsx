@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, TextInput, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -276,65 +276,70 @@ export default function DoctorDetailScreen() {
         transparent={true}
         onRequestClose={() => setReviewModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Rate Doctor</Text>
-            
-            <View style={styles.starsContainer}>
-              {[1, 2, 3, 4, 5].map((star) => (
-                <TouchableOpacity key={star} onPress={() => setRating(star)}>
-                  <Ionicons
-                    name={star <= rating ? "star" : "star-outline"}
-                    size={32}
-                    color={colors.starColor}
-                  />
-                </TouchableOpacity>
-              ))}
-            </View>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Rate Doctor</Text>
+              
+              <View style={styles.starsContainer}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <TouchableOpacity key={star} onPress={() => setRating(star)}>
+                    <Ionicons
+                      name={star <= rating ? "star" : "star-outline"}
+                      size={32}
+                      color={colors.starColor}
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
 
-            <TextInput
-              style={styles.commentInput}
-              placeholder="Share your experience (optional)..."
-              placeholderTextColor={colors.textTertiary}
-              value={comment}
-              onChangeText={setComment}
-              multiline
-              numberOfLines={4}
-            />
-
-            <TouchableOpacity 
-              style={styles.anonymousRow} 
-              onPress={() => setIsAnonymous(!isAnonymous)}
-            >
-              <MaterialCommunityIcons 
-                name={isAnonymous ? "checkbox-marked" : "checkbox-blank-outline"} 
-                size={24} 
-                color={colors.primary} 
+              <TextInput
+                style={styles.commentInput}
+                placeholder="Share your experience (optional)..."
+                placeholderTextColor={colors.textTertiary}
+                value={comment}
+                onChangeText={setComment}
+                multiline
+                numberOfLines={4}
               />
-              <Text style={styles.anonymousText}>Post anonymously</Text>
-            </TouchableOpacity>
 
-            <View style={styles.modalActions}>
               <TouchableOpacity 
-                style={styles.cancelButton}
-                onPress={() => setReviewModalVisible(false)}
+                style={styles.anonymousRow} 
+                onPress={() => setIsAnonymous(!isAnonymous)}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <MaterialCommunityIcons 
+                  name={isAnonymous ? "checkbox-marked" : "checkbox-blank-outline"} 
+                  size={24} 
+                  color={colors.primary} 
+                />
+                <Text style={styles.anonymousText}>Post anonymously</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.submitButton}
-                onPress={handleSubmitReview}
-                disabled={submittingReview}
-              >
-                {submittingReview ? (
-                  <ActivityIndicator color={colors.surface} />
-                ) : (
-                  <Text style={styles.submitButtonText}>Submit</Text>
-                )}
-              </TouchableOpacity>
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity 
+                  style={styles.cancelButton}
+                  onPress={() => setReviewModalVisible(false)}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.submitButton}
+                  onPress={handleSubmitReview}
+                  disabled={submittingReview}
+                >
+                  {submittingReview ? (
+                    <ActivityIndicator color={colors.surface} />
+                  ) : (
+                    <Text style={styles.submitButtonText}>Submit</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        </View>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
       </Modal>
 
     </SafeAreaView>
