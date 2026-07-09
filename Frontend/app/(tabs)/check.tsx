@@ -281,27 +281,18 @@ export default function SymptomCheckerScreen() {
       const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' as any });
       
       const { supabase } = await import('../../lib/supabase');
-      const { data: session } = await supabase.auth.getSession();
-      
-      if (!session?.session?.access_token) throw new Error("Not logged in");
-
-      const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/gemini-transcribe-symptoms`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.session.access_token}`
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('gemini-transcribe-symptoms', {
+        body: {
           audioBase64: base64,
           mimeType: 'audio/m4a'
-        })
+        }
       });
-
-      const result = await response.json();
       
-      if (!response.ok) {
-        throw new Error(result.error || "Transcription failed");
+      if (error) {
+        throw new Error(error.message || "Transcription failed");
       }
+
+      const result = data;
 
       if (result.symptoms && result.symptoms.length > 0) {
         setSelectedSymptoms(prev => {
