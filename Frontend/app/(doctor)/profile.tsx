@@ -16,6 +16,7 @@ export default function DoctorProfile() {
   const [hospital, setHospital] = useState('');
   const [fee, setFee] = useState('');
   const [experience, setExperience] = useState('');
+  const [bio, setBio] = useState('');
 
   useEffect(() => {
     if (profile?.id) {
@@ -32,6 +33,7 @@ export default function DoctorProfile() {
         setHospital(data.hospital_name || '');
         setFee(data.consultation_fee ? data.consultation_fee.toString() : '');
         setExperience(data.experience_years ? data.experience_years.toString() : '');
+        setBio(data.bio || '');
       }
     } catch (err) {
       console.error(err);
@@ -49,6 +51,7 @@ export default function DoctorProfile() {
         hospital_name: hospital,
         consultation_fee: parseFloat(fee) || 0,
         experience_years: parseInt(experience, 10) || 0,
+        bio: bio.trim(),
       });
 
       if (error) {
@@ -122,6 +125,17 @@ export default function DoctorProfile() {
             onChangeText={setExperience}
             placeholder="e.g. 15"
             keyboardType="number-pad"
+            placeholderTextColor={colors.textTertiary}
+          />
+
+          <Text style={globalStyles.label}>About (Bio)</Text>
+          <TextInput
+            style={[globalStyles.input, { minHeight: 100, textAlignVertical: 'top' }]}
+            value={bio}
+            onChangeText={setBio}
+            placeholder="Brief professional summary about yourself..."
+            multiline
+            numberOfLines={4}
             placeholderTextColor={colors.textTertiary}
           />
 

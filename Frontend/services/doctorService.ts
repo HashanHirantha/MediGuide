@@ -198,6 +198,7 @@ export async function updateDoctorProfile(
     available_from?: string;
     available_to?: string;
     experience_years?: number;
+    bio?: string;
   }
 ) {
   // 1. Update the role in profiles to 'doctor' so their profile is public to patients
