@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { supabase } from '../../lib/supabase';
+import { submitReview } from '../../services/doctorService';
+import { useAuth } from '../../hooks/useAuth';
 import { TopBar } from '../../components/TopBar';
 import { globalStyles } from '../../constants/globalStyles';
 import { colors } from '../../constants/theme';
@@ -65,10 +67,18 @@ const MOCK_REVIEWS = [
 
 export default function DoctorDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { user } = useAuth();
   const [doctor, setDoctor] = useState<any>(null);
   const [reviews, setReviews] = useState<any[]>([]);
   const [patientCount, setPatientCount] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  // Review Modal State
+  const [reviewModalVisible, setReviewModalVisible] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
     fetchDoctor();
@@ -99,6 +109,35 @@ export default function DoctorDetailScreen() {
     setReviews(revRes.data ?? MOCK_REVIEWS);
     setPatientCount(apptRes.count ?? (mockDoc?.total_reviews ?? 0));
     setLoading(false);
+  };
+
+  const handleSubmitReview = async () => {
+    if (!user) {
+      Alert.alert('Error', 'You must be logged in to leave a review.');
+      return;
+    }
+    
+    setSubmittingReview(true);
+    const { error } = await submitReview({
+      patient_id: user.id,
+      doctor_id: id,
+      rating,
+      comment: comment.trim(),
+      is_anonymous: isAnonymous,
+    });
+    
+    setSubmittingReview(false);
+    
+    if (error) {
+      Alert.alert('Error', error.message);
+    } else {
+      Alert.alert('Success', 'Thank you for your review!');
+      setReviewModalVisible(false);
+      setComment('');
+      setRating(5);
+      setIsAnonymous(false);
+      fetchDoctor(); // Refresh stats and reviews
+    }
   };
 
   if (loading) return <LoadingSpinner />;
@@ -185,10 +224,13 @@ export default function DoctorDetailScreen() {
 
         {/* Reviews Section */}
         <View style={globalStyles.cardPadded}>
-          <View style={globalStyles.reviewsHeader}>
+          <View style={[globalStyles.reviewsHeader, { marginBottom: 15 }]}>
             <Text style={globalStyles.sectionTitle}>REVIEWS</Text>
-            <Text style={globalStyles.seeAll}>See All</Text>
+            <TouchableOpacity onPress={() => setReviewModalVisible(true)}>
+              <Text style={[globalStyles.seeAll, { color: colors.primary }]}>Write a Review</Text>
+            </TouchableOpacity>
           </View>
+          {reviews.length === 0 && <Text style={{ color: colors.textSecondary, fontStyle: 'italic', marginBottom: 10 }}>No reviews yet.</Text>}
           {reviews.map((r) => (
             <View key={r.id} style={globalStyles.reviewItem}>
               <View style={globalStyles.reviewTop}>
@@ -226,6 +268,157 @@ export default function DoctorDetailScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Review Modal */}
+      <Modal
+        visible={reviewModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setReviewModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Rate Doctor</Text>
+            
+            <View style={styles.starsContainer}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity key={star} onPress={() => setRating(star)}>
+                  <Ionicons
+                    name={star <= rating ? "star" : "star-outline"}
+                    size={32}
+                    color={colors.starColor}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <TextInput
+              style={styles.commentInput}
+              placeholder="Share your experience (optional)..."
+              placeholderTextColor={colors.textTertiary}
+              value={comment}
+              onChangeText={setComment}
+              multiline
+              numberOfLines={4}
+            />
+
+            <TouchableOpacity 
+              style={styles.anonymousRow} 
+              onPress={() => setIsAnonymous(!isAnonymous)}
+            >
+              <MaterialCommunityIcons 
+                name={isAnonymous ? "checkbox-marked" : "checkbox-blank-outline"} 
+                size={24} 
+                color={colors.primary} 
+              />
+              <Text style={styles.anonymousText}>Post anonymously</Text>
+            </TouchableOpacity>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity 
+                style={styles.cancelButton}
+                onPress={() => setReviewModalVisible(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.submitButton}
+                onPress={handleSubmitReview}
+                disabled={submittingReview}
+              >
+                {submittingReview ? (
+                  <ActivityIndicator color={colors.surface} />
+                ) : (
+                  <Text style={styles.submitButtonText}>Submit</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  starsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 24,
+  },
+  commentInput: {
+    backgroundColor: colors.background,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 15,
+    color: colors.text,
+    minHeight: 100,
+    textAlignVertical: 'top',
+    marginBottom: 16,
+  },
+  anonymousRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 24,
+  },
+  anonymousText: {
+    fontSize: 15,
+    color: colors.textSecondary,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  submitButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+  },
+  submitButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.surface,
+  },
+});
