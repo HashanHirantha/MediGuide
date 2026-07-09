@@ -7,6 +7,7 @@ import { globalStyles } from '../../constants/globalStyles';
 import { colors, radius, spacing } from '../../constants/theme';
 import i18n from '../../i18n';
 import { articleService, Article } from '../../services/articleService';
+import { getArticleImageUrl } from '../../utils/getArticleImageUrl';
 import { useAuth } from '../../hooks/useAuth';
 
 const CATEGORIES = ['All', 'Seasonal', 'Preventive Care', 'Lifestyle'];
@@ -171,11 +172,7 @@ export default function ArticlesScreen() {
                 onPress={() => router.push(`/articles/${article.id}` as any)}
                 activeOpacity={0.8}
               >
-                {article.image_url ? (
-                  <Image source={{ uri: article.image_url }} style={styles.articleImage} />
-                ) : (
-                  <View style={[styles.articleImage, { backgroundColor: colors.subtleBorder }]} />
-                )}
+                <Image source={{ uri: getArticleImageUrl(article) }} style={styles.articleImage} />
                 
                 <View style={styles.articleContent}>
                   <View style={styles.tagRow}>

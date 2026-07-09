@@ -6,6 +6,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { globalStyles } from '../../constants/globalStyles';
 import { colors, radius, spacing } from '../../constants/theme';
 import { articleService, Article } from '../../services/articleService';
+import { getArticleImageUrl } from '../../utils/getArticleImageUrl';
 import { useAuth } from '../../hooks/useAuth';
 
 export default function ArticleDetailScreen() {
@@ -112,11 +113,7 @@ export default function ArticleDetailScreen() {
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Cover Image */}
-        {article.image_url ? (
-          <Image source={{ uri: article.image_url }} style={styles.coverImage} />
-        ) : (
-          <View style={[styles.coverImage, { backgroundColor: colors.subtleBorder }]} />
-        )}
+        <Image source={{ uri: getArticleImageUrl(article) }} style={styles.coverImage} />
 
         {/* Content Container */}
         <View style={styles.contentContainer}>
