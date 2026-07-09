@@ -206,7 +206,7 @@ This document tracks all planned features, enhancements, and technical improveme
 - [x] Photo-based symptom input (image attachment support via camera/gallery)
 - [x] Document attachment for lab reports
 - [x] 3D human body model for symptom selection
-- [ ] Voice-based symptom input
+- [x] Voice-based symptom input
 - [ ] Symptom timeline visualization
 - [ ] Related symptom suggestions ("Did you also experience...")
 

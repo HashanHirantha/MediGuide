@@ -14,6 +14,7 @@ import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
+import { Audio } from 'expo-av';
 import Body from 'react-native-body-highlighter';
 import { TopBar } from '../../components/TopBar';
 import { globalStyles } from '../../constants/globalStyles';
@@ -146,6 +147,11 @@ export default function SymptomCheckerScreen() {
   const [historyId, setHistoryId] = useState<string | null>(null);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState<boolean>(false);
   
+  // Voice recording state
+  const [recording, setRecording] = useState<Audio.Recording>();
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+
   // Notification preferences
   const [emergencyAlertsEnabled, setEmergencyAlertsEnabled] = useState(true);
 
@@ -239,6 +245,86 @@ export default function SymptomCheckerScreen() {
       );
     }
   };
+
+  // ─── Voice Recording ────────────────────────────────────────
+
+  async function startRecording() {
+    try {
+      const permission = await Audio.requestPermissionsAsync();
+      if (permission.status === 'granted') {
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: true,
+          playsInSilentModeIOS: true,
+        });
+        const { recording: newRecording } = await Audio.Recording.createAsync(
+          Audio.RecordingOptionsPresets.HIGH_QUALITY
+        );
+        setRecording(newRecording);
+        setIsRecording(true);
+      } else {
+        Alert.alert("Permission Required", "Please grant microphone permissions to use voice input.");
+      }
+    } catch (err) {
+      console.error('Failed to start recording', err);
+      Alert.alert("Error", "Could not start recording.");
+    }
+  }
+
+  async function stopRecording() {
+    if (!recording) return;
+    setIsRecording(false);
+    setIsTranscribing(true);
+    try {
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      if (!uri) throw new Error("No recording URI");
+      
+      const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+      
+      const { supabase } = await import('../../lib/supabase');
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (!session?.session?.access_token) throw new Error("Not logged in");
+
+      const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/gemini-transcribe-symptoms`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.session.access_token}`
+        },
+        body: JSON.stringify({
+          audioBase64: base64,
+          mimeType: 'audio/m4a'
+        })
+      });
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || "Transcription failed");
+      }
+
+      if (result.symptoms && result.symptoms.length > 0) {
+        setSelectedSymptoms(prev => {
+          const newSymptoms = [...prev];
+          result.symptoms.forEach((s: string) => {
+            if (!newSymptoms.includes(s)) newSymptoms.push(s);
+          });
+          return newSymptoms;
+        });
+        if (prediction) { setPrediction(null); setPredictionError(null); }
+      } else {
+         Alert.alert("Voice Input", "No medical symptoms could be extracted from your voice clip.");
+      }
+      
+    } catch (err: any) {
+      console.error(err);
+      Alert.alert("Error", err.message || "Failed to process voice input.");
+    } finally {
+      setRecording(undefined);
+      setIsTranscribing(false);
+    }
+  }
 
   // ─── Toggle symptom ─────────────────────────────────────────
 
@@ -549,6 +635,21 @@ export default function SymptomCheckerScreen() {
             {searchQuery.trim().length > 0 && (
               <TouchableOpacity onPress={addCustomSymptom} style={globalStyles.addButton}>
                 <Feather name="plus" size={18} color={colors.surface} />
+              </TouchableOpacity>
+            )}
+            {searchQuery.trim().length === 0 && (
+              <TouchableOpacity 
+                onPress={isRecording ? stopRecording : startRecording} 
+                style={[
+                  globalStyles.addButton, 
+                  { backgroundColor: isRecording ? colors.error : colors.black }
+                ]}
+              >
+                {isTranscribing ? (
+                  <ActivityIndicator size="small" color={colors.surface} />
+                ) : (
+                  <Feather name={isRecording ? "square" : "mic"} size={18} color={colors.surface} />
+                )}
               </TouchableOpacity>
             )}
           </View>
