@@ -67,6 +67,7 @@ export default function DoctorDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [doctor, setDoctor] = useState<any>(null);
   const [reviews, setReviews] = useState<any[]>([]);
+  const [patientCount, setPatientCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -74,7 +75,7 @@ export default function DoctorDetailScreen() {
   }, [id]);
 
   const fetchDoctor = async () => {
-    const [docRes, revRes] = await Promise.all([
+    const [docRes, revRes, apptRes] = await Promise.all([
       supabase
         .from('doctors')
         .select('*, profiles(first_name, last_name, profile_image)')
@@ -86,11 +87,17 @@ export default function DoctorDetailScreen() {
         .eq('doctor_id', id)
         .order('created_at', { ascending: false })
         .limit(5),
+      supabase
+        .from('appointments')
+        .select('id', { count: 'exact', head: true })
+        .eq('doctor_id', id)
     ]);
     const mockDoc = MOCK_DOCTORS_DETAIL[id];
     setDoctor(docRes.data || mockDoc || MOCK_DOCTORS_DETAIL['1']);
+    
     // Only use mock reviews if data is completely null (query failed) and there's mock data available
     setReviews(revRes.data ?? MOCK_REVIEWS);
+    setPatientCount(apptRes.count ?? (mockDoc?.total_reviews ?? 0));
     setLoading(false);
   };
 
@@ -133,7 +140,7 @@ export default function DoctorDetailScreen() {
           </View>
           <View style={globalStyles.statBoxCentered}>
             <MaterialCommunityIcons name="account-group-outline" size={20} color={colors.iconDark} />
-            <Text style={[globalStyles.statValue, { fontSize: 20, fontWeight: '700' }]}>{doc.total_reviews ?? 0}</Text>
+            <Text style={[globalStyles.statValue, { fontSize: 20, fontWeight: '700' }]}>{patientCount}</Text>
             <Text style={[globalStyles.statLabel, { fontWeight: '600' }]}>Patients</Text>
           </View>
           <View style={globalStyles.statBoxCentered}>
