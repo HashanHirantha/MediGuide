@@ -388,7 +388,8 @@ export default function SymptomCheckerScreen() {
       selectedDuration,
       additionalNotes || undefined,
       attachments.length > 0 ? attachments.map(a => ({ base64: a.base64, mime_type: a.mimeType })) : undefined,
-      aiLanguage
+      aiLanguage,
+      bodyGender
     );
 
     setIsAnalyzing(false);

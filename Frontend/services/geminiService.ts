@@ -48,7 +48,8 @@ export async function analyzeSymptoms(
   duration: string,
   additionalNotes?: string,
   images?: ImageAttachment[],
-  language?: string
+  language?: string,
+  gender?: string
 ): Promise<{ data: SymptomCheckResult | null; error: string | null }> {
   console.log('[GeminiService] Calling gemini-symptom-check with', symptoms.length, 'symptoms');
   console.log('[GeminiService] Symptoms:', symptoms.join(', '));
@@ -63,6 +64,7 @@ export async function analyzeSymptoms(
         additional_notes: additionalNotes,
         images: images ?? undefined,
         language: language ?? undefined,
+        gender: gender ?? undefined,
       },
     });
 

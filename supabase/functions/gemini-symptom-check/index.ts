@@ -17,6 +17,7 @@ interface SymptomCheckRequest {
   additional_notes?: string;
   images?: ImageAttachment[];
   language?: string;
+  gender?: string;
 }
 
 interface PredictionCondition {
@@ -111,7 +112,7 @@ serve(async (req) => {
     console.log('[GeminiCheck] Available specialties:', availableSpecialties.join(', '));
 
     // Parse request body
-    const { symptoms, duration, additional_notes, images, language }: SymptomCheckRequest = await req.json();
+    const { symptoms, duration, additional_notes, images, language, gender }: SymptomCheckRequest = await req.json();
 
     if (!symptoms || symptoms.length === 0) {
       return new Response(
@@ -147,7 +148,7 @@ serve(async (req) => {
     // Build the patient context string
     const patientContext = [
       `Age: ${age}`,
-      `Gender: ${profile?.gender || 'Not specified'}`,
+      `Biological Sex (for anatomical reference): ${gender || profile?.gender || 'Not specified'}`,
       `Blood Group: ${profile?.blood_group || 'Not specified'}`,
       profile?.height_cm ? `Height: ${profile.height_cm} cm` : null,
       profile?.weight_kg ? `Weight: ${profile.weight_kg} kg` : null,
