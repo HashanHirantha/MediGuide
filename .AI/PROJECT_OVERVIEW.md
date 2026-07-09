@@ -116,13 +116,16 @@
 4. **Doctor Recommendation**
    - Specialty-based doctor filtering from AI prediction results
    - `RecommendedDoctors` component shows top-rated specialists after analysis
-   - Doctor profiles (name, specialty, hospital, experience, rating, fee)
-   - Doctor detail screen with full profile and reviews
+   - Doctor profiles (name, specialty, hospital, experience, rating, fee, bio)
+   - Doctor detail screen with full profile, reviews, and dynamic patient count
    - Featured card + compact card layouts
+   - Doctor images from Supabase Storage or profile_image URL with fallback
    - Mock data fallback for UI development/demos
 
 5. **Appointment Booking**
-   - Select doctor → pick date (next 7 days) → pick time slot → add symptoms → confirm
+   - Select doctor → pick date (filtered by doctor's available days) → pick time slot (filtered by doctor's working hours) → add symptoms → confirm
+   - Booking dates scan up to 30 days ahead to find valid days matching doctor's schedule
+   - Time slots auto-generated from doctor's `available_from` / `available_to` times
    - Booking creation via Supabase `appointments.insert()`
    - Booking history & status tracking (Pending / Confirmed / Completed / Cancelled)
    - Appointment detail screen
@@ -130,27 +133,38 @@
 
 ### Phase 2 — Enhanced Experience
 
-6. **Health Profile & Medical History**
+6. **Doctor Dashboard** (Role-based)
+   - Separate bottom-tab layout for doctor users: Dashboard, Schedule, Profile
+   - Dashboard home with stats (today's appointments, total patients, rating), today's schedule, recent patients
+   - Schedule management with day-of-week picker, time range selector, and persist to `doctors` table
+   - Professional Profile editor (specialty, qualifications, hospital, fee, experience, bio) using shared `Input`/`Button` UI components
+   - Edit Profile (general) page hides patient-specific fields (blood group, height, weight) for doctors
+   - Doctor data syncs live with the patient-facing app (doctor list, detail, booking)
+
+7. **Ratings & Reviews System**
+   - Patient review modal on doctor detail screen (tap "Write a Review")
+   - Star rating (1–5), optional comment, anonymous toggle
+   - `KeyboardAvoidingView` + `TouchableWithoutFeedback` for smooth keyboard handling in modal
+   - Review submission via `submitReview()` in `doctorService.ts`
+   - Average rating & total reviews auto-calculated via `update_doctor_rating()` DB trigger
+   - Review display on doctor detail screen (latest 5)
+   - Dynamic patient count from `appointments` table (not from `total_reviews`)
+
+8. **Health Profile & Medical History**
    - Persistent medical record (chronic conditions, medications, allergies)
    - Past diagnosis history within the app
    - Profile settings screen with full edit capability
 
-7. **Settings & Preferences**
+9. **Settings & Preferences**
    - Settings hub with profile card, navigation to sub-screens
    - Profile Settings sub-screen (edit all profile fields, avatar picker)
    - Notifications sub-screen (push toggles, email/SMS alert toggles)
    - Security sub-screen (change password, 2FA toggle, biometric login toggle)
    - Sign Out with confirmation
 
-8. **Ratings & Reviews**
-   - Rate doctors after appointment completion (1-5 stars)
-   - Written reviews with anonymous option
-   - Average rating auto-calculation via `update_doctor_rating()` trigger
-   - Review display on doctor detail screen
-
 ### Phase 3 — Advanced Features
 
-9. **AI-Enhanced Prediction** (Partially Implemented)
+10. **AI-Enhanced Prediction** (Partially Implemented)
     - ✅ Gemini AI integration via Edge Function (multi-modal: text + images)
     - ✅ AI Check History — persists every Gemini analysis to `ai_check_history` table with symptoms, risk, conditions, and recommendations
     - NLP-based symptom input ("I have headache and fever") — future
@@ -216,8 +230,13 @@ Mobile-Computing/
 │   │   │   └── results.tsx       # Disease prediction results
 │   │   ├── doctors/
 │   │   │   ├── _layout.tsx
-│   │   │   ├── [id].tsx          # Doctor detail screen with reviews
-│   │   │   └── book.tsx          # Booking screen (date/time picker, symptom input)
+│   │   │   ├── [id].tsx          # Doctor detail screen with reviews, review modal, dynamic patient count
+│   │   │   └── book.tsx          # Booking screen (date filtered by available days, time filtered by working hours)
+│   │   ├── (doctor)/             # Doctor-role dashboard (bottom-tab layout)
+│   │   │   ├── _layout.tsx       # Bottom tab layout (Dashboard, Schedule, Profile)
+│   │   │   ├── dashboard.tsx     # Doctor home (stats, today's schedule, recent patients)
+│   │   │   ├── schedule.tsx      # Availability schedule management (days & hours)
+│   │   │   └── profile.tsx       # Professional profile editor (specialty, quals, hospital, fee, experience, bio)
 │   │   ├── articles/
 │   │   │   ├── index.tsx         # Articles list with category filters & bookmarking
 │   │   │   └── [id].tsx          # Article detail (full content view)
@@ -259,7 +278,7 @@ Mobile-Computing/
 │   │   ├── geminiService.ts      # Gemini AI symptom analysis (calls gemini-symptom-check Edge Function)
 │   │   ├── symptomService.ts     # Symptom queries (search)
 │   │   ├── diseaseService.ts     # Disease queries & prediction
-│   │   ├── doctorService.ts      # Doctor queries (list, detail, reviews, recommended)
+│   │   ├── doctorService.ts      # Doctor queries (list, detail, reviews, recommended, updateDoctorProfile, submitReview)
 │   │   ├── appointmentService.ts # Appointment CRUD
 │   │   ├── articleService.ts     # Article CRUD & bookmark management
 │   │   ├── aiCheckHistoryService.ts # AI check history persistence & retrieval
@@ -282,7 +301,8 @@ Mobile-Computing/
 │   │   ├── globalStyles.ts       # Shared StyleSheet (reusable styles)
 │   │   └── config.ts             # Supabase URL & anon key
 │   ├── utils/
-│   │   └── helpers.ts            # Utility functions
+│   │   ├── helpers.ts            # Utility functions
+│   │   └── getDoctorImageUrl.ts  # Resolves doctor profile image from Storage or profile_image URL
 │   ├── assets/
 │   │   ├── images/
 │   │   └── icons/
@@ -356,6 +376,7 @@ Mobile-Computing/
 | Submit review                         | `supabase.from('reviews').insert({ ... })`                                |
 | Create appointment                    | `supabase.from('appointments').insert({ ... })`                           |
 | Get user's appointments               | `supabase.from('appointments').select('*, doctors(*, profiles(*))').eq('patient_id', userId)` |
+| Count doctor's patients               | `supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('doctor_id', doctorId)` |
 | Update appointment status             | `supabase.from('appointments').update({ status }).eq('id', id)`           |
 | Get user profile                      | `supabase.from('profiles').select('*').eq('id', userId).single()`         |
 | Update user profile                   | `supabase.from('profiles').update({ ... }).eq('id', userId)`              |
@@ -606,3 +627,8 @@ npx expo start
 18. **AI Check History Persistence**: Every Gemini AI symptom analysis is saved to the `ai_check_history` table via `aiCheckHistoryService.ts`, enabling users to review past AI consultations in the History tab.
 19. **Automated Article Generation**: The `generate-articles` Edge Function uses Gemini AI to create fresh health articles every 2 days (via `pg_cron` + `pg_net`), automatically cleaning up articles older than 7 days.
 20. **VS Code Deno Configuration**: `.vscode/settings.json` enables the Deno language server only for `supabase/functions/` via `deno.enablePaths`, preventing conflicts with the Node.js-based Frontend.
+21. **Doctor Dashboard (Role-Based Routing)**: Doctors have a separate bottom-tab layout (`app/(doctor)/`) with Dashboard, Schedule, and Profile tabs. The `_layout.tsx` checks the user's `profile.role` and renders the doctor layout accordingly. Doctor data changes (profile, schedule) sync live with the patient-facing app.
+22. **Dynamic Booking Availability**: The booking screen (`doctors/book.tsx`) filters dates by the doctor's `available_days` (scanning up to 30 days) and time slots by `available_from`/`available_to`, ensuring patients can only book valid slots.
+23. **Patient Review Modal**: The doctor detail screen includes a review modal with star rating, comment input, anonymous toggle, and `KeyboardAvoidingView` for smooth keyboard interaction. Reviews trigger the `update_doctor_rating()` DB function.
+24. **Dynamic Patient Count**: The doctor detail screen counts actual appointments from the `appointments` table rather than using `total_reviews` for the "Patients" stat.
+25. **Doctor Bio/About**: The ABOUT section on the doctor detail screen displays the doctor's `bio` field, editable from the doctor dashboard's Professional Profile tab.

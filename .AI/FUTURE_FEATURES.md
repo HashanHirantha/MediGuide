@@ -73,8 +73,9 @@ This document tracks all planned features, enhancements, and technical improveme
 - [x] Mock data fallback when no Supabase data available
 
 ### 1.6 Appointment Booking ✅ DONE
-- [x] Date picker (next 7 available dates)
-- [x] Time slot selection UI (6 preset slots)
+- [x] Date picker (next 7 available dates filtered by doctor's available_days)
+- [x] Time slot selection UI (auto-generated from doctor's available_from/available_to)
+- [x] Date scanning up to 30 days ahead to find valid available days
 - [x] Symptom text input for booking context
 - [x] Booking creation via `supabase.from('appointments').insert({ ... })`
 - [x] Booking confirmation with summary
@@ -91,18 +92,31 @@ This document tracks all planned features, enhancements, and technical improveme
 
 ### 2.1 Doctor Dashboard (Doctor Role) — ✅ DONE
 - [x] Doctor registration flow (separate from patient)
-- [x] Doctor profile editor (specialty, qualifications, hospital, fees)
-- [x] Availability schedule management (days & hours)
+- [x] Doctor-specific bottom tab layout (`app/(doctor)/` — Dashboard, Schedule, Profile)
+- [x] Dashboard home screen with stats (today's appointments, total patients, average rating)
+- [x] Today's schedule and recent patients display on dashboard
+- [x] Professional Profile editor (specialty, qualifications, hospital, fees, experience, bio)
+- [x] Professional Profile uses shared `Input`/`Button` UI components (matches main app theme)
+- [x] Edit Profile (general) hides patient-specific fields (blood group, height, weight) for doctors
+- [x] Availability schedule management (day-of-week picker, time range selector)
+- [x] Schedule data persisted to `doctors` table (`available_days`, `available_from`, `available_to`)
+- [x] Doctor bio/about field editable from Professional Profile, displayed on patient-facing detail screen
 - [x] Incoming appointment requests view (realtime via Supabase)
 - [x] Accept / Reject / Reschedule appointments
 - [x] Patient symptom summary view before appointment
+- [x] All doctor dashboard changes sync live with main patient app
 
-### 2.2 Ratings & Reviews System ✅ PARTIALLY DONE
-- [ ] Post-appointment review prompt
+### 2.2 Ratings & Reviews System ✅ DONE
+- [x] Patient review modal on doctor detail screen ("Write a Review" button)
+- [x] Star rating UI (1–5 tappable stars)
+- [x] Optional comment text input with `KeyboardAvoidingView` for smooth keyboard handling
+- [x] Anonymous review toggle (checkbox)
 - [x] Review submission service (`doctorService.ts → submitReview()`)
-- [x] Review display on doctor detail screen
-- [x] Anonymous review option (schema supports `is_anonymous`)
+- [x] Review display on doctor detail screen (latest 5 reviews)
 - [x] Average rating auto-calculation via `update_doctor_rating()` trigger
+- [x] Dynamic patient count from `appointments` table (not `total_reviews`)
+- [x] Doctor image resolution via `getDoctorImageUrl()` utility (Storage → profile_image → fallback)
+- [ ] Post-appointment review prompt (auto-suggest after completed appointment)
 - [ ] Review moderation (flag inappropriate content)
 
 ### 2.3 Medical History & Health Profile ✅ PARTIALLY DONE
@@ -299,8 +313,8 @@ Phase 1 (MVP) ✅ MOSTLY COMPLETE
 └── 1.6 Appointment Booking ───── ✅ Mostly Done (cancel/realtime pending)
 
 Phase 2 (Enhanced) 🔜 IN PROGRESS
-├── 2.1 Doctor Dashboard ──────── TODO
-├── 2.2 Reviews System ────────── Partially Done (service + trigger ready)
+├── 2.1 Doctor Dashboard ──────── ✅ Done (dashboard, schedule, profile)
+├── 2.2 Reviews System ────────── ✅ Done (review modal, stars, anonymous, auto-rating)
 ├── 2.3 Medical History ────────── Partially Done (schema ready, UI pending)
 ├── 2.4 Notifications ─────────── TODO (Edge Function exists)
 ├── 2.5 Storage & Images ──────── Partially Done
