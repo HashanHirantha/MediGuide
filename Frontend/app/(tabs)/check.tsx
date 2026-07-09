@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Audio } from 'expo-av';
 import Body from 'react-native-body-highlighter';
 import { TopBar } from '../../components/TopBar';
@@ -278,8 +278,7 @@ export default function SymptomCheckerScreen() {
       await recording.stopAndUnloadAsync();
       const uri = recording.getURI();
       if (!uri) throw new Error("No recording URI");
-      
-      const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+      const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' as any });
       
       const { supabase } = await import('../../lib/supabase');
       const { data: session } = await supabase.auth.getSession();
@@ -642,7 +641,7 @@ export default function SymptomCheckerScreen() {
                 onPress={isRecording ? stopRecording : startRecording} 
                 style={[
                   globalStyles.addButton, 
-                  { backgroundColor: isRecording ? colors.error : colors.black }
+                  { backgroundColor: isRecording ? colors.accent : colors.black }
                 ]}
               >
                 {isTranscribing ? (
