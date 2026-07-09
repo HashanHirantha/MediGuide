@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { globalStyles } from '../../constants/globalStyles';
 import { colors, spacing } from '../../constants/theme';
 import { useAuth } from '../../hooks/useAuth';
 import { getDoctorProfileByUserId, updateDoctorProfile } from '../../services/doctorService';
+import { Input } from '../../components/ui/Input';
+import { Button } from '../../components/ui/Button';
 
 export default function DoctorProfile() {
   const { profile, signOut } = useAuth();
@@ -81,84 +83,75 @@ export default function DoctorProfile() {
         <Text style={globalStyles.pageDescription}>Update your public information shown to patients.</Text>
         
         <View style={{ marginTop: spacing.xl }}>
-          <Text style={globalStyles.label}>Specialty</Text>
-          <TextInput
-            style={globalStyles.input}
+          <Input
+            label="Specialty"
             value={specialty}
             onChangeText={setSpecialty}
             placeholder="e.g. Cardiologist"
-            placeholderTextColor={colors.textTertiary}
+            leftIcon="briefcase"
           />
 
-          <Text style={globalStyles.label}>Qualifications</Text>
-          <TextInput
-            style={globalStyles.input}
+          <Input
+            label="Qualifications"
             value={qualification}
             onChangeText={setQualification}
             placeholder="e.g. MD, FACC"
-            placeholderTextColor={colors.textTertiary}
+            leftIcon="award"
           />
 
-          <Text style={globalStyles.label}>Hospital / Clinic Name</Text>
-          <TextInput
-            style={globalStyles.input}
+          <Input
+            label="Hospital / Clinic Name"
             value={hospital}
             onChangeText={setHospital}
             placeholder="e.g. MediGuide Central Hospital"
-            placeholderTextColor={colors.textTertiary}
+            leftIcon="map-pin"
           />
 
-          <Text style={globalStyles.label}>Consultation Fee ($)</Text>
-          <TextInput
-            style={globalStyles.input}
+          <Input
+            label="Consultation Fee ($)"
             value={fee}
             onChangeText={setFee}
             placeholder="e.g. 150.00"
             keyboardType="decimal-pad"
-            placeholderTextColor={colors.textTertiary}
+            leftIcon="dollar-sign"
           />
 
-          <Text style={globalStyles.label}>Experience (Years)</Text>
-          <TextInput
-            style={globalStyles.input}
+          <Input
+            label="Experience (Years)"
             value={experience}
             onChangeText={setExperience}
             placeholder="e.g. 15"
             keyboardType="number-pad"
-            placeholderTextColor={colors.textTertiary}
+            leftIcon="clock"
           />
 
-          <Text style={globalStyles.label}>About (Bio)</Text>
-          <TextInput
-            style={[globalStyles.input, { minHeight: 100, textAlignVertical: 'top' }]}
+          <Input
+            label="About (Bio)"
             value={bio}
             onChangeText={setBio}
             placeholder="Brief professional summary about yourself..."
             multiline
             numberOfLines={4}
-            placeholderTextColor={colors.textTertiary}
+            leftIcon="info"
+            style={{ minHeight: 100 }}
           />
 
-          <TouchableOpacity 
-            style={[globalStyles.buttonPrimary, { marginTop: spacing.xl }]}
-            onPress={handleSave}
-            disabled={saving}
-          >
-            {saving ? (
-              <ActivityIndicator color={colors.surface} />
-            ) : (
-              <Text style={globalStyles.buttonPrimaryText}>Save Changes</Text>
-            )}
-          </TouchableOpacity>
+          <View style={{ marginTop: spacing.md }}>
+            <Button
+              title="Save Changes"
+              onPress={handleSave}
+              loading={saving}
+            />
+          </View>
         </View>
 
         <View style={styles.logoutSection}>
-          <TouchableOpacity 
-            style={globalStyles.signOutButton}
+          <Button
+            title="Log Out"
             onPress={signOut}
-          >
-            <Text style={globalStyles.signOutText}>Log Out</Text>
-          </TouchableOpacity>
+            variant="danger"
+            shape="pill"
+          />
         </View>
 
       </ScrollView>
