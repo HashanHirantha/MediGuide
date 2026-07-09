@@ -80,13 +80,13 @@ const MUSCLE_TO_SYMPTOMS: Record<string, string[]> = {
   abs: ['Stomach Ache', 'Nausea'],
   'upper-back': ['Back Pain', 'Muscle Aches'],
   'lower-back': ['Back Pain', 'Sciatica'],
-  shoulders: ['Shoulder Pain', 'Joint Pain'],
+  deltoids: ['Shoulder Pain', 'Joint Pain'],
   biceps: ['Arm Pain', 'Muscle Aches'],
   triceps: ['Arm Pain'],
   forearm: ['Arm Pain'],
   hands: ['Hand Pain', 'Numbness'],
   quadriceps: ['Leg Pain', 'Muscle Aches'],
-  hamstrings: ['Leg Pain'],
+  hamstring: ['Leg Pain'],
   calves: ['Leg Pain', 'Cramps'],
   feet: ['Foot Pain', 'Swelling'],
   gluteal: ['Hip Pain'],
@@ -553,7 +553,7 @@ export default function SymptomCheckerScreen() {
         {/* 3D Body Map Card */}
         <View style={globalStyles.cardPadded}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
-            <Text style={globalStyles.sectionTitle}>VISUAL SYMPTOM SELECTION</Text>
+            <Text style={[globalStyles.sectionTitle, { flex: 1, marginRight: 10 }]}>VISUAL SELECTION</Text>
             <TouchableOpacity 
               onPress={() => setShowBodyMap(!showBodyMap)}
               style={{ backgroundColor: showBodyMap ? colors.primary : colors.glassWhite, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: showBodyMap ? colors.primary : colors.subtleBorder }}
