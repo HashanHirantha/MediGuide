@@ -322,7 +322,7 @@ export default function SymptomCheckerScreen() {
       setPrediction(data.prediction);
       
       // ── Trigger local emergency alert if risk is High or Critical ──
-      const riskLower = data.prediction.risk_level?.toLowerCase() || '';
+      const riskLower = data.prediction.overall_risk?.toLowerCase() || '';
       if (emergencyAlertsEnabled && (riskLower.includes('high') || riskLower.includes('critical'))) {
         sendLocalNotification(
           '⚠️ High Risk Alert',
@@ -633,12 +633,12 @@ export default function SymptomCheckerScreen() {
                 { backgroundColor: colors.accent, marginBottom: 15, flexDirection: 'column', alignItems: 'flex-start', gap: 5 }
               ]}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Feather name="alert-triangle" size={20} color={colors.white} />
-                  <Text style={{ color: colors.white, fontWeight: '700', fontSize: 16, marginLeft: 8 }}>
+                  <Feather name="alert-triangle" size={20} color={colors.surface} />
+                  <Text style={{ color: colors.surface, fontWeight: '700', fontSize: 16, marginLeft: 8 }}>
                     EMERGENCY ALERT
                   </Text>
                 </View>
-                <Text style={{ color: colors.white, fontSize: 14, lineHeight: 20 }}>
+                <Text style={{ color: colors.surface, fontSize: 14, lineHeight: 20 }}>
                   Based on your symptoms, we strongly recommend calling emergency services immediately (e.g., 911 or 1990) or visiting the nearest emergency room.
                 </Text>
               </View>
