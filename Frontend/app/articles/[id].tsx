@@ -65,7 +65,16 @@ export default function ArticleDetailScreen() {
     return (
       <SafeAreaView style={[globalStyles.safeArea, styles.center]}>
         <Text style={styles.errorText}>Article not found.</Text>
-        <TouchableOpacity style={globalStyles.resetButton} onPress={() => router.back()}>
+        <TouchableOpacity 
+          style={globalStyles.resetButton} 
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/');
+            }
+          }}
+        >
           <Text style={globalStyles.resetButtonText}>Go Back</Text>
         </TouchableOpacity>
       </SafeAreaView>
@@ -76,7 +85,16 @@ export default function ArticleDetailScreen() {
     <View style={globalStyles.container}>
       {/* Absolute Back Button */}
       <View style={styles.absoluteHeader}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/');
+            }
+          }}
+        >
           <Feather name="arrow-left" size={24} color={colors.black} />
         </TouchableOpacity>
         <TouchableOpacity 

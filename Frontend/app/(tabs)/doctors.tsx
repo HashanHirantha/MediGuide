@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useDoctors } from '../../hooks/useDoctors';
+import { getUniqueSpecialties } from '../../services/doctorService';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { colors, typography, spacing, radius } from '../../constants/theme';
 import { Avatar } from '../../components/ui/Avatar';
@@ -12,47 +13,50 @@ import { globalStyles } from '../../constants/globalStyles';
 import { getDoctorImageUrl } from '../../utils/getDoctorImageUrl';
 import i18n from '../../i18n';
 
-const SPECIALTIES = ['All Doctors', 'Cardiologist', 'Neurologist', 'General Medicine'];
-
-const MOCK_DOCTORS = [
-  {
-    id: '1',
-    profiles: { first_name: 'Sarah', last_name: 'Jenkins', profile_image: 'https://i.pravatar.cc/150?img=47' },
-    average_rating: 4.9,
-    specialty: 'Cardiologist',
-    experience_years: 15,
-  },
-  {
-    id: '2',
-    profiles: { first_name: 'Michael', last_name: 'Chen', profile_image: 'https://i.pravatar.cc/150?img=11' },
-    average_rating: 4.8,
-    specialty: 'Neurologist',
-    experience_years: 12,
-  },
-  {
-    id: '3',
-    profiles: { first_name: 'Emily', last_name: 'Davis', profile_image: 'https://i.pravatar.cc/150?img=32' },
-    average_rating: 4.7,
-    specialty: 'General Medicine',
-    experience_years: 8,
-  },
-];
 export default function DoctorsScreen() {
+  const { specialty } = useLocalSearchParams<{ specialty?: string }>();
   const { doctors, loading, fetchDoctors } = useDoctors();
-  const [activeSpecialty, setActiveSpecialty] = useState('All Doctors');
+  const [activeSpecialty, setActiveSpecialty] = useState(specialty || 'All Doctors');
+  const [filterList, setFilterList] = useState<string[]>(['All Doctors']);
+
+  useEffect(() => {
+    const loadSpecialties = async () => {
+      const unique = await getUniqueSpecialties();
+      const list = ['All Doctors', ...unique];
+      
+      // If a specialty is passed via params that isn't in DB yet, add it
+      if (specialty && !list.some((s) => s.toLowerCase() === specialty.toLowerCase())) {
+        const formattedSpecialty = specialty.charAt(0).toUpperCase() + specialty.slice(1);
+        list.push(formattedSpecialty);
+      }
+      setFilterList(list);
+    };
+    loadSpecialties();
+  }, [specialty]);
+
+  // Update activeSpecialty if the route param changes
+  useEffect(() => {
+    if (specialty) {
+      const match = filterList.find(s => s.toLowerCase() === specialty.toLowerCase());
+      setActiveSpecialty(match || specialty.charAt(0).toUpperCase() + specialty.slice(1));
+    } else {
+      setActiveSpecialty('All Doctors');
+    }
+  }, [specialty, filterList]);
 
   useEffect(() => {
     fetchDoctors(activeSpecialty === 'All Doctors' ? undefined : activeSpecialty);
   }, [activeSpecialty]);
 
   const getSpecialtyTranslation = (specialty: string) => {
-    switch (specialty) {
-      case 'All Doctors': return i18n.t('doctors.all_doctors') || 'All Doctors';
-      case 'Cardiologist': return i18n.t('doctors.cardiologist') || 'Cardiologist';
-      case 'Neurologist': return i18n.t('doctors.neurologist') || 'Neurologist';
-      case 'General Medicine': return i18n.t('doctors.general_medicine') || 'General Medicine';
-      default: return specialty;
+    if (specialty === 'All Doctors') return i18n.t('doctors.all_doctors') || 'All Doctors';
+    const key = `doctors.${specialty.toLowerCase().replace(/\s+/g, '_')}`;
+    const translation = i18n.t(key);
+    // If translation string contains 'missing' or is equal to the key, return the original string
+    if (!translation || translation.includes('missing') || translation === key) {
+      return specialty;
     }
+    return translation;
   };
 
 
@@ -68,7 +72,7 @@ export default function DoctorsScreen() {
 
   const renderFilters = () => (
     <FlatList
-      data={SPECIALTIES}
+      data={filterList}
       horizontal
       showsHorizontalScrollIndicator={false}
       keyExtractor={(item) => item}
@@ -180,7 +184,7 @@ export default function DoctorsScreen() {
             {renderFilters()}
           </>
         }
-        data={doctors.length > 0 ? doctors : MOCK_DOCTORS.filter(d => activeSpecialty === 'All Doctors' || d.specialty === activeSpecialty)}
+        data={doctors}
         keyExtractor={(item) => item.id}
         renderItem={renderDoctor}
         contentContainerStyle={globalStyles.listContainer}

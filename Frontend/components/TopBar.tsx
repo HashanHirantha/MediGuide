@@ -11,7 +11,16 @@ export function TopBar() {
   
   return (
     <View style={globalStyles.topBarHeader}>
-      <TouchableOpacity onPress={() => router.back()} style={globalStyles.topBarIcon}>
+      <TouchableOpacity 
+        onPress={() => {
+          if (router.canGoBack()) {
+            router.back();
+          } else {
+            router.replace('/');
+          }
+        }} 
+        style={globalStyles.topBarIcon}
+      >
         <Feather name="arrow-left" size={24} color={colors.iconLight} />
       </TouchableOpacity>
       
