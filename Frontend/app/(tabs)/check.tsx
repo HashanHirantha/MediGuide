@@ -91,6 +91,7 @@ const MUSCLE_TO_SYMPTOMS: Record<string, string[]> = {
   adductors: ['Groin Pain', 'Leg Pain'],
   calves: ['Leg Pain', 'Cramps'],
   tibialis: ['Shin Pain', 'Leg Pain'],
+  knees: ['Knee Pain', 'Joint Pain'],
   ankles: ['Ankle Pain', 'Joint Pain'],
   feet: ['Foot Pain', 'Swelling'],
   gluteal: ['Hip Pain'],
@@ -111,6 +112,7 @@ export default function SymptomCheckerScreen() {
   const [isSearching, setIsSearching] = useState(false);
   const [showBodyMap, setShowBodyMap] = useState(false);
   const [bodySide, setBodySide] = useState<'front' | 'back'>('front');
+  const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
 
   // Duration state
   const [selectedDuration, setSelectedDuration] = useState('');
@@ -228,25 +230,33 @@ export default function SymptomCheckerScreen() {
 
   const handleMusclePress = (muscle: any) => {
     const mappedSymptoms = MUSCLE_TO_SYMPTOMS[muscle.slug] || [`${muscle.slug} pain`];
-    let addedAny = false;
+    const isCurrentlySelected = selectedMuscles.includes(muscle.slug);
     
-    // Add mapped symptoms if they are not already selected
-    const newSymptoms = [...selectedSymptoms];
-    for (const sym of mappedSymptoms) {
-      if (!newSymptoms.includes(sym)) {
-        newSymptoms.push(sym);
-        addedAny = true;
-      }
-    }
-    
-    if (addedAny) {
-      setSelectedSymptoms(newSymptoms);
+    if (isCurrentlySelected) {
+      // Deselect muscle
+      setSelectedMuscles(prev => prev.filter(m => m !== muscle.slug));
+      
+      // Remove its mapped symptoms from selectedSymptoms
+      setSelectedSymptoms(prev => prev.filter(s => !mappedSymptoms.includes(s)));
       if (prediction) { setPrediction(null); setPredictionError(null); }
     } else {
-      // If all mapped symptoms are already selected, remove them (toggle off)
-      const filtered = newSymptoms.filter(s => !mappedSymptoms.includes(s));
-      setSelectedSymptoms(filtered);
-      if (prediction) { setPrediction(null); setPredictionError(null); }
+      // Select muscle
+      setSelectedMuscles(prev => [...prev, muscle.slug]);
+      
+      // Add mapped symptoms if they are not already selected
+      const newSymptoms = [...selectedSymptoms];
+      let addedAny = false;
+      for (const sym of mappedSymptoms) {
+        if (!newSymptoms.includes(sym)) {
+          newSymptoms.push(sym);
+          addedAny = true;
+        }
+      }
+      
+      if (addedAny) {
+        setSelectedSymptoms(newSymptoms);
+        if (prediction) { setPrediction(null); setPredictionError(null); }
+      }
     }
   };
 
@@ -605,11 +615,11 @@ export default function SymptomCheckerScreen() {
               </View>
               
               <Body
-                data={selectedSymptoms.map(sym => ({
-                  slug: Object.keys(MUSCLE_TO_SYMPTOMS).find(key => MUSCLE_TO_SYMPTOMS[key].includes(sym)) as any || 'chest',
+                data={selectedMuscles.map(muscleSlug => ({
+                  slug: muscleSlug as any,
                   intensity: 1,
                   color: colors.primary
-                })).filter(item => item.slug !== 'chest' || selectedSymptoms.some(s => MUSCLE_TO_SYMPTOMS['chest'].includes(s)))}
+                }))}
                 onBodyPartPress={(muscle) => handleMusclePress(muscle)}
                 gender="male"
                 side={bodySide}
