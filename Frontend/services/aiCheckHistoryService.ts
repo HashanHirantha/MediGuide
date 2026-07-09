@@ -18,6 +18,8 @@ export interface AiCheckHistoryEntry {
   recommended_specialist?: string;
   recommended_specialties: string[];
   created_at: string;
+  is_accurate?: boolean;
+  user_feedback?: string;
 }
 
 /**
@@ -29,8 +31,8 @@ export async function saveAiCheckHistory(
   duration: string,
   prediction: PredictionResponse,
   additionalNotes?: string
-): Promise<{ error: string | null }> {
-  const { error } = await supabase.from('ai_check_history').insert({
+): Promise<{ data?: AiCheckHistoryEntry; error: string | null }> {
+  const { data, error } = await supabase.from('ai_check_history').insert({
     user_id: userId,
     symptoms,
     duration,
@@ -40,7 +42,7 @@ export async function saveAiCheckHistory(
     recommendation: prediction.recommendation || null,
     recommended_specialist: prediction.recommended_specialist || null,
     recommended_specialties: prediction.recommended_specialties ?? [],
-  });
+  }).select().single();
 
   if (error) {
     console.error('[AiCheckHistory] Save error:', error.message);
@@ -48,6 +50,29 @@ export async function saveAiCheckHistory(
   }
 
   console.log('[AiCheckHistory] Saved successfully for user:', userId);
+  return { data: data as AiCheckHistoryEntry, error: null };
+}
+
+/**
+ * Update user feedback for an AI check.
+ */
+export async function updateAiCheckFeedback(
+  entryId: string,
+  isAccurate: boolean,
+  userFeedback?: string
+): Promise<{ error: string | null }> {
+  const { error } = await supabase
+    .from('ai_check_history')
+    .update({
+      is_accurate: isAccurate,
+      user_feedback: userFeedback || null,
+    })
+    .eq('id', entryId);
+
+  if (error) {
+    console.error('[AiCheckHistory] Update feedback error:', error.message);
+    return { error: error.message };
+  }
   return { error: null };
 }
 

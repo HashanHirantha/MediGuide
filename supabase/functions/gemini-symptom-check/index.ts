@@ -88,6 +88,17 @@ serve(async (req) => {
       console.error('[GeminiCheck] Profile fetch error:', profileError.message);
     }
 
+    // Fetch user medical history
+    const { data: medicalHistory, error: historyError } = await supabase
+      .from('medical_history')
+      .select('condition, status, medications, allergies')
+      .eq('user_id', user.id)
+      .eq('status', 'active');
+
+    if (historyError) {
+      console.error('[GeminiCheck] Medical history fetch error:', historyError.message);
+    }
+
     // ─── Fetch available doctor specialties from DB ──────────────
     const { data: specialtyRows } = await supabase
       .from('doctors')
@@ -122,6 +133,17 @@ serve(async (req) => {
       age = `${years} years old`;
     }
 
+    // Build medical history string
+    let medicalHistoryContext = 'No active medical history provided.';
+    if (medicalHistory && medicalHistory.length > 0) {
+      medicalHistoryContext = medicalHistory.map((mh: any) => {
+        let entry = `- ${mh.condition}`;
+        if (mh.medications && mh.medications.length > 0) entry += ` (Meds: ${mh.medications.join(', ')})`;
+        if (mh.allergies && mh.allergies.length > 0) entry += ` (Allergies: ${mh.allergies.join(', ')})`;
+        return entry;
+      }).join('\n');
+    }
+
     // Build the patient context string
     const patientContext = [
       `Age: ${age}`,
@@ -130,6 +152,7 @@ serve(async (req) => {
       profile?.height_cm ? `Height: ${profile.height_cm} cm` : null,
       profile?.weight_kg ? `Weight: ${profile.weight_kg} kg` : null,
       profile?.bmi ? `BMI: ${profile.bmi}` : null,
+      `\nMEDICAL HISTORY:\n${medicalHistoryContext}`,
     ].filter(Boolean).join('\n');
 
     // ─── Build the specialty constraint ──────────────────────────
@@ -149,6 +172,7 @@ IMPORTANT DISCLAIMERS:
 - This is NOT a medical diagnosis
 - Always recommend consulting a healthcare professional
 - Be conservative with risk assessments
+- If the user input contains completely irrelevant text (like a math problem, casual chat, etc.) and no medical symptoms, return exactly this JSON: { "error": "NOT_A_SYMPTOM", "message": "Please input your symptom" }
 
 PATIENT PROFILE:
 ${patientContext}
@@ -188,6 +212,8 @@ RULES:
 - recommended_specialties must be an array of 1-3 specialty names${availableSpecialties.length > 0 ? ' chosen ONLY from the AVAILABLE DOCTOR SPECIALTIES list above' : ''}
 - Keep recommendation under 200 characters
 - If medical report images are attached, reference key findings from them
+- Explicitly consider comorbidities between the patient's existing medical history and the current reported symptoms.
+- Carefully calibrate possibility_percent. If symptoms align closely with known conditions from the medical history or likely comorbidities, adjust confidence appropriately.
 - Be medically responsible and conservative`;
 
     console.log('[GeminiCheck] Calling Gemini API...');
@@ -258,6 +284,14 @@ RULES:
       return new Response(
         JSON.stringify({ error: 'Failed to parse AI response', raw: responseText }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Handle NOT_A_SYMPTOM case
+    if ((prediction as any).error === 'NOT_A_SYMPTOM') {
+      return new Response(
+        JSON.stringify({ error: 'NOT_A_SYMPTOM', message: (prediction as any).message }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 

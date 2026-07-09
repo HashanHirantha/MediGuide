@@ -177,10 +177,10 @@ This document tracks all planned features, enhancements, and technical improveme
 - [x] Patient context-aware analysis (age, gender from profile)
 - [x] Structured JSON response with conditions, confidence %, risk levels
 - [x] Recommended specialties returned from AI for doctor matching
-- [ ] NLP symptom input ("I've had a headache and nausea for 2 days")
-- [ ] Improved prediction accuracy with patient history context
-- [ ] Feedback loop — user reports help retrain model
-- [ ] Confidence calibration and multi-disease comorbidity detection
+- [x] NLP symptom input ("I've had a headache and nausea for 2 days")
+- [x] Improved prediction accuracy with patient history context
+- [x] Feedback loop — user reports help retrain model
+- [x] Confidence calibration and multi-disease comorbidity detection
 
 ### 3.2 Telemedicine & Virtual Consultation — TODO
 - [ ] In-app video calling (WebRTC / Twilio)

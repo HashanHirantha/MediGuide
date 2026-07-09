@@ -29,7 +29,7 @@ import {
 } from '../../services/geminiService';
 import { RecommendedDoctors } from '../../components/RecommendedDoctors';
 import { searchSymptoms } from '../../services/symptomService';
-import { saveAiCheckHistory } from '../../services/aiCheckHistoryService';
+import { saveAiCheckHistory, updateAiCheckFeedback } from '../../services/aiCheckHistoryService';
 import { sendLocalNotification } from '../../services/notificationService';
 
 // ─── Duration options ────────────────────────────────────────
@@ -96,6 +96,10 @@ export default function SymptomCheckerScreen() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [prediction, setPrediction] = useState<PredictionResponse | null>(null);
   const [predictionError, setPredictionError] = useState<string | null>(null);
+  
+  // Feedback state
+  const [historyId, setHistoryId] = useState<string | null>(null);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState<boolean>(false);
   
   // Notification preferences
   const [emergencyAlertsEnabled, setEmergencyAlertsEnabled] = useState(true);
@@ -206,6 +210,8 @@ export default function SymptomCheckerScreen() {
     if (prediction) {
       setPrediction(null);
       setPredictionError(null);
+      setHistoryId(null);
+      setFeedbackSubmitted(false);
     }
   };
 
@@ -221,6 +227,8 @@ export default function SymptomCheckerScreen() {
       if (prediction) {
         setPrediction(null);
         setPredictionError(null);
+        setHistoryId(null);
+        setFeedbackSubmitted(false);
       }
     }
   };
@@ -294,6 +302,8 @@ export default function SymptomCheckerScreen() {
     setIsAnalyzing(true);
     setPredictionError(null);
     setPrediction(null);
+    setHistoryId(null);
+    setFeedbackSubmitted(false);
 
     const languageMap: Record<string, string> = { en: 'English', si: 'Sinhala', ta: 'Tamil' };
     const aiLanguage = languageMap[locale] || 'English';
@@ -311,7 +321,11 @@ export default function SymptomCheckerScreen() {
     if (error) {
       console.error('[Check] Prediction error:', error);
       setPredictionError(error);
-      Alert.alert('Analysis Failed', error);
+      if (error === 'NOT_A_SYMPTOM') {
+        Alert.alert('Invalid Input', 'Please input your medical symptoms to proceed.');
+      } else {
+        Alert.alert('Analysis Failed', error);
+      }
       return;
     }
 
@@ -339,11 +353,27 @@ export default function SymptomCheckerScreen() {
           selectedDuration,
           data.prediction,
           additionalNotes || undefined
-        ).then(({ error }) => {
+        ).then(({ data: historyData, error }) => {
           if (error) console.warn('[Check] History save failed:', error);
-          else console.log('[Check] Saved to ai_check_history');
+          else {
+            console.log('[Check] Saved to ai_check_history');
+            if (historyData) setHistoryId(historyData.id);
+          }
         });
       }
+    }
+  };
+
+  // ─── Feedback ───────────────────────────────────────────────
+
+  const handleFeedback = async (isAccurate: boolean) => {
+    if (!historyId) return;
+    setFeedbackSubmitted(true);
+    const { error } = await updateAiCheckFeedback(historyId, isAccurate);
+    if (error) {
+      console.warn('Failed to save feedback:', error);
+      Alert.alert('Error', 'Failed to save feedback');
+      setFeedbackSubmitted(false);
     }
   };
 
@@ -676,6 +706,28 @@ export default function SymptomCheckerScreen() {
                 )}
               </Text>
             </View>
+
+            {/* Feedback Loop */}
+            {historyId && !feedbackSubmitted && (
+              <View style={{ marginTop: 20, marginBottom: 15, padding: 15, backgroundColor: colors.surfaceAlt, borderRadius: 12, alignItems: 'center' }}>
+                <Text style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 10 }}>Was this analysis helpful and accurate?</Text>
+                <View style={{ flexDirection: 'row', gap: 15 }}>
+                  <TouchableOpacity onPress={() => handleFeedback(true)} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.successBg, paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20 }}>
+                    <Feather name="thumbs-up" size={16} color={colors.successText} />
+                    <Text style={{ marginLeft: 6, color: colors.successText, fontWeight: '600' }}>Yes</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleFeedback(false)} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.errorBg, paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20 }}>
+                    <Feather name="thumbs-down" size={16} color={colors.errorText} />
+                    <Text style={{ marginLeft: 6, color: colors.errorText, fontWeight: '600' }}>No</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+            {feedbackSubmitted && (
+              <View style={{ marginTop: 20, marginBottom: 15, padding: 15, alignItems: 'center' }}>
+                <Text style={{ color: colors.successText, fontWeight: '600' }}>Thank you for your feedback!</Text>
+              </View>
+            )}
 
             {/* New Analysis Button */}
             <TouchableOpacity style={globalStyles.resetButton} onPress={handleReset} activeOpacity={0.7}>

@@ -72,8 +72,8 @@ export async function analyzeSymptoms(
     }
 
     if (data?.error) {
-      console.error('[GeminiService] Server returned error:', data.error);
-      return { data: null, error: data.error };
+      console.error('[GeminiService] Server returned error:', data.error, data.message);
+      return { data: null, error: data.message || data.error };
     }
 
     if (!data?.prediction) {
