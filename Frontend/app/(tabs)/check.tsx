@@ -103,6 +103,8 @@ const MUSCLE_TO_SYMPTOMS: Record<string, string[]> = {
 export default function SymptomCheckerScreen() {
   const { user, profile } = useAuth();
   const { locale } = useLanguage();
+  
+  const modelGender = profile?.gender?.toLowerCase() === 'female' ? 'female' : 'male';
 
   // Symptom state
   const [searchQuery, setSearchQuery] = useState('');
@@ -389,7 +391,7 @@ export default function SymptomCheckerScreen() {
       additionalNotes || undefined,
       attachments.length > 0 ? attachments.map(a => ({ base64: a.base64, mime_type: a.mimeType })) : undefined,
       aiLanguage,
-      bodyGender
+      modelGender
     );
 
     setIsAnalyzing(false);
@@ -634,7 +636,7 @@ export default function SymptomCheckerScreen() {
                   color: colors.primary
                 }))}
                 onBodyPartPress={(muscle) => handleMusclePress(muscle)}
-                gender="male"
+                gender={modelGender}
                 side={bodySide}
                 scale={1.2}
               />

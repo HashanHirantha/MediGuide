@@ -103,7 +103,7 @@ export default function ProfileSettingsScreen() {
       last_name: lastName,
       phone,
       date_of_birth: dateOfBirth || null,
-      gender: gender || null,
+      gender: gender ? gender.toLowerCase().trim() : null,
       blood_group: bloodGroup || null,
       height_cm: isNaN(h) ? null : h,
       weight_kg: isNaN(w) ? null : w,
