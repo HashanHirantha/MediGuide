@@ -150,12 +150,20 @@
    - Review display on doctor detail screen (latest 5)
    - Dynamic patient count from `appointments` table (not from `total_reviews`)
 
-8. **Health Profile & Medical History**
+8. **Push Notifications & Alerts**
+   - Expo Push Token registration and device permission handling via `NotificationContext`
+   - Notification preferences toggleable in Settings (Appointments, Health Tips, Emergencies) mapped to `profiles` DB table
+   - Booking status change alerts ("Appointment Confirmed", "Cancelled") triggered on data update
+   - Daily Appointment Reminders sent via Edge Function scheduler
+   - AI Health Tip of the day sent via Edge Function scheduler using Gemini AI
+   - Local Emergency Push Alerts triggered immediately when symptom checker detects high-risk conditions
+
+9. **Health Profile & Medical History**
    - Persistent medical record (chronic conditions, medications, allergies)
    - Past diagnosis history within the app
    - Profile settings screen with full edit capability
 
-9. **Settings & Preferences**
+10. **Settings & Preferences**
    - Settings hub with profile card, navigation to sub-screens
    - Profile Settings sub-screen (edit all profile fields, avatar picker)
    - Notifications sub-screen (push toggles, email/SMS alert toggles)
@@ -164,7 +172,7 @@
 
 ### Phase 3 — Advanced Features
 
-10. **AI-Enhanced Prediction** (Partially Implemented)
+11. **AI-Enhanced Prediction** (Partially Implemented)
     - ✅ Gemini AI integration via Edge Function (multi-modal: text + images)
     - ✅ AI Check History — persists every Gemini analysis to `ai_check_history` table with symptoms, risk, conditions, and recommendations
     - NLP-based symptom input ("I have headache and fever") — future
@@ -276,6 +284,7 @@ Mobile-Computing/
 │   ├── services/
 │   │   ├── authService.ts        # Supabase Auth wrappers
 │   │   ├── geminiService.ts      # Gemini AI symptom analysis (calls gemini-symptom-check Edge Function)
+│   │   ├── notificationService.ts # Expo push token registration & local notifications
 │   │   ├── symptomService.ts     # Symptom queries (search)
 │   │   ├── diseaseService.ts     # Disease queries & prediction
 │   │   ├── doctorService.ts      # Doctor queries (list, detail, reviews, recommended, updateDoctorProfile, submitReview)
@@ -610,6 +619,11 @@ npx expo start
 1. **Direct DB Queries + RLS**: The app queries Supabase directly using the JS client. RLS policies enforce authorization — no custom backend middleware needed.
 2. **Supabase Auth Integration**: `AuthContext` wraps the app with `onAuthStateChange` listener. Auth state automatically manages session tokens, refresh, and persistence via AsyncStorage. The `on_auth_user_created` trigger auto-creates a profile row on signup. The `signUp` function supports full profile metadata (name, phone, DOB, gender, blood group, height, weight, BMI, profile image) in a single registration flow.
 3. **Gemini AI Integration**: The symptom checker uses `geminiService.ts` → `gemini-symptom-check` Edge Function → Google Gemini API. The API key stays server-side (never exposed in the mobile app). The Edge Function verifies the user's JWT, fetches their profile for context (age, gender), and sends a structured prompt to Gemini. Supports multi-modal input (text symptoms + base64-encoded images). Returns structured JSON with conditions, confidence %, risk levels, and recommended specialties.
+* **`gemini-symptom-check`**: Receives symptoms & durations, calls Gemini 1.5 Pro, parses JSON, returns diseases, severity, and specialties. Supports image/PDF attachments as base64.
+* **`generate-articles`**: Cron-triggered (runs every 2 days via `pg_cron` and `pg_net`). Calls Gemini AI to generate a fresh health article, then inserts it into the `articles` table and cleans up articles older than 7 days.
+* **`send-notification`**: Receives a push token and payload to dispatch push notifications via Expo Push API.
+* **`appointment-reminders`**: (Scheduled) Queries confirmed appointments for tomorrow and invokes `send-notification` for each opted-in patient.
+* **`daily-health-tip`**: (Scheduled) Uses Gemini 1.5 Pro to generate a short health tip and sends it to all opted-in users via `send-notification`.
 4. **Idempotent Triggers**: All `CREATE TRIGGER` statements are preceded by `DROP TRIGGER IF EXISTS` to prevent "already exists" errors when migrations are re-run.
 5. **Service Layer**: Each domain (symptoms, doctors, appointments, AI) has a dedicated service file that wraps Supabase client calls, keeping components clean.
 6. **TypeScript Types from DB**: Run `supabase gen types typescript` to auto-generate type-safe database types. All service functions use these types.
@@ -632,3 +646,5 @@ npx expo start
 23. **Patient Review Modal**: The doctor detail screen includes a review modal with star rating, comment input, anonymous toggle, and `KeyboardAvoidingView` for smooth keyboard interaction. Reviews trigger the `update_doctor_rating()` DB function.
 24. **Dynamic Patient Count**: The doctor detail screen counts actual appointments from the `appointments` table rather than using `total_reviews` for the "Patients" stat.
 25. **Doctor Bio/About**: The ABOUT section on the doctor detail screen displays the doctor's `bio` field, editable from the doctor dashboard's Professional Profile tab.
+26. **Push Notification Stack**: Uses `NotificationContext` at the root level to register Expo Push Tokens on app launch (saved to the `profiles` table). Local alerts (like emergency warnings) use `Notifications.scheduleNotificationAsync`, while remote alerts invoke the `send-notification` Edge Function which hits the Expo Push API.
+27. **Scheduled Edge Functions**: Scheduled tasks like `appointment-reminders` and `daily-health-tip` are standard Edge Functions designed to be triggered by Supabase's `pg_cron` + `pg_net` extension on a fixed interval (e.g., daily at 6 PM).

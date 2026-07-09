@@ -30,6 +30,7 @@ import {
 import { RecommendedDoctors } from '../../components/RecommendedDoctors';
 import { searchSymptoms } from '../../services/symptomService';
 import { saveAiCheckHistory } from '../../services/aiCheckHistoryService';
+import { sendLocalNotification } from '../../services/notificationService';
 
 // ─── Duration options ────────────────────────────────────────
 
@@ -95,6 +96,20 @@ export default function SymptomCheckerScreen() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [prediction, setPrediction] = useState<PredictionResponse | null>(null);
   const [predictionError, setPredictionError] = useState<string | null>(null);
+  
+  // Notification preferences
+  const [emergencyAlertsEnabled, setEmergencyAlertsEnabled] = useState(true);
+
+  useEffect(() => {
+    if (profile?.id) {
+      import('../../lib/supabase').then(({ supabase }) => {
+        supabase.from('profiles').select('notify_emergency').eq('id', profile.id).single()
+          .then(({ data }) => {
+            if (data) setEmergencyAlertsEnabled(data.notify_emergency ?? true);
+          });
+      });
+    }
+  }, [profile?.id]);
 
   // ─── Step progress ──────────────────────────────────────────
 
@@ -305,6 +320,16 @@ export default function SymptomCheckerScreen() {
       console.log('[Check] recommended_specialties:', data.prediction.recommended_specialties);
       console.log('[Check] recommended_specialist:', data.prediction.recommended_specialist);
       setPrediction(data.prediction);
+      
+      // ── Trigger local emergency alert if risk is High or Critical ──
+      const riskLower = data.prediction.risk_level?.toLowerCase() || '';
+      if (emergencyAlertsEnabled && (riskLower.includes('high') || riskLower.includes('critical'))) {
+        sendLocalNotification(
+          '⚠️ High Risk Alert',
+          'Your symptom analysis indicates a high-risk condition. Please seek medical attention immediately.',
+          { type: 'emergency_alert' }
+        ).catch(err => console.warn('Local notification error:', err));
+      }
 
       // ── Save to history (silent — don't block UI on failure) ──
       if (user?.id) {

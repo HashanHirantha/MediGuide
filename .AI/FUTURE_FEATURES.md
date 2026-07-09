@@ -127,12 +127,12 @@ This document tracks all planned features, enhancements, and technical improveme
 - [x] Past diagnosis history display (`history.tsx` tab)
 - [ ] PDF export of medical history
 
-### 2.4 Push Notifications — TODO
-- [ ] Appointment reminders via Supabase Edge Function + Expo Push API
-- [ ] Booking status change notifications (triggered by Supabase Realtime or Database Webhooks)
-- [ ] Health tip of the day
-- [ ] Emergency health alerts
-- [x] `send-notification` Edge Function exists (needs testing/wiring)
+### 2.4 Push Notifications ✅ DONE
+- [x] Appointment reminders via Supabase Edge Function (`appointment-reminders`)
+- [x] Booking status change notifications (triggered by `appointmentService.ts`)
+- [x] Health tip of the day (`daily-health-tip` Edge Function)
+- [x] Emergency health alerts (Local notification on High/Critical AI risk)
+- [x] User-specific notification preferences stored in `profiles` (DB migration 00016)
 
 ### 2.5 File Storage & Image Handling ✅ PARTIALLY DONE
 - [x] Profile image upload to Supabase Storage (`patients` bucket)
@@ -316,7 +316,7 @@ Phase 2 (Enhanced) 🔜 IN PROGRESS
 ├── 2.1 Doctor Dashboard ──────── ✅ Done (dashboard, schedule, profile)
 ├── 2.2 Reviews System ────────── ✅ Done (review modal, stars, anonymous, auto-rating)
 ├── 2.3 Medical History ────────── Partially Done (schema ready, UI pending)
-├── 2.4 Notifications ─────────── TODO (Edge Function exists)
+├── 2.4 Notifications ─────────── ✅ Done (Edge Functions, Local, Expo Push)
 ├── 2.5 Storage & Images ──────── Partially Done
 ├── 2.6 UI Polish ─────────────── TODO
 ├── 2.7 UI Redesign ───────────── ✅ Done

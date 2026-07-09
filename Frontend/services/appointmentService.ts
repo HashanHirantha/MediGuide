@@ -43,10 +43,48 @@ export async function getAppointmentById(id: string) {
  * Update appointment status.
  */
 export async function updateAppointmentStatus(id: string, status: string, reason?: string) {
-  return supabase
+  const result = await supabase
     .from('appointments')
     .update({ status, cancellation_reason: reason ?? null })
-    .eq('id', id);
+    .eq('id', id)
+    .select('*, doctors(profiles(first_name, last_name)), patient:profiles!appointments_patient_id_fkey(expo_push_token, notify_appointments)')
+    .single();
+
+  if (!result.error && result.data) {
+    const data = result.data as any;
+    
+    // Check if the patient has a push token and has appointments notifications enabled
+    if (data.patient?.expo_push_token && data.patient?.notify_appointments !== false) {
+      const docName = `Dr. ${data.doctors?.profiles?.first_name} ${data.doctors?.profiles?.last_name}`;
+      let title = '';
+      let body = '';
+      
+      if (status === 'confirmed') {
+        title = 'Appointment Confirmed';
+        body = `Your appointment with ${docName} on ${data.appointment_date} has been confirmed!`;
+      } else if (status === 'cancelled') {
+        title = 'Appointment Cancelled';
+        body = `Your appointment with ${docName} on ${data.appointment_date} has been cancelled.`;
+      } else if (status === 'completed') {
+        title = 'Appointment Completed';
+        body = `Your appointment with ${docName} is complete. Tap here to leave a review!`;
+      }
+
+      if (title && body) {
+        // Trigger Edge Function in background
+        supabase.functions.invoke('send-notification', {
+          body: {
+            expo_push_token: data.patient.expo_push_token,
+            title,
+            body,
+            data: { type: 'appointment_update', appointmentId: id, status }
+          }
+        }).catch(err => console.error('Error invoking send-notification:', err));
+      }
+    }
+  }
+
+  return { error: result.error, data: result.data };
 }
 
 /**
