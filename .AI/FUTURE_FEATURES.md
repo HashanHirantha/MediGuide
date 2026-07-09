@@ -205,7 +205,7 @@ This document tracks all planned features, enhancements, and technical improveme
 - [x] Common symptom chip selection
 - [x] Photo-based symptom input (image attachment support via camera/gallery)
 - [x] Document attachment for lab reports
-- [ ] 3D human body model for symptom selection
+- [x] 3D human body model for symptom selection
 - [ ] Voice-based symptom input
 - [ ] Symptom timeline visualization
 - [ ] Related symptom suggestions ("Did you also experience...")

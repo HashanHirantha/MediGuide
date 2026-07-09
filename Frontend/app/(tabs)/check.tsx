@@ -14,6 +14,7 @@ import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
+import Body from 'react-native-body-highlighter';
 import { TopBar } from '../../components/TopBar';
 import { globalStyles } from '../../constants/globalStyles';
 import { colors } from '../../constants/theme';
@@ -70,6 +71,27 @@ function getFeatherIcon(name: string): string {
   return 'activity';
 }
 
+// ─── Body part to symptom mapping ─────────────────────────────
+
+const MUSCLE_TO_SYMPTOMS: Record<string, string[]> = {
+  head: ['Headache', 'Dizziness'],
+  neck: ['Sore Throat', 'Neck Pain'],
+  chest: ['Chest Tightness', 'Shortness of Breath', 'Heart Palpitations'],
+  abs: ['Stomach Ache', 'Nausea'],
+  'upper-back': ['Back Pain', 'Muscle Aches'],
+  'lower-back': ['Back Pain', 'Sciatica'],
+  shoulders: ['Shoulder Pain', 'Joint Pain'],
+  biceps: ['Arm Pain', 'Muscle Aches'],
+  triceps: ['Arm Pain'],
+  forearm: ['Arm Pain'],
+  hands: ['Hand Pain', 'Numbness'],
+  quadriceps: ['Leg Pain', 'Muscle Aches'],
+  hamstrings: ['Leg Pain'],
+  calves: ['Leg Pain', 'Cramps'],
+  feet: ['Foot Pain', 'Swelling'],
+  gluteal: ['Hip Pain'],
+};
+
 // ─── Component ───────────────────────────────────────────────
 
 export default function SymptomCheckerScreen() {
@@ -82,6 +104,8 @@ export default function SymptomCheckerScreen() {
   const [commonSymptoms, setCommonSymptoms] = useState<string[]>(DEFAULT_SYMPTOMS);
   const [searchResults, setSearchResults] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [showBodyMap, setShowBodyMap] = useState(false);
+  const [bodySide, setBodySide] = useState<'front' | 'back'>('front');
 
   // Duration state
   const [selectedDuration, setSelectedDuration] = useState('');
@@ -196,6 +220,30 @@ export default function SymptomCheckerScreen() {
   };
 
   // ─── Toggle symptom ─────────────────────────────────────────
+
+  const handleMusclePress = (muscle: any) => {
+    const mappedSymptoms = MUSCLE_TO_SYMPTOMS[muscle.slug] || [`${muscle.slug} pain`];
+    let addedAny = false;
+    
+    // Add mapped symptoms if they are not already selected
+    const newSymptoms = [...selectedSymptoms];
+    for (const sym of mappedSymptoms) {
+      if (!newSymptoms.includes(sym)) {
+        newSymptoms.push(sym);
+        addedAny = true;
+      }
+    }
+    
+    if (addedAny) {
+      setSelectedSymptoms(newSymptoms);
+      if (prediction) { setPrediction(null); setPredictionError(null); }
+    } else {
+      // If all mapped symptoms are already selected, remove them (toggle off)
+      const filtered = newSymptoms.filter(s => !mappedSymptoms.includes(s));
+      setSelectedSymptoms(filtered);
+      if (prediction) { setPrediction(null); setPredictionError(null); }
+    }
+  };
 
   const toggleSymptom = (symptom: string) => {
     setSelectedSymptoms(prev => {
@@ -498,6 +546,55 @@ export default function SymptomCheckerScreen() {
                   <Text style={globalStyles.searchResultText}>{result}</Text>
                 </TouchableOpacity>
               ))}
+            </View>
+          )}
+        </View>
+
+        {/* 3D Body Map Card */}
+        <View style={globalStyles.cardPadded}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+            <Text style={globalStyles.sectionTitle}>VISUAL SYMPTOM SELECTION</Text>
+            <TouchableOpacity 
+              onPress={() => setShowBodyMap(!showBodyMap)}
+              style={{ backgroundColor: showBodyMap ? colors.primary : colors.glassWhite, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: showBodyMap ? colors.primary : colors.subtleBorder }}
+            >
+              <Text style={{ color: showBodyMap ? colors.surface : colors.primary, fontSize: 12, fontWeight: '600' }}>
+                {showBodyMap ? 'Hide Model' : 'Show Model'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          
+          {showBodyMap && (
+            <View style={{ alignItems: 'center', marginVertical: 10 }}>
+              <View style={{ flexDirection: 'row', gap: 10, marginBottom: 20 }}>
+                <TouchableOpacity 
+                  onPress={() => setBodySide('front')}
+                  style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: bodySide === 'front' ? colors.primary + '20' : colors.glassWhite }}
+                >
+                  <Text style={{ color: bodySide === 'front' ? colors.primary : colors.textSecondary, fontWeight: '600' }}>Front</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  onPress={() => setBodySide('back')}
+                  style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: bodySide === 'back' ? colors.primary + '20' : colors.glassWhite }}
+                >
+                  <Text style={{ color: bodySide === 'back' ? colors.primary : colors.textSecondary, fontWeight: '600' }}>Back</Text>
+                </TouchableOpacity>
+              </View>
+              
+              <Body
+                data={selectedSymptoms.map(sym => ({
+                  slug: Object.keys(MUSCLE_TO_SYMPTOMS).find(key => MUSCLE_TO_SYMPTOMS[key].includes(sym)) as any || 'chest',
+                  intensity: 1,
+                  color: colors.primary
+                })).filter(item => item.slug !== 'chest' || selectedSymptoms.some(s => MUSCLE_TO_SYMPTOMS['chest'].includes(s)))}
+                onBodyPartPress={(muscle) => handleMusclePress(muscle)}
+                gender="male"
+                side={bodySide}
+                scale={1.2}
+              />
+              <Text style={[globalStyles.durationHint, { textAlign: 'center', marginTop: 15 }]}>
+                Tap on the body part where you feel discomfort to add related symptoms.
+              </Text>
             </View>
           )}
         </View>
