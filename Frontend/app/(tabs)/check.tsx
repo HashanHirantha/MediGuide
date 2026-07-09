@@ -81,15 +81,20 @@ const MUSCLE_TO_SYMPTOMS: Record<string, string[]> = {
   'upper-back': ['Back Pain', 'Muscle Aches'],
   'lower-back': ['Back Pain', 'Sciatica'],
   deltoids: ['Shoulder Pain', 'Joint Pain'],
+  trapezius: ['Neck Pain', 'Shoulder Pain'],
   biceps: ['Arm Pain', 'Muscle Aches'],
   triceps: ['Arm Pain'],
   forearm: ['Arm Pain'],
   hands: ['Hand Pain', 'Numbness'],
   quadriceps: ['Leg Pain', 'Muscle Aches'],
   hamstring: ['Leg Pain'],
+  adductors: ['Groin Pain', 'Leg Pain'],
   calves: ['Leg Pain', 'Cramps'],
+  tibialis: ['Shin Pain', 'Leg Pain'],
+  ankles: ['Ankle Pain', 'Joint Pain'],
   feet: ['Foot Pain', 'Swelling'],
   gluteal: ['Hip Pain'],
+  obliques: ['Side Pain', 'Stomach Ache'],
 };
 
 // ─── Component ───────────────────────────────────────────────
@@ -552,17 +557,35 @@ export default function SymptomCheckerScreen() {
 
         {/* 3D Body Map Card */}
         <View style={globalStyles.cardPadded}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
-            <Text style={[globalStyles.sectionTitle, { flex: 1, marginRight: 10 }]}>VISUAL SELECTION</Text>
-            <TouchableOpacity 
-              onPress={() => setShowBodyMap(!showBodyMap)}
-              style={{ backgroundColor: showBodyMap ? colors.primary : colors.glassWhite, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: showBodyMap ? colors.primary : colors.subtleBorder }}
-            >
-              <Text style={{ color: showBodyMap ? colors.surface : colors.primary, fontSize: 12, fontWeight: '600' }}>
-                {showBodyMap ? 'Hide Model' : 'Show Model'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <Text style={globalStyles.sectionTitle}>VISUAL SYMPTOM SELECTION</Text>
+          <Text style={globalStyles.durationHint}>
+            Select your symptoms visually by tapping on a 3D body map.
+          </Text>
+          
+          <TouchableOpacity 
+            onPress={() => setShowBodyMap(!showBodyMap)}
+            style={{
+              backgroundColor: showBodyMap ? colors.primaryDark : colors.primary,
+              paddingVertical: 12,
+              borderRadius: 12,
+              flexDirection: 'row',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginTop: 10,
+              gap: 8,
+              shadowColor: colors.primary,
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.2,
+              shadowRadius: 8,
+              elevation: 3,
+            }}
+            activeOpacity={0.8}
+          >
+            <Feather name={showBodyMap ? "eye-off" : "user"} size={18} color={colors.surface} />
+            <Text style={{ color: colors.surface, fontWeight: '700', fontSize: 14 }}>
+              {showBodyMap ? 'Hide 3D Model' : 'Open 3D Model'}
+            </Text>
+          </TouchableOpacity>
           
           {showBodyMap && (
             <View style={{ alignItems: 'center', marginVertical: 10 }}>
