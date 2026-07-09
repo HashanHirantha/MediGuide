@@ -87,9 +87,10 @@ export default function DoctorDetailScreen() {
         .order('created_at', { ascending: false })
         .limit(5),
     ]);
-    const mockDoc = MOCK_DOCTORS_DETAIL[id] || MOCK_DOCTORS_DETAIL['1'];
-    setDoctor(docRes.data || mockDoc);
-    setReviews(revRes.data?.length ? revRes.data : MOCK_REVIEWS);
+    const mockDoc = MOCK_DOCTORS_DETAIL[id];
+    setDoctor(docRes.data || mockDoc || MOCK_DOCTORS_DETAIL['1']);
+    // Only use mock reviews if data is completely null (query failed) and there's mock data available
+    setReviews(revRes.data ?? MOCK_REVIEWS);
     setLoading(false);
   };
 
@@ -113,12 +114,12 @@ export default function DoctorDetailScreen() {
           <View style={globalStyles.profileInfo}>
             <Text style={globalStyles.profileName}>{name}</Text>
             <View style={globalStyles.specialtyBadge}>
-              <Text style={globalStyles.specialtyText}>{doc.specialty?.toUpperCase() || 'CARDIOLOGIST'}</Text>
+              <Text style={globalStyles.specialtyText}>{(doc.specialty || 'General Practitioner').toUpperCase()}</Text>
             </View>
             <View style={globalStyles.ratingRow}>
               <Ionicons name="star" size={14} color={colors.starColor} />
-              <Text style={globalStyles.ratingTextLarge}>{doc.average_rating?.toFixed(1) || '4.9'}</Text>
-              <Text style={globalStyles.reviewCount}>({doc.total_reviews || 127} reviews)</Text>
+              <Text style={globalStyles.ratingTextLarge}>{(doc.average_rating ?? 0).toFixed(1)}</Text>
+              <Text style={globalStyles.reviewCount}>({doc.total_reviews ?? 0} reviews)</Text>
             </View>
           </View>
         </View>
@@ -127,17 +128,17 @@ export default function DoctorDetailScreen() {
         <View style={[globalStyles.statsRow, { gap: 12, marginBottom: 20 }]}>
           <View style={globalStyles.statBoxCentered}>
             <MaterialCommunityIcons name="clock-outline" size={20} color={colors.iconDark} />
-            <Text style={[globalStyles.statValue, { fontSize: 20, fontWeight: '700' }]}>{doc.experience_years || 15}+</Text>
+            <Text style={[globalStyles.statValue, { fontSize: 20, fontWeight: '700' }]}>{doc.experience_years ?? 0}+</Text>
             <Text style={[globalStyles.statLabel, { fontWeight: '600' }]}>Years Exp.</Text>
           </View>
           <View style={globalStyles.statBoxCentered}>
             <MaterialCommunityIcons name="account-group-outline" size={20} color={colors.iconDark} />
-            <Text style={[globalStyles.statValue, { fontSize: 20, fontWeight: '700' }]}>{doc.total_reviews || 127}</Text>
+            <Text style={[globalStyles.statValue, { fontSize: 20, fontWeight: '700' }]}>{doc.total_reviews ?? 0}</Text>
             <Text style={[globalStyles.statLabel, { fontWeight: '600' }]}>Patients</Text>
           </View>
           <View style={globalStyles.statBoxCentered}>
             <MaterialCommunityIcons name="star-outline" size={20} color={colors.iconDark} />
-            <Text style={[globalStyles.statValue, { fontSize: 20, fontWeight: '700' }]}>{doc.average_rating?.toFixed(1) || '4.9'}</Text>
+            <Text style={[globalStyles.statValue, { fontSize: 20, fontWeight: '700' }]}>{(doc.average_rating ?? 0).toFixed(1)}</Text>
             <Text style={[globalStyles.statLabel, { fontWeight: '600' }]}>Rating</Text>
           </View>
         </View>
@@ -146,7 +147,7 @@ export default function DoctorDetailScreen() {
         <View style={globalStyles.cardPadded}>
           <Text style={globalStyles.sectionTitle}>ABOUT</Text>
           <Text style={globalStyles.aboutText}>
-            {doc.bio || `${name} is a highly experienced ${doc.specialty} dedicated to providing exceptional patient care.`}
+            {doc.bio || `${name} is a highly experienced ${doc.specialty || 'General Practitioner'} dedicated to providing exceptional patient care.`}
           </Text>
         </View>
 
@@ -154,11 +155,11 @@ export default function DoctorDetailScreen() {
         <View style={globalStyles.cardPadded}>
           <Text style={globalStyles.sectionTitle}>DETAILS</Text>
           {[
-            { icon: 'briefcase', label: 'Qualification', value: doc.qualification || 'MD, FACC' },
-            { icon: 'map-pin', label: 'Hospital', value: doc.hospital_name || 'City Heart Institute' },
-            { icon: 'dollar-sign', label: 'Consultation Fee', value: `LKR ${doc.consultation_fee || 3500}` },
-            { icon: 'calendar', label: 'Available Days', value: doc.available_days || 'Mon, Wed, Fri' },
-            { icon: 'clock', label: 'Working Hours', value: doc.available_from && doc.available_to ? `${doc.available_from} – ${doc.available_to}` : '09:00 – 17:00' },
+            { icon: 'briefcase', label: 'Qualification', value: doc.qualification || 'MBBS' },
+            { icon: 'map-pin', label: 'Hospital', value: doc.hospital_name || 'Not specified' },
+            { icon: 'dollar-sign', label: 'Consultation Fee', value: `LKR ${doc.consultation_fee ?? 0}` },
+            { icon: 'calendar', label: 'Available Days', value: doc.available_days || 'Not specified' },
+            { icon: 'clock', label: 'Working Hours', value: doc.available_from && doc.available_to ? `${doc.available_from} – ${doc.available_to}` : 'Not specified' },
           ].map((item, idx, arr) => (
             <View key={item.label}>
               <View style={globalStyles.detailRow}>
@@ -207,7 +208,7 @@ export default function DoctorDetailScreen() {
         <View style={globalStyles.bottomBar}>
           <View>
             <Text style={globalStyles.feeLabel}>CONSULTATION FEE</Text>
-            <Text style={globalStyles.feeValue}>LKR {doc.consultation_fee || 3500}</Text>
+            <Text style={globalStyles.feeValue}>LKR {doc.consultation_fee ?? 0}</Text>
           </View>
           <TouchableOpacity
             style={globalStyles.buttonPrimary}

@@ -197,9 +197,32 @@ export async function updateDoctorProfile(
     available_days?: string;
     available_from?: string;
     available_to?: string;
+    experience_years?: number;
   }
 ) {
-  // Check if doctor exists
+  // 1. Update the role in profiles to 'doctor' so their profile is public to patients
+  const { error: roleError } = await supabase
+    .from('profiles')
+    .update({ role: 'doctor' })
+    .eq('id', userId);
+
+  if (roleError) {
+    console.error('[DoctorService] Role update error:', roleError);
+    return { data: null, error: roleError };
+  }
+
+  // Sanitize empty strings
+  const specialty = doctorData.specialty?.trim() || 'General Practitioner';
+  const qualification = doctorData.qualification?.trim() || 'MBBS';
+
+  const updatePayload = {
+    ...doctorData,
+    specialty,
+    qualification,
+    is_verified: true
+  };
+
+  // 2. Check if doctor exists in doctors table
   const { data: existingDoc } = await supabase
     .from('doctors')
     .select('id')
@@ -209,7 +232,7 @@ export async function updateDoctorProfile(
   if (existingDoc) {
     return supabase
       .from('doctors')
-      .update({ ...doctorData, is_verified: true })
+      .update(updatePayload)
       .eq('user_id', userId);
   } else {
     // Insert new doctor record if it doesn't exist
@@ -219,10 +242,7 @@ export async function updateDoctorProfile(
         {
           user_id: userId,
           registration_no: `REG-${Date.now()}`,
-          specialty: doctorData.specialty || 'General',
-          qualification: doctorData.qualification || 'MBBS',
-          ...doctorData,
-          is_verified: true
+          ...updatePayload
         }
       ]);
   }

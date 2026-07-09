@@ -154,12 +154,12 @@ export default function BookScreen() {
           <View style={globalStyles.profileInfo}>
             <Text style={globalStyles.profileName}>{doctorName}</Text>
             <View style={[globalStyles.specialtyBadge, { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 }]}>
-              <Text style={[globalStyles.specialtyText, { fontSize: 9 }]}>{doc?.specialty?.toUpperCase() || 'CARDIOLOGIST'}</Text>
+              <Text style={[globalStyles.specialtyText, { fontSize: 9 }]}>{(doc?.specialty || 'General Practitioner').toUpperCase()}</Text>
             </View>
           </View>
           <View style={globalStyles.feeBadge}>
             <Text style={globalStyles.feeBadgeLabel}>FEE</Text>
-            <Text style={globalStyles.feeBadgeValue}>LKR {doc?.consultation_fee || 3500}</Text>
+            <Text style={globalStyles.feeBadgeValue}>LKR {doc?.consultation_fee ?? 0}</Text>
           </View>
         </View>
 

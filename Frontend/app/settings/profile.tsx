@@ -132,7 +132,12 @@ export default function ProfileSettingsScreen() {
       <TopBar />
       <ScrollView contentContainerStyle={globalStyles.content}>
         <Text style={globalStyles.pageTitle}>{i18n.t('settings.edit_profile') || 'Edit Profile'}</Text>
-        <Text style={globalStyles.pageDescription}>{i18n.t('settings.profile_settings_desc') || 'Update your personal information and health data.'}</Text>
+        <Text style={globalStyles.pageDescription}>
+          {profile?.role === 'doctor' 
+            ? 'Update your personal and contact information.'
+            : (i18n.t('settings.profile_settings_desc') || 'Update your personal information and health data.')
+          }
+        </Text>
 
         {/* Avatar */}
         <View style={globalStyles.avatarWrapper}>
@@ -154,9 +159,14 @@ export default function ProfileSettingsScreen() {
         <Input label={i18n.t('profile.phone') || "Phone"} value={phone} onChangeText={setPhone} keyboardType="phone-pad" leftIcon="phone" />
         <Input label="Date of Birth" value={dateOfBirth} onChangeText={setDateOfBirth} placeholder="YYYY-MM-DD" leftIcon="calendar" />
         <Input label="Gender" value={gender} onChangeText={setGender} placeholder="Male / Female / Other" leftIcon="users" />
-        <Input label={i18n.t('profile.blood_group') || "Blood Group"} value={bloodGroup} onChangeText={setBloodGroup} placeholder="A+, O-, etc." leftIcon="droplet" />
-        <Input label="Height (cm)" value={heightCm} onChangeText={setHeightCm} keyboardType="numeric" leftIcon="maximize-2" />
-        <Input label="Weight (kg)" value={weightKg} onChangeText={setWeightKg} keyboardType="numeric" leftIcon="activity" />
+        
+        {profile?.role !== 'doctor' && (
+          <>
+            <Input label={i18n.t('profile.blood_group') || "Blood Group"} value={bloodGroup} onChangeText={setBloodGroup} placeholder="A+, O-, etc." leftIcon="droplet" />
+            <Input label="Height (cm)" value={heightCm} onChangeText={setHeightCm} keyboardType="numeric" leftIcon="maximize-2" />
+            <Input label="Weight (kg)" value={weightKg} onChangeText={setWeightKg} keyboardType="numeric" leftIcon="activity" />
+          </>
+        )}
 
         <Button title={saving ? 'Saving...' : (i18n.t('profile.save') || 'Save Changes')} onPress={handleSave} loading={saving} />
       </ScrollView>

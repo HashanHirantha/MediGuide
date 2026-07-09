@@ -15,6 +15,7 @@ export default function DoctorProfile() {
   const [qualification, setQualification] = useState('');
   const [hospital, setHospital] = useState('');
   const [fee, setFee] = useState('');
+  const [experience, setExperience] = useState('');
 
   useEffect(() => {
     if (profile?.id) {
@@ -30,6 +31,7 @@ export default function DoctorProfile() {
         setQualification(data.qualification || '');
         setHospital(data.hospital_name || '');
         setFee(data.consultation_fee ? data.consultation_fee.toString() : '');
+        setExperience(data.experience_years ? data.experience_years.toString() : '');
       }
     } catch (err) {
       console.error(err);
@@ -46,6 +48,7 @@ export default function DoctorProfile() {
         qualification,
         hospital_name: hospital,
         consultation_fee: parseFloat(fee) || 0,
+        experience_years: parseInt(experience, 10) || 0,
       });
 
       if (error) {
@@ -109,6 +112,16 @@ export default function DoctorProfile() {
             onChangeText={setFee}
             placeholder="e.g. 150.00"
             keyboardType="decimal-pad"
+            placeholderTextColor={colors.textTertiary}
+          />
+
+          <Text style={globalStyles.label}>Experience (Years)</Text>
+          <TextInput
+            style={globalStyles.input}
+            value={experience}
+            onChangeText={setExperience}
+            placeholder="e.g. 15"
+            keyboardType="number-pad"
             placeholderTextColor={colors.textTertiary}
           />
 

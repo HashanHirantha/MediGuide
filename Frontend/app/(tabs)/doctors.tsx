@@ -121,12 +121,12 @@ export default function DoctorsScreen() {
                 <Text style={globalStyles.featuredName}>{item.profiles?.first_name} {item.profiles?.last_name}</Text>
                 <View style={globalStyles.ratingBadge}>
                   <Ionicons name="star-outline" size={14} color={colors.black} />
-                  <Text style={globalStyles.ratingText}>{item.average_rating?.toFixed(1) || '4.9'}</Text>
+                  <Text style={globalStyles.ratingText}>{(item.average_rating ?? 0).toFixed(1)}</Text>
                 </View>
               </View>
               <View style={globalStyles.specialtyBadge}>
                 <Text style={globalStyles.specialtyText}>
-                  {getSpecialtyTranslation(item.specialty || 'Cardiologist').toUpperCase()}
+                  {getSpecialtyTranslation(item.specialty || 'General Practitioner').toUpperCase()}
                 </Text>
               </View>
               <Text style={globalStyles.featuredBio} numberOfLines={2}>
@@ -142,7 +142,7 @@ export default function DoctorsScreen() {
             </View>
             <View style={globalStyles.statBox}>
               <Text style={globalStyles.statLabel}>{i18n.t('doctors.experience') || 'EXPERIENCE'}</Text>
-              <Text style={globalStyles.statValue}>{item.experience_years || 15} {i18n.t('doctors.years') || 'Years'}</Text>
+              <Text style={globalStyles.statValue}>{item.experience_years ?? 0} {i18n.t('doctors.years') || 'Years'}</Text>
             </View>
           </View>
 
@@ -166,11 +166,11 @@ export default function DoctorsScreen() {
         <View style={globalStyles.compactInfo}>
           <Text style={globalStyles.compactName}>{item.profiles?.first_name} {item.profiles?.last_name}</Text>
           <Text style={globalStyles.compactSpecialty}>
-            {getSpecialtyTranslation(item.specialty || 'Neurologist').toUpperCase()}
+            {getSpecialtyTranslation(item.specialty || 'General Practitioner').toUpperCase()}
           </Text>
           <View style={globalStyles.compactRating}>
             <Ionicons name="star-outline" size={12} color={colors.black} />
-            <Text style={globalStyles.compactRatingText}>{item.average_rating?.toFixed(1) || '4.8'}</Text>
+            <Text style={globalStyles.compactRatingText}>{(item.average_rating ?? 0).toFixed(1)}</Text>
           </View>
         </View>
         <TouchableOpacity style={globalStyles.bookButtonSmall} onPress={() => router.push({ pathname: '/doctors/book', params: { doctorId: item.id } })}>
