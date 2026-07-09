@@ -44,18 +44,34 @@ export default function BookScreen() {
       });
   }, [doctorId]);
 
-  // Generate next 7 available dates
+  // Generate next 14 available dates based on doctor's schedule
   const getDates = () => {
+    if (!doctor) return [];
+    
+    // Parse available days from DB (e.g., "Mon,Wed,Fri")
+    const availableDays = doctor.available_days 
+      ? doctor.available_days.split(',').map((d: string) => d.trim().substring(0, 3))
+      : [];
+
     const dates: { full: string; day: string; date: number; month: string }[] = [];
-    for (let i = 1; i <= 7; i++) {
+    
+    // Check the next 30 days to find 7 available slots
+    for (let i = 1; i <= 30; i++) {
+      if (dates.length >= 7) break; // We only need 7 options to show
+
       const d = new Date();
       d.setDate(d.getDate() + i);
-      dates.push({
-        full: d.toISOString().split('T')[0],
-        day: d.toLocaleDateString('en', { weekday: 'short' }),
-        date: d.getDate(),
-        month: d.toLocaleDateString('en', { month: 'short' }),
-      });
+      const dayShort = d.toLocaleDateString('en', { weekday: 'short' }); // "Mon", "Tue"
+
+      // Only add if doctor works on this day, or if they haven't set a schedule yet
+      if (availableDays.length === 0 || availableDays.includes(dayShort)) {
+        dates.push({
+          full: d.toISOString().split('T')[0],
+          day: dayShort,
+          date: d.getDate(),
+          month: d.toLocaleDateString('en', { month: 'short' }),
+        });
+      }
     }
     return dates;
   };
@@ -197,7 +213,12 @@ export default function BookScreen() {
             <Text style={globalStyles.sectionTitle}>{i18n.t('book.time') || 'SELECT TIME'}</Text>
           </View>
           <View style={globalStyles.timeGrid}>
-            {TIME_SLOTS.map((slot) => {
+            {TIME_SLOTS.filter(slot => {
+              if (!doctor?.available_from || !doctor?.available_to) return true; // Show all if not set
+              const fromTime = doctor.available_from.substring(0, 5); // "09:00"
+              const toTime = doctor.available_to.substring(0, 5); // "17:00"
+              return slot.time >= fromTime && slot.time <= toTime;
+            }).map((slot) => {
               const isActive = selectedTime === slot.time;
               return (
                 <TouchableOpacity
