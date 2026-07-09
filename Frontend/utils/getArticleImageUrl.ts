@@ -1,47 +1,56 @@
 import { supabase } from '../lib/supabase';
 
+// Simple hash function for consistent seeds
+function hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash);
+}
+
+const HEALTH_IMAGES = [
+  'https://images.pexels.com/photos/40568/medical-appointment-doctor-healthcare-40568.jpeg?auto=compress&cs=tinysrgb&w=600', // Stethoscope
+  'https://images.pexels.com/photos/53404/apple-diet-food-health-53404.jpeg?auto=compress&cs=tinysrgb&w=600', // Apple diet
+  'https://images.pexels.com/photos/3683053/pexels-photo-3683053.jpeg?auto=compress&cs=tinysrgb&w=600', // Pills
+  'https://images.pexels.com/photos/5215024/pexels-photo-5215024.jpeg?auto=compress&cs=tinysrgb&w=600', // Doctor
+  'https://images.pexels.com/photos/263402/pexels-photo-263402.jpeg?auto=compress&cs=tinysrgb&w=600', // Hospital
+  'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=600' // Healthy food
+];
+
 /**
  * Resolves an article's image URL.
- * 
- * Priority order:
- *   1. Full HTTP/HTTPS URL (e.g., Unsplash)
- *   2. Supabase Storage path
- *   3. Deterministic medical fallback based on category or ID
  */
 export function getArticleImageUrl(article: {
   id?: string;
   image_url?: string | null;
   category?: string;
+  title?: string;
 } | null | undefined): string {
-  // Safe default fallback
-  const fallbackUrl = 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=600&q=80';
+  // Consistent fallback based on article ID or title using our health images array
+  const seed = article?.id || article?.title || article?.category || 'medical';
+  const hash = hashString(seed);
+  const index = hash % HEALTH_IMAGES.length;
+  const fallbackUrl = HEALTH_IMAGES[index];
 
   if (!article) return fallbackUrl;
 
   if (article.image_url) {
-    // If it's already a full URL, return it
     if (article.image_url.startsWith('http://') || article.image_url.startsWith('https://')) {
+      // Unsplash aggressively blocks React Native. Swap them out.
+      if (article.image_url.includes('unsplash.com')) {
+        return fallbackUrl;
+      }
       return article.image_url;
+    } else {
+      // Supabase storage path
+      const { data } = supabase.storage.from('patients').getPublicUrl(article.image_url);
+      if (data?.publicUrl) {
+        return data.publicUrl;
+      }
     }
-    
-    // Otherwise, assume it's a Supabase storage path in the 'patients' bucket (or whatever bucket you use)
-    const { data } = supabase.storage.from('patients').getPublicUrl(article.image_url);
-    if (data?.publicUrl) {
-      return data.publicUrl;
-    }
-  }
-
-  // Fallbacks based on category if image_url is null or empty
-  const category = (article.category || '').toLowerCase();
-  
-  if (category.includes('seasonal') || category.includes('flu')) {
-    return 'https://images.unsplash.com/photo-1584483766114-2cea6facdf57?w=600&q=80';
-  }
-  if (category.includes('preventive')) {
-    return 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=600&q=80';
-  }
-  if (category.includes('lifestyle') || category.includes('diet')) {
-    return 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=600&q=80';
   }
 
   return fallbackUrl;
