@@ -74,28 +74,28 @@ function getFeatherIcon(name: string): string {
 // ─── Body part to symptom mapping ─────────────────────────────
 
 const MUSCLE_TO_SYMPTOMS: Record<string, string[]> = {
-  head: ['Headache', 'Dizziness'],
-  neck: ['Sore Throat', 'Neck Pain'],
-  chest: ['Chest Tightness', 'Shortness of Breath', 'Heart Palpitations'],
-  abs: ['Stomach Ache', 'Nausea'],
-  'upper-back': ['Back Pain', 'Muscle Aches'],
-  'lower-back': ['Back Pain', 'Sciatica'],
-  deltoids: ['Shoulder Pain', 'Joint Pain'],
-  trapezius: ['Neck Pain', 'Shoulder Pain'],
-  biceps: ['Arm Pain', 'Muscle Aches'],
-  triceps: ['Arm Pain'],
-  forearm: ['Arm Pain'],
-  hands: ['Hand Pain', 'Numbness'],
-  quadriceps: ['Leg Pain', 'Muscle Aches'],
-  hamstring: ['Leg Pain'],
-  adductors: ['Groin Pain', 'Leg Pain'],
-  calves: ['Leg Pain', 'Cramps'],
-  tibialis: ['Shin Pain', 'Leg Pain'],
-  knees: ['Knee Pain', 'Joint Pain'],
-  ankles: ['Ankle Pain', 'Joint Pain'],
-  feet: ['Foot Pain', 'Swelling'],
-  gluteal: ['Hip Pain'],
-  obliques: ['Side Pain', 'Stomach Ache'],
+  head: ['Concussion Symptoms', 'Headache', 'Dizziness'],
+  neck: ['Whiplash', 'Neck Spasm', 'Stiff Neck'],
+  chest: ['Pectoral Strain', 'Rib Contusion', 'Shortness of Breath'],
+  abs: ['Abdominal Strain', 'Core Pain', 'Nausea'],
+  'upper-back': ['Upper Back Pain', 'Muscle Aches', 'Stiffness'],
+  'lower-back': ['Lower Back Pain', 'Sciatica', 'Muscle Spasm'],
+  deltoids: ['Shoulder Dislocation', 'Rotator Cuff Pain', 'Shoulder Strain'],
+  trapezius: ['Trapezius Strain', 'Neck Stiffness', 'Upper Back Spasm'],
+  biceps: ['Bicep Strain', 'Bicep Tendonitis', 'Muscle Cramps'],
+  triceps: ['Triceps Strain', 'Elbow Pain', 'Triceps Tendonitis'],
+  forearm: ['Forearm Splints', 'Tennis Elbow', 'Grip Weakness'],
+  hands: ['Finger Sprain', 'Wrist Sprain', 'Hand Contusion'],
+  quadriceps: ['Quad Strain', 'Thigh Contusion (Dead Leg)', 'Quad Tear'],
+  hamstring: ['Hamstring Pull', 'Hamstring Tear', 'Leg Cramp'],
+  adductors: ['Groin Strain', 'Inner Thigh Pain', 'Adductor Tear'],
+  calves: ['Calf Strain', 'Calf Cramp', 'Achilles Tightness'],
+  tibialis: ['Shin Splints', 'Anterior Tibialis Pain'],
+  knees: ['ACL/MCL Sprain', 'Meniscus Tear', 'Patellar Tendonitis', 'Knee Joint Pain'],
+  ankles: ['Ankle Sprain', 'Rolled Ankle', 'Ankle Instability'],
+  feet: ['Plantar Fasciitis', 'Foot Fracture', 'Heel Pain'],
+  gluteal: ['Glute Strain', 'Piriformis Syndrome', 'Hip Pointer'],
+  obliques: ['Oblique Strain', 'Side Pain'],
 };
 
 // ─── Component ───────────────────────────────────────────────
@@ -119,6 +119,18 @@ export default function SymptomCheckerScreen() {
 
   // Additional notes
   const [additionalNotes, setAdditionalNotes] = useState('');
+
+  // ─── Sync Muscles with Symptoms ─────────────────────────────
+  
+  // If the user manually removes symptom chips, un-highlight the body parts
+  useEffect(() => {
+    setSelectedMuscles(prevMuscles => 
+      prevMuscles.filter(muscleSlug => {
+        const mappedSymptoms = MUSCLE_TO_SYMPTOMS[muscleSlug] || [`${muscleSlug} pain`];
+        return mappedSymptoms.some(sym => selectedSymptoms.includes(sym));
+      })
+    );
+  }, [selectedSymptoms]);
 
   // Attachments
   const [attachments, setAttachments] = useState<{ uri: string; base64: string; mimeType: string }[]>([]);
