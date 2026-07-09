@@ -152,10 +152,7 @@ export default function HomeScreen() {
 
       </ScrollView>
 
-      {/* FAB */}
-      <TouchableOpacity style={globalStyles.fab}>
-        <Feather name="plus" size={28} color={colors.surface} />
-      </TouchableOpacity>
+
     </SafeAreaView>
   );
 }
