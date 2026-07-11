@@ -1,272 +1,133 @@
-/**
- * ==========================================================
- * MediGuide Admin Dashboard Service
- * ==========================================================
- * Temporary service using mock data.
- * Replace these implementations with Supabase queries later.
- * ==========================================================
- */
+import { supabase } from '../lib/supabase';
 
-import {
-  DashboardStats,
-  DashboardCardData,
-  QuickAction,
-  RecentActivity,
-  Patient,
-  Doctor,
-  Appointment,
-  Symptom,
-  Disease,
-} from "@/types/admin";
+export interface AdminUser {
+  id: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  role: string;
+  is_active: boolean;
+  created_at: string;
+}
 
-/* ==========================================================
-   Dashboard
-========================================================== */
-
-export const getDashboardStats = async (): Promise<DashboardStats> => {
-  return {
-    totalUsers: 5421,
-    totalDoctors: 184,
-    totalAppointments: 156,
-    totalPredictions: 6842,
-
-    activeUsers: 5210,
-    pendingDoctors: 12,
-    todayAppointments: 48,
-    cancelledAppointments: 5,
+export interface AdminUnverifiedDoctor {
+  id: string;
+  user_id: string;
+  registration_no: string;
+  specialty: string;
+  qualification: string;
+  hospital_name: string;
+  created_at: string;
+  profiles: {
+    first_name: string;
+    last_name: string;
+    email: string;
   };
-};
+}
 
-export const getDashboardCards = async (): Promise<
-  DashboardCardData[]
-> => {
-  return [
-    {
-      title: "Total Users",
-      value: 5421,
-      subtitle: "Registered Patients",
-      icon: "people",
-      trend: 12,
-      backgroundColor: "#DBEAFE",
-      iconColor: "#2563EB",
-    },
-    {
-      title: "Doctors",
-      value: 184,
-      subtitle: "Verified Doctors",
-      icon: "medkit",
-      trend: 8,
-      backgroundColor: "#CCFBF1",
-      iconColor: "#14B8A6",
-    },
-    {
-      title: "Appointments",
-      value: 156,
-      subtitle: "Today's Bookings",
-      icon: "calendar",
-      trend: 6,
-      backgroundColor: "#FEF3C7",
-      iconColor: "#F59E0B",
-    },
-    {
-      title: "Predictions",
-      value: 6842,
-      subtitle: "AI Predictions",
-      icon: "pulse",
-      trend: 15,
-      backgroundColor: "#F3E8FF",
-      iconColor: "#8B5CF6",
-    },
-  ];
-};
+export interface AdminAnalytics {
+  total_users: number;
+  total_doctors: number;
+  total_appointments: number;
+  total_predictions: number;
+}
 
-export const getQuickActions = async (): Promise<
-  QuickAction[]
-> => {
-  return [
-    {
-      id: "1",
-      title: "Verify Doctors",
-      description: "Approve pending registrations",
-      icon: "shield-checkmark",
-      badge: "12",
-    },
-    {
-      id: "2",
-      title: "Manage Users",
-      description: "Patient accounts",
-      icon: "people",
-    },
-    {
-      id: "3",
-      title: "Manage Diseases",
-      description: "Disease database",
-      icon: "fitness",
-    },
-    {
-      id: "4",
-      title: "Manage Symptoms",
-      description: "Symptoms database",
-      icon: "body",
-    },
-  ];
-};
+/**
+ * Fetch all users for the admin dashboard
+ */
+export async function getUsers(): Promise<{ data: AdminUser[] | null; error: string | null }> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, email, first_name, last_name, role, is_active, created_at')
+    .order('created_at', { ascending: false });
 
-export const getRecentActivities = async (): Promise<
-  RecentActivity[]
-> => {
-  return [
-    {
-      id: "1",
-      title: "Doctor Approved",
-      description:
-        "Dr. Nimal Perera was approved successfully.",
-      time: "2 min ago",
-      type: "success",
-      unread: true,
-    },
-    {
-      id: "2",
-      title: "New Patient",
-      description:
-        "A new patient registered.",
-      time: "10 min ago",
-      type: "info",
-      unread: false,
-    },
-    {
-      id: "3",
-      title: "Appointment Cancelled",
-      description:
-        "Patient cancelled today's appointment.",
-      time: "22 min ago",
-      type: "warning",
-      unread: false,
-    },
-    {
-      id: "4",
-      title: "User Blocked",
-      description:
-        "Administrator blocked a patient account.",
-      time: "1 hour ago",
-      type: "danger",
-      unread: false,
-    },
-  ];
-};
+  if (error) {
+    console.error('[AdminService] Fetch users error:', error.message);
+    return { data: null, error: error.message };
+  }
 
-/* ==========================================================
-   Users
-========================================================== */
+  return { data: data as AdminUser[], error: null };
+}
 
-export const getUsers = async (): Promise<Patient[]> => {
-  return [];
-};
+/**
+ * Toggle a user's active status (block/unblock)
+ */
+export async function toggleUserActive(userId: string, isActive: boolean): Promise<{ error: string | null }> {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ is_active: isActive })
+    .eq('id', userId);
 
-/* ==========================================================
-   Doctors
-========================================================== */
+  if (error) {
+    console.error('[AdminService] Toggle user active error:', error.message);
+    return { error: error.message };
+  }
 
-export const getDoctors = async (): Promise<Doctor[]> => {
-  return [];
-};
+  return { error: null };
+}
 
-/* ==========================================================
-   Appointments
-========================================================== */
+/**
+ * Permanently delete a user via RPC (requires admin role)
+ */
+export async function deleteUser(userId: string): Promise<{ error: string | null }> {
+  const { error } = await supabase.rpc('delete_user_by_admin', { target_user_id: userId });
 
-export const getAppointments = async (): Promise<
-  Appointment[]
-> => {
-  return [];
-};
+  if (error) {
+    console.error('[AdminService] Delete user error:', error.message);
+    return { error: error.message };
+  }
 
-/* ==========================================================
-   Symptoms
-========================================================== */
+  return { error: null };
+}
 
-export const getSymptoms = async (): Promise<Symptom[]> => {
-  return [];
-};
+/**
+ * Fetch doctors waiting for verification
+ */
+export async function getUnverifiedDoctors(): Promise<{ data: AdminUnverifiedDoctor[] | null; error: string | null }> {
+  const { data, error } = await supabase
+    .from('doctors')
+    .select(`
+      id, user_id, registration_no, specialty, qualification, hospital_name, created_at,
+      profiles (first_name, last_name, email)
+    `)
+    .eq('is_verified', false)
+    .order('created_at', { ascending: false });
 
-/* ==========================================================
-   Diseases
-========================================================== */
+  if (error) {
+    console.error('[AdminService] Fetch unverified doctors error:', error.message);
+    return { data: null, error: error.message };
+  }
 
-export const getDiseases = async (): Promise<Disease[]> => {
-  return [];
-};
+  return { data: data as any as AdminUnverifiedDoctor[], error: null };
+}
 
-/* ==========================================================
-   CRUD Methods
-========================================================== */
+/**
+ * Verify a doctor
+ */
+export async function verifyDoctor(doctorId: string): Promise<{ error: string | null }> {
+  const { error } = await supabase
+    .from('doctors')
+    .update({ is_verified: true })
+    .eq('id', doctorId);
 
-export const addDisease = async (
-  disease: Disease
-): Promise<boolean> => {
-  console.log("Add Disease", disease);
-  return true;
-};
+  if (error) {
+    console.error('[AdminService] Verify doctor error:', error.message);
+    return { error: error.message };
+  }
 
-export const updateDisease = async (
-  disease: Disease
-): Promise<boolean> => {
-  console.log("Update Disease", disease);
-  return true;
-};
+  return { error: null };
+}
 
-export const deleteDisease = async (
-  id: string
-): Promise<boolean> => {
-  console.log("Delete Disease", id);
-  return true;
-};
+/**
+ * Get aggregate analytics for the admin dashboard
+ */
+export async function getAdminAnalytics(): Promise<{ data: AdminAnalytics | null; error: string | null }> {
+  const { data, error } = await supabase.rpc('get_admin_analytics');
 
-export const addSymptom = async (
-  symptom: Symptom
-): Promise<boolean> => {
-  console.log("Add Symptom", symptom);
-  return true;
-};
+  if (error) {
+    console.error('[AdminService] Get analytics error:', error.message);
+    return { data: null, error: error.message };
+  }
 
-export const updateSymptom = async (
-  symptom: Symptom
-): Promise<boolean> => {
-  console.log("Update Symptom", symptom);
-  return true;
-};
-
-export const deleteSymptom = async (
-  id: string
-): Promise<boolean> => {
-  console.log("Delete Symptom", id);
-  return true;
-};
-
-export const approveDoctor = async (
-  doctorId: string
-): Promise<boolean> => {
-  console.log("Approve Doctor", doctorId);
-  return true;
-};
-
-export const rejectDoctor = async (
-  doctorId: string
-): Promise<boolean> => {
-  console.log("Reject Doctor", doctorId);
-  return true;
-};
-
-export const blockUser = async (
-  userId: string
-): Promise<boolean> => {
-  console.log("Block User", userId);
-  return true;
-};
-
-export const deleteUser = async (
-  userId: string
-): Promise<boolean> => {
-  console.log("Delete User", userId);
-  return true;
-};
+  return { data: data as AdminAnalytics, error: null };
+}

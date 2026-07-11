@@ -32,3 +32,28 @@ export async function getSymptomsByBodyPart(bodyPart: string) {
     .ilike('body_part', bodyPart)
     .order('name');
 }
+
+/* ==========================================================
+   Admin CRUD Operations
+========================================================== */
+
+export async function addSymptom(name: string, bodyPart: string, description?: string) {
+  return supabase
+    .from('symptoms')
+    .insert({ name, body_part: bodyPart, description: description || null })
+    .select();
+}
+
+export async function updateSymptom(id: number, name: string, bodyPart: string, description?: string) {
+  return supabase
+    .from('symptoms')
+    .update({ name, body_part: bodyPart, description: description || null })
+    .eq('id', id);
+}
+
+export async function deleteSymptom(id: number) {
+  return supabase
+    .from('symptoms')
+    .delete()
+    .eq('id', id);
+}

@@ -94,3 +94,54 @@ export async function saveDiagnosisHistory(
   });
   return { error };
 }
+
+/* ==========================================================
+   Admin CRUD Operations
+========================================================== */
+
+export async function getDiseases() {
+  return supabase.from('diseases').select('*').order('name');
+}
+
+export async function addDisease(
+  name: string,
+  description: string,
+  specialty: string,
+  riskLevel: string = 'low',
+  symptomsRequired: number = 1
+) {
+  return supabase
+    .from('diseases')
+    .insert({ 
+      name, 
+      description, 
+      specialty, 
+      risk_level: riskLevel, 
+      symptoms_required: symptomsRequired 
+    })
+    .select();
+}
+
+export async function updateDisease(
+  id: number,
+  name: string,
+  description: string,
+  specialty: string,
+  riskLevel: string,
+  symptomsRequired: number
+) {
+  return supabase
+    .from('diseases')
+    .update({ 
+      name, 
+      description, 
+      specialty, 
+      risk_level: riskLevel, 
+      symptoms_required: symptomsRequired 
+    })
+    .eq('id', id);
+}
+
+export async function deleteDisease(id: number) {
+  return supabase.from('diseases').delete().eq('id', id);
+}
