@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -20,7 +20,15 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { signIn } = useAuth();
+  const { signIn, user, profile, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (user && !authLoading) {
+      if (profile?.role === 'admin') router.replace('/Admin/dashboard');
+      else if (profile?.role === 'doctor') router.replace('/(doctor)/dashboard');
+      else router.replace('/(tabs)/home');
+    }
+  }, [user, profile, authLoading]);
 
   const handleLogin = async () => {
     if (!email || !password) {
