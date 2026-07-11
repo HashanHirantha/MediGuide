@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Modal,
   Alert,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { DrawerActions } from "@react-navigation/native";
@@ -76,17 +77,24 @@ export default function DashboardScreen() {
   };
 
   const handleLogout = async () => {
-    Alert.alert("Logout", "Are you sure you want to log out?", [
-      { text: "Cancel", style: "cancel" },
-      { 
-        text: "Logout", 
-        style: "destructive",
-        onPress: async () => {
-          await supabase.auth.signOut();
-          router.replace("/(auth)/login");
-        }
+    if (Platform.OS === 'web') {
+      if (window.confirm("Are you sure you want to log out?")) {
+        await supabase.auth.signOut();
+        router.replace("/(auth)/login");
       }
-    ]);
+    } else {
+      Alert.alert("Logout", "Are you sure you want to log out?", [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Logout", 
+          style: "destructive",
+          onPress: async () => {
+            await supabase.auth.signOut();
+            router.replace("/(auth)/login");
+          }
+        }
+      ]);
+    }
   };
 
   const renderStats = () => {

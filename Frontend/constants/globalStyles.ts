@@ -13,7 +13,7 @@ export const globalStyles = StyleSheet.create({
   },
   content: {
     padding: spacing.lg,
-    paddingBottom: 40,
+    paddingBottom: 100,
   },
   
   // ─── Typography ────────────────────────────────────────────
@@ -148,6 +148,7 @@ export const globalStyles = StyleSheet.create({
     paddingVertical: 18,
     alignItems: 'center',
     marginTop: 10,
+    marginBottom: 40,
   },
   signOutText: {
     fontSize: 16,

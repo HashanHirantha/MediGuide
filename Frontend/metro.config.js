@@ -2,7 +2,7 @@ const { getDefaultConfig } = require('expo/metro-config');
 const config = getDefaultConfig(__dirname);
 
 config.resolver.resolveRequest = (context, moduleName, platform) => {
-  if (moduleName === 'ws' || moduleName === 'stream') {
+  if (moduleName === 'ws' || moduleName === 'stream' || moduleName === '@supabase/node-fetch') {
     return {
       type: 'empty',
     };
