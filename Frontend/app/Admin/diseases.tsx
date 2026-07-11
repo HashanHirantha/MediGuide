@@ -29,7 +29,7 @@ export default function DiseasesScreen() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [specialty, setSpecialty] = useState("General Medicine");
-  const [riskLevel, setRiskLevel] = useState("low");
+  const [severityLevel, setSeverityLevel] = useState("medium");
   const [symptomsRequired, setSymptomsRequired] = useState("1");
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export default function DiseasesScreen() {
     setName("");
     setDescription("");
     setSpecialty("General Medicine");
-    setRiskLevel("low");
+    setSeverityLevel("medium");
     setSymptomsRequired("1");
     setModalVisible(true);
   };
@@ -58,7 +58,7 @@ export default function DiseasesScreen() {
     setName(disease.name);
     setDescription(disease.description || "");
     setSpecialty(disease.specialty || "General Medicine");
-    setRiskLevel(disease.risk_level || "low");
+    setSeverityLevel(disease.severity || "medium");
     setSymptomsRequired((disease.symptoms_required || 1).toString());
     setModalVisible(true);
   };
@@ -72,7 +72,7 @@ export default function DiseasesScreen() {
     const reqSymptoms = parseInt(symptomsRequired) || 1;
 
     if (editingId) {
-      const { error } = await updateDisease(editingId, name, description, specialty, riskLevel, reqSymptoms);
+      const { error } = await updateDisease(editingId, name, description, specialty, severityLevel, reqSymptoms);
       if (!error) {
         setModalVisible(false);
         fetchDiseases();
@@ -80,7 +80,7 @@ export default function DiseasesScreen() {
         Alert.alert("Error", "Failed to update disease.");
       }
     } else {
-      const { error } = await addDisease(name, description, specialty, riskLevel, reqSymptoms);
+      const { error } = await addDisease(name, description, specialty, severityLevel, reqSymptoms);
       if (!error) {
         setModalVisible(false);
         fetchDiseases();
@@ -113,7 +113,7 @@ export default function DiseasesScreen() {
     switch (level?.toLowerCase()) {
       case 'critical': return colors.dangerText;
       case 'high': return colors.starColorAlt;
-      case 'moderate': return colors.warningText;
+      case 'medium': return colors.warningText;
       default: return colors.successText;
     }
   };
@@ -123,9 +123,9 @@ export default function DiseasesScreen() {
       <View style={styles.cardInfo}>
         <View style={styles.titleRow}>
           <Text style={styles.name}>{item.name}</Text>
-          <View style={[styles.badge, { backgroundColor: getRiskColor(item.risk_level) + '20' }]}>
-            <Text style={[styles.badgeText, { color: getRiskColor(item.risk_level) }]}>
-              {item.risk_level?.toUpperCase() || 'LOW'} RISK
+          <View style={[styles.badge, { backgroundColor: getRiskColor(item.severity) + '20' }]}>
+            <Text style={[styles.badgeText, { color: getRiskColor(item.severity) }]}>
+              {item.severity?.toUpperCase() || 'LOW'} RISK
             </Text>
           </View>
         </View>
@@ -185,8 +185,8 @@ export default function DiseasesScreen() {
                 <TextInput style={styles.input} value={specialty} onChangeText={setSpecialty} placeholder="e.g. Neurology" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.label}>Risk Level</Text>
-                <TextInput style={styles.input} value={riskLevel} onChangeText={setRiskLevel} placeholder="low/moderate/high/critical" />
+                <Text style={styles.label}>Severity Level</Text>
+                <TextInput style={styles.input} value={severityLevel} onChangeText={setSeverityLevel} placeholder="low/medium/high/critical" />
               </View>
             </View>
 

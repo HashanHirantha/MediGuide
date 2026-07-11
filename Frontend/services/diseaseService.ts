@@ -107,7 +107,7 @@ export async function addDisease(
   name: string,
   description: string,
   specialty: string,
-  riskLevel: string = 'low',
+  severityLevel: string = 'low',
   symptomsRequired: number = 1
 ) {
   return supabase
@@ -116,7 +116,7 @@ export async function addDisease(
       name, 
       description, 
       specialty, 
-      risk_level: riskLevel, 
+      severity: severityLevel, 
       symptoms_required: symptomsRequired 
     })
     .select();
@@ -127,7 +127,7 @@ export async function updateDisease(
   name: string,
   description: string,
   specialty: string,
-  riskLevel: string,
+  severityLevel: string,
   symptomsRequired: number
 ) {
   return supabase
@@ -136,7 +136,7 @@ export async function updateDisease(
       name, 
       description, 
       specialty, 
-      risk_level: riskLevel, 
+      severity: severityLevel, 
       symptoms_required: symptomsRequired 
     })
     .eq('id', id);
