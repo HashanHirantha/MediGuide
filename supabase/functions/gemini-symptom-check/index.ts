@@ -185,7 +185,7 @@ DURATION: ${duration}
 ${additional_notes ? `ADDITIONAL NOTES: ${additional_notes}` : ''}
 ${imageContext}
 ${specialtyConstraint}
-${language ? `\nCRITICAL LANGUAGE REQUIREMENT:\nYou MUST output the 'name', 'recommendation', 'recommended_specialist', and 'recommended_specialties' fields in ${language} language. The JSON keys themselves and the risk level enumerations ("low", "HIGH", etc.) MUST remain in English.` : ''}
+${language && language !== 'English' ? `\nCRITICAL LANGUAGE REQUIREMENT:\nALL patient-facing text MUST be translated into ${language}. Specifically, the following JSON values MUST be in ${language}:\n- condition "name"\n- "recommendation"\n- "recommended_specialist"\n\nDO NOT translate JSON keys. DO NOT translate "risk_level", "overall_risk", or "recommended_specialties" (they must remain in English).` : ''}
 
 Respond ONLY with valid JSON in exactly this format (no markdown, no code fences, no extra text):
 {
@@ -209,11 +209,10 @@ RULES:
 - icon_name must be one of: "activity", "heart", "thermometer", "brain", "eye", "wind", "zap", "shield", "alert-triangle", "clipboard" (these are Feather icon names)
 - risk_level must be one of: "low", "moderate", "high", "critical"  
 - overall_risk must be one of: "LOW", "MODERATE", "HIGH", "CRITICAL"
-- recommended_specialist should be a readable specialist title for display
-- recommended_specialties must be an array of 1-3 specialty names${availableSpecialties.length > 0 ? ' chosen ONLY from the AVAILABLE DOCTOR SPECIALTIES list above' : ''}
-- Keep recommendation under 200 characters
+- recommended_specialist should be a readable specialist title for display (translated to ${language || 'English'})
+- recommended_specialties must be an array of 1-3 specialty names${availableSpecialties.length > 0 ? ' chosen ONLY from the AVAILABLE DOCTOR SPECIALTIES list above (MUST remain in EXACT English to match database)' : ''}
+- Keep recommendation under 300 characters
 - If medical report images are attached, reference key findings from them
-- Explicitly consider comorbidities between the patient's existing medical history and the current reported symptoms.
 - Carefully calibrate possibility_percent. If symptoms align closely with known conditions from the medical history or likely comorbidities, adjust confidence appropriately.
 - Be medically responsible and conservative`;
 
