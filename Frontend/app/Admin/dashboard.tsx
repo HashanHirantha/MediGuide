@@ -12,30 +12,31 @@ import { Ionicons } from "@expo/vector-icons";
 import { DrawerActions } from "@react-navigation/native";
 import { useNavigation, useRouter } from "expo-router";
 import { getAdminAnalytics, AdminAnalytics } from "../../services/adminService";
+import { Colors, Typography, Spacing, Radius, Shadow, Layout, AppStyles, FontWeight } from "../../constants/AdminTheme";
 
 const quickActions = [
   {
     title: "Verify Doctors",
     icon: "shield-checkmark",
-    color: "#22C55E",
+    color: Colors.success,
     route: "/Admin/verification",
   },
   {
     title: "Manage Users",
     icon: "people",
-    color: "#2563EB",
+    color: Colors.primary,
     route: "/Admin/users",
   },
   {
     title: "Manage Diseases",
     icon: "fitness",
-    color: "#EF4444",
+    color: Colors.danger,
     route: "/Admin/diseases",
   },
   {
     title: "Manage Symptoms",
     icon: "body",
-    color: "#14B8A6",
+    color: Colors.secondary,
     route: "/Admin/symptoms",
   },
 ];
@@ -70,7 +71,7 @@ export default function DashboardScreen() {
     if (loading) {
       return (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#2563EB" />
+          <ActivityIndicator size="large" color={Colors.primary} />
         </View>
       );
     }
@@ -88,25 +89,25 @@ export default function DashboardScreen() {
         title: "Users",
         value: analytics.total_users.toString(),
         icon: "people",
-        color: "#2563EB",
+        color: Colors.chartBlue,
       },
       {
         title: "Doctors",
         value: analytics.total_doctors.toString(),
         icon: "medkit",
-        color: "#14B8A6",
+        color: Colors.chartTeal,
       },
       {
         title: "Predictions",
         value: analytics.total_predictions.toString(),
         icon: "pulse",
-        color: "#8B5CF6",
+        color: Colors.chartPurple,
       },
       {
         title: "Appointments",
         value: analytics.total_appointments.toString(),
         icon: "calendar",
-        color: "#F59E0B",
+        color: Colors.chartOrange,
       },
     ];
 
@@ -134,12 +135,12 @@ export default function DashboardScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.openDrawer())}>
-            <Ionicons name="menu" size={30} color="#1E293B" />
+            <Ionicons name="menu" size={30} color={Colors.textPrimary} />
           </TouchableOpacity>
           <View style={styles.headerRight}>
-            <Ionicons name="notifications-outline" size={24} color="#1E293B" />
+            <Ionicons name="notifications-outline" size={24} color={Colors.textPrimary} />
             <View style={styles.avatar}>
-              <Ionicons name="person" size={20} color="#FFFFFF" />
+              <Ionicons name="person" size={20} color={Colors.surface} />
             </View>
           </View>
         </View>
@@ -154,7 +155,7 @@ export default function DashboardScreen() {
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Overview</Text>
           <TouchableOpacity onPress={fetchAnalytics}>
-            <Ionicons name="refresh-circle-outline" size={24} color="#2563EB" />
+            <Ionicons name="refresh-circle-outline" size={24} color={Colors.primary} />
           </TouchableOpacity>
         </View>
 
@@ -178,7 +179,7 @@ export default function DashboardScreen() {
         {/* Analytics Placeholder */}
         <Text style={styles.sectionTitle}>Analytics Overview</Text>
         <View style={styles.analyticsCard}>
-          <Ionicons name="bar-chart" size={70} color="#2563EB" />
+          <Ionicons name="bar-chart" size={70} color={Colors.primary} />
           <Text style={styles.analyticsTitle}>Analytics Active</Text>
           <Text style={styles.analyticsSubtitle}>
             Live metrics are now populated from the database above.
@@ -190,7 +191,7 @@ export default function DashboardScreen() {
         <View style={styles.activityCard}>
           {recentActivities.map((activity, index) => (
             <View key={index} style={styles.activityRow}>
-              <Ionicons name="checkmark-circle" size={20} color="#22C55E" />
+              <Ionicons name="checkmark-circle" size={20} color={Colors.success} />
               <Text style={styles.activityText}>{activity}</Text>
             </View>
           ))}
@@ -201,29 +202,29 @@ export default function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8FAFC" },
-  header: { marginTop: 15, marginHorizontal: 20, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  headerRight: { flexDirection: "row", alignItems: "center", gap: 20 },
-  avatar: { width: 42, height: 42, borderRadius: 21, backgroundColor: "#2563EB", justifyContent: "center", alignItems: "center" },
-  welcomeCard: { margin: 20, padding: 22, backgroundColor: "#2563EB", borderRadius: 22 },
-  welcomeTitle: { color: "#FFFFFF", fontSize: 26, fontWeight: "700" },
-  welcomeSubtitle: { color: "#DCE8FF", marginTop: 6, fontSize: 15 },
-  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginHorizontal: 20, marginTop: 20, marginBottom: 12 },
-  sectionTitle: { fontWeight: "700", fontSize: 20, color: "#1E293B", marginHorizontal: 20, marginTop: 20, marginBottom: 12 },
+  container: AppStyles.screen,
+  header: { marginTop: Spacing.lg, marginHorizontal: Layout.screenPadding, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  headerRight: { flexDirection: "row", alignItems: "center", gap: Spacing.xl },
+  avatar: { width: 42, height: 42, borderRadius: Radius.circle, backgroundColor: Colors.primary, justifyContent: "center", alignItems: "center" },
+  welcomeCard: { margin: Layout.screenPadding, padding: Spacing.xxl, backgroundColor: Colors.primary, borderRadius: Radius.xLarge, ...Shadow.card },
+  welcomeTitle: { color: Colors.surface, fontSize: Typography.h2, fontWeight: FontWeight.bold },
+  welcomeSubtitle: { color: Colors.primaryLight, marginTop: Spacing.xs, fontSize: Typography.body },
+  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginHorizontal: Layout.screenPadding, marginTop: Spacing.xl, marginBottom: Spacing.md },
+  sectionTitle: AppStyles.sectionTitle,
   loadingContainer: { height: 150, justifyContent: "center", alignItems: "center" },
-  errorText: { color: "#EF4444", fontSize: 15 },
-  statsContainer: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", paddingHorizontal: 20 },
-  statCard: { width: "48%", backgroundColor: "#FFFFFF", borderRadius: 20, padding: 18, marginBottom: 16, elevation: 3 },
-  iconContainer: { width: 50, height: 50, borderRadius: 15, justifyContent: "center", alignItems: "center" },
-  statValue: { marginTop: 15, fontWeight: "700", fontSize: 28, color: "#1E293B" },
-  statTitle: { marginTop: 5, color: "#64748B", fontSize: 15 },
-  quickContainer: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", paddingHorizontal: 20 },
-  quickCard: { width: "48%", backgroundColor: "#FFFFFF", borderRadius: 20, paddingVertical: 28, alignItems: "center", marginBottom: 16, elevation: 2 },
-  quickText: { marginTop: 15, fontWeight: "600", color: "#1E293B", textAlign: "center" },
-  analyticsCard: { marginHorizontal: 20, backgroundColor: "#FFFFFF", borderRadius: 20, paddingVertical: 40, alignItems: "center", elevation: 2 },
-  analyticsTitle: { marginTop: 15, fontSize: 20, fontWeight: "700", color: "#1E293B" },
-  analyticsSubtitle: { marginTop: 6, color: "#64748B" },
-  activityCard: { marginHorizontal: 20, backgroundColor: "#FFFFFF", borderRadius: 20, padding: 18, elevation: 2 },
-  activityRow: { flexDirection: "row", alignItems: "center", marginVertical: 10 },
-  activityText: { marginLeft: 12, fontSize: 15, color: "#334155" },
+  errorText: { color: Colors.danger, fontSize: Typography.button },
+  statsContainer: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", paddingHorizontal: Layout.screenPadding },
+  statCard: { width: "48%", backgroundColor: Colors.card, borderRadius: Radius.large, padding: Layout.cardPadding, marginBottom: Spacing.lg, ...Shadow.card },
+  iconContainer: { width: 50, height: 50, borderRadius: Radius.medium, justifyContent: "center", alignItems: "center" },
+  statValue: { marginTop: Spacing.lg, fontWeight: FontWeight.bold, fontSize: Typography.h2, color: Colors.textPrimary },
+  statTitle: { marginTop: Spacing.xs, color: Colors.textSecondary, fontSize: Typography.button },
+  quickContainer: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", paddingHorizontal: Layout.screenPadding },
+  quickCard: { width: "48%", backgroundColor: Colors.card, borderRadius: Radius.large, paddingVertical: Spacing.xxxl, alignItems: "center", marginBottom: Spacing.lg, ...Shadow.card },
+  quickText: { marginTop: Spacing.lg, fontWeight: FontWeight.semibold, color: Colors.textPrimary, textAlign: "center" },
+  analyticsCard: { marginHorizontal: Layout.screenPadding, backgroundColor: Colors.card, borderRadius: Radius.large, paddingVertical: 40, alignItems: "center", ...Shadow.card },
+  analyticsTitle: { marginTop: Spacing.lg, fontSize: Typography.h3, fontWeight: FontWeight.bold, color: Colors.textPrimary },
+  analyticsSubtitle: { marginTop: Spacing.xs, color: Colors.textSecondary },
+  activityCard: { marginHorizontal: Layout.screenPadding, backgroundColor: Colors.card, borderRadius: Radius.large, padding: Layout.cardPadding, ...Shadow.card },
+  activityRow: { flexDirection: "row", alignItems: "center", marginVertical: Spacing.sm },
+  activityText: { marginLeft: Spacing.md, fontSize: Typography.button, color: Colors.textPrimary },
 });

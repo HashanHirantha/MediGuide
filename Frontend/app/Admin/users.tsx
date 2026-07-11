@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
 import { DrawerActions } from "@react-navigation/native";
 import { getUsers, toggleUserActive, deleteUser, AdminUser } from "../../services/adminService";
+import { Colors, Typography, Spacing, Radius, Shadow, Layout, AppStyles, FontWeight } from "../../constants/AdminTheme";
 
 export default function UsersScreen() {
   const navigation = useNavigation();
@@ -85,7 +86,7 @@ export default function UsersScreen() {
 
       <View style={styles.actionButtons}>
         <TouchableOpacity
-          style={[styles.actionBtn, { backgroundColor: item.is_active ? "#EF4444" : "#22C55E" }]}
+          style={[styles.actionBtn, { backgroundColor: item.is_active ? Colors.danger : Colors.success }]}
           onPress={() => handleToggleActive(item)}
         >
           <Text style={styles.actionBtnText}>
@@ -95,10 +96,10 @@ export default function UsersScreen() {
         
         {item.role !== 'admin' && (
           <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: "#1E293B" }]}
+            style={[styles.actionBtn, { backgroundColor: Colors.textPrimary }]}
             onPress={() => handleDeleteUser(item)}
           >
-            <Ionicons name="trash-outline" size={16} color="#FFF" />
+            <Ionicons name="trash-outline" size={16} color={Colors.surface} />
           </TouchableOpacity>
         )}
       </View>
@@ -109,7 +110,7 @@ export default function UsersScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.openDrawer())}>
-          <Ionicons name="menu" size={30} color="#1E293B" />
+          <Ionicons name="menu" size={30} color={Colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>User Management</Text>
         <View style={{ width: 30 }} />
@@ -117,7 +118,7 @@ export default function UsersScreen() {
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#2563EB" />
+          <ActivityIndicator size="large" color={Colors.primary} />
         </View>
       ) : (
         <FlatList
@@ -139,22 +140,22 @@ export default function UsersScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8FAFC" },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 20, backgroundColor: "#FFF", borderBottomWidth: 1, borderBottomColor: "#E2E8F0" },
-  headerTitle: { fontSize: 20, fontWeight: "700", color: "#1E293B" },
-  listContainer: { padding: 20 },
+  container: AppStyles.screen,
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: Layout.screenPadding, backgroundColor: Colors.surface, borderBottomWidth: 1, borderBottomColor: Colors.border },
+  headerTitle: { fontSize: Typography.h3, fontWeight: FontWeight.bold, color: Colors.textPrimary },
+  listContainer: { padding: Layout.screenPadding },
   center: { flex: 1, justifyContent: "center", alignItems: "center", marginTop: 50 },
-  emptyText: { color: "#64748B", fontSize: 16 },
-  userCard: { backgroundColor: "#FFF", borderRadius: 16, padding: 16, marginBottom: 16, elevation: 2, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  emptyText: { color: Colors.textSecondary, fontSize: Typography.h5 },
+  userCard: { backgroundColor: Colors.card, borderRadius: Radius.large, padding: Layout.cardPadding, marginBottom: Spacing.lg, ...Shadow.card, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   userInfo: { flexDirection: "row", alignItems: "center", flex: 1 },
-  avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: "#E2E8F0", justifyContent: "center", alignItems: "center", marginRight: 12 },
-  avatarText: { fontSize: 20, fontWeight: "700", color: "#475569" },
+  avatar: { width: 48, height: 48, borderRadius: Radius.circle, backgroundColor: Colors.border, justifyContent: "center", alignItems: "center", marginRight: Spacing.md },
+  avatarText: { fontSize: Typography.h3, fontWeight: FontWeight.bold, color: Colors.textSecondary },
   userDetails: { flex: 1 },
-  userName: { fontSize: 16, fontWeight: "600", color: "#1E293B" },
-  userEmail: { fontSize: 14, color: "#64748B", marginBottom: 6 },
-  roleBadge: { backgroundColor: "#DBEAFE", alignSelf: "flex-start", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
-  roleText: { color: "#2563EB", fontSize: 10, fontWeight: "700" },
-  actionButtons: { flexDirection: "row", alignItems: "center", gap: 8 },
-  actionBtn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, flexDirection: "row", alignItems: "center" },
-  actionBtnText: { color: "#FFF", fontWeight: "600", fontSize: 12 },
+  userName: { fontSize: Typography.h5, fontWeight: FontWeight.semibold, color: Colors.textPrimary },
+  userEmail: { fontSize: Typography.bodySmall, color: Colors.textSecondary, marginBottom: 6 },
+  roleBadge: { backgroundColor: Colors.primaryLight, alignSelf: "flex-start", paddingHorizontal: 8, paddingVertical: 2, borderRadius: Radius.small },
+  roleText: { color: Colors.primary, fontSize: 10, fontWeight: FontWeight.bold },
+  actionButtons: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
+  actionBtn: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: Radius.small, flexDirection: "row", alignItems: "center" },
+  actionBtnText: { color: Colors.surface, fontWeight: FontWeight.semibold, fontSize: Typography.caption },
 });

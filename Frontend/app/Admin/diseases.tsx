@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
 import { DrawerActions } from "@react-navigation/native";
 import { getDiseases, addDisease, updateDisease, deleteDisease } from "../../services/diseaseService";
+import { Colors, Typography, Spacing, Radius, Shadow, Layout, AppStyles, FontWeight } from "../../constants/AdminTheme";
 
 export default function DiseasesScreen() {
   const navigation = useNavigation();
@@ -109,10 +110,10 @@ export default function DiseasesScreen() {
 
   const getRiskColor = (level: string) => {
     switch (level?.toLowerCase()) {
-      case 'critical': return '#EF4444';
-      case 'high': return '#F97316';
-      case 'moderate': return '#EAB308';
-      default: return '#22C55E';
+      case 'critical': return Colors.danger;
+      case 'high': return Colors.pending;
+      case 'moderate': return Colors.warning;
+      default: return Colors.success;
     }
   };
 
@@ -134,10 +135,10 @@ export default function DiseasesScreen() {
 
       <View style={styles.actionButtons}>
         <TouchableOpacity style={styles.actionBtn} onPress={() => openEditModal(item)}>
-          <Ionicons name="pencil-outline" size={20} color="#2563EB" />
+          <Ionicons name="pencil-outline" size={20} color={Colors.primary} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionBtn} onPress={() => handleDelete(item)}>
-          <Ionicons name="trash-outline" size={20} color="#EF4444" />
+          <Ionicons name="trash-outline" size={20} color={Colors.danger} />
         </TouchableOpacity>
       </View>
     </View>
@@ -147,17 +148,17 @@ export default function DiseasesScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.openDrawer())}>
-          <Ionicons name="menu" size={30} color="#1E293B" />
+          <Ionicons name="menu" size={30} color={Colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Diseases</Text>
         <TouchableOpacity onPress={openAddModal}>
-          <Ionicons name="add-circle-outline" size={30} color="#2563EB" />
+          <Ionicons name="add-circle-outline" size={30} color={Colors.primary} />
         </TouchableOpacity>
       </View>
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#2563EB" />
+          <ActivityIndicator size="large" color={Colors.primary} />
         </View>
       ) : (
         <FlatList
@@ -207,31 +208,31 @@ export default function DiseasesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F8FAFC" },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 20, backgroundColor: "#FFF", borderBottomWidth: 1, borderBottomColor: "#E2E8F0" },
-  headerTitle: { fontSize: 20, fontWeight: "700", color: "#1E293B" },
-  listContainer: { padding: 20 },
+  container: AppStyles.screen,
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: Layout.screenPadding, backgroundColor: Colors.surface, borderBottomWidth: 1, borderBottomColor: Colors.border },
+  headerTitle: { fontSize: Typography.h3, fontWeight: FontWeight.bold, color: Colors.textPrimary },
+  listContainer: { padding: Layout.screenPadding },
   center: { flex: 1, justifyContent: "center", alignItems: "center", marginTop: 50 },
-  card: { backgroundColor: "#FFF", borderRadius: 16, padding: 16, marginBottom: 12, elevation: 1, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  cardInfo: { flex: 1, marginRight: 10 },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
-  name: { fontSize: 16, fontWeight: "600", color: "#1E293B", flex: 1 },
-  badge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 12 },
-  badgeText: { fontSize: 10, fontWeight: "700" },
-  specialty: { fontSize: 13, color: "#2563EB", fontWeight: "600" },
-  desc: { fontSize: 13, color: "#64748B", marginTop: 6 },
-  actionButtons: { flexDirection: "row", gap: 12 },
-  actionBtn: { padding: 8, backgroundColor: "#F1F5F9", borderRadius: 8 },
+  card: { backgroundColor: Colors.card, borderRadius: Radius.large, padding: Layout.cardPadding, marginBottom: Spacing.md, ...Shadow.card, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  cardInfo: { flex: 1, marginRight: Spacing.md },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.xs },
+  name: { fontSize: Typography.h5, fontWeight: FontWeight.semibold, color: Colors.textPrimary, flex: 1 },
+  badge: { paddingHorizontal: Spacing.sm, paddingVertical: 2, borderRadius: Radius.medium },
+  badgeText: { fontSize: 10, fontWeight: FontWeight.bold },
+  specialty: { fontSize: Typography.bodySmall, color: Colors.primary, fontWeight: FontWeight.semibold },
+  desc: { fontSize: Typography.bodySmall, color: Colors.textSecondary, marginTop: 6 },
+  actionButtons: { flexDirection: "row", gap: Spacing.md },
+  actionBtn: { padding: Spacing.sm, backgroundColor: Colors.divider, borderRadius: Radius.small },
   
   // Modal
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", padding: 20 },
-  modalContent: { width: "100%", backgroundColor: "#FFF", borderRadius: 20, padding: 20 },
-  modalTitle: { fontSize: 20, fontWeight: "700", color: "#1E293B", marginBottom: 20, textAlign: "center" },
-  label: { fontSize: 14, fontWeight: "600", color: "#475569", marginBottom: 8 },
-  input: { borderWidth: 1, borderColor: "#E2E8F0", borderRadius: 12, padding: 12, fontSize: 16, marginBottom: 16, backgroundColor: "#F8FAFC" },
-  modalActions: { flexDirection: "row", justifyContent: "space-between", marginTop: 10 },
-  cancelBtn: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: "#F1F5F9", marginRight: 8, alignItems: "center" },
-  cancelBtnText: { color: "#475569", fontWeight: "600", fontSize: 16 },
-  saveBtn: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: "#2563EB", marginLeft: 8, alignItems: "center" },
-  saveBtnText: { color: "#FFF", fontWeight: "600", fontSize: 16 },
+  modalOverlay: { flex: 1, backgroundColor: Colors.overlay, justifyContent: "center", alignItems: "center", padding: Layout.screenPadding },
+  modalContent: { width: "100%", backgroundColor: Colors.surface, borderRadius: Radius.large, padding: Layout.screenPadding },
+  modalTitle: { fontSize: Typography.h3, fontWeight: FontWeight.bold, color: Colors.textPrimary, marginBottom: Spacing.xl, textAlign: "center" },
+  label: { fontSize: Typography.body, fontWeight: FontWeight.semibold, color: Colors.textSecondary, marginBottom: Spacing.sm },
+  input: { borderWidth: 1, borderColor: Colors.border, borderRadius: Radius.medium, padding: Spacing.md, fontSize: Typography.h5, marginBottom: Spacing.lg, backgroundColor: Colors.background },
+  modalActions: { flexDirection: "row", justifyContent: "space-between", marginTop: Spacing.sm },
+  cancelBtn: { flex: 1, padding: 14, borderRadius: Radius.medium, backgroundColor: Colors.divider, marginRight: Spacing.sm, alignItems: "center" },
+  cancelBtnText: { color: Colors.textSecondary, fontWeight: FontWeight.semibold, fontSize: Typography.h5 },
+  saveBtn: { flex: 1, padding: 14, borderRadius: Radius.medium, backgroundColor: Colors.primary, marginLeft: Spacing.sm, alignItems: "center" },
+  saveBtnText: { color: Colors.surface, fontWeight: FontWeight.semibold, fontSize: Typography.h5 },
 });
