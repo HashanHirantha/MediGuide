@@ -15,7 +15,7 @@
 | **Mobile Frontend** | React Native (Expo SDK 54) + TypeScript              |
 | **Backend / BaaS**  | Supabase (PostgreSQL, Auth, Storage, Edge Functions)  |
 | **Database**        | Supabase PostgreSQL (with Row Level Security)         |
-| **Authentication**  | Supabase Auth (Email/Password)                        |
+| **Authentication**  | Supabase Auth (Email/Password + Google Sign-In via `@react-native-google-signin/google-signin`) |
 | **AI Engine**       | Google Gemini API (via Supabase Edge Function)         |
 | **Realtime**        | Supabase Realtime (Postgres Changes subscriptions)    |
 | **Storage**         | Supabase Storage (`patients` bucket for profile images)|
@@ -88,6 +88,8 @@
 
 1. **User Authentication**
    - Register / Login (Email + Password) via Supabase Auth
+   - Google Sign-In via `@react-native-google-signin/google-signin` with `GoogleSignin.configure({ webClientId })` in `AuthContext.tsx`
+   - Google OAuth requires Android SHA-1 fingerprint registered in Google Cloud Console (debug: `58:17:90:17:82:82:36:CE:B3:1E:C3:17:07:8F:B3:86:A4:21:F5:92`, package: `com.mediguide.app`)
    - Session management with Supabase `onAuthStateChange` listener
    - Profile management (name, age, gender, blood group, height, weight, BMI, profile image) stored in `profiles` table
    - Profile image upload during registration (Supabase Storage `patients` bucket)
@@ -276,7 +278,7 @@ Mobile-Computing/
 │   │   ├── BodySelector.tsx      # Interactive body-part picker
 │   │   └── RatingStars.tsx
 │   ├── contexts/
-│   │   ├── AuthContext.tsx        # Wraps Supabase Auth state (signIn, signUp with metadata, signOut, refreshProfile)
+│   │   ├── AuthContext.tsx        # Wraps Supabase Auth state (signIn, signInWithGoogle, signUp with metadata, signOut, refreshProfile). Configures Google Sign-In with webClientId.
 │   │   ├── HealthContext.tsx
 │   │   └── LanguageContext.tsx    # App-wide locale state (English, Sinhala, Tamil)
 │   ├── lib/
@@ -364,6 +366,7 @@ Mobile-Computing/
 | :----------------------- | :--------------------------------------------------------- |
 | Register new user        | `supabase.auth.signUp({ email, password })`                |
 | Login                    | `supabase.auth.signInWithPassword({ email, password })`    |
+| Google Sign-In           | `GoogleSignin.signIn()` → `supabase.auth.signInWithIdToken({ provider: 'google', token: idToken })` |
 | Forgot password          | `supabase.auth.resetPasswordForEmail(email)`               |
 | Get current session      | `supabase.auth.getSession()`                               |
 | Listen to auth changes   | `supabase.auth.onAuthStateChange(callback)`                |

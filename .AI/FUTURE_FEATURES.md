@@ -28,6 +28,7 @@ This document tracks all planned features, enhancements, and technical improveme
 ### 1.2 Authentication & User Management (Supabase Auth) ✅ DONE
 - [x] User registration with email & password via `supabase.auth.signUp()`
 - [x] Login with `supabase.auth.signInWithPassword()`
+- [x] Google Sign-In via `@react-native-google-signin/google-signin` — configured in `AuthContext.tsx` with `webClientId`, requires Android SHA-1 fingerprint in Google Cloud Console
 - [x] Auth state listener with `supabase.auth.onAuthStateChange()`
 - [x] Session persistence via AsyncStorage adapter
 - [x] Protected navigation (redirect unauthenticated users to login)
@@ -205,7 +206,7 @@ This document tracks all planned features, enhancements, and technical improveme
 - [x] Common symptom chip selection
 - [x] Photo-based symptom input (image attachment support via camera/gallery)
 - [x] Document attachment for lab reports
-- [x] 3D human body model for symptom selection
+- [x] 3D human body model for symptom selection (uses `react-native-body-highlighter` with React Native View `transform` for proper touch alignment — SVG `scale` prop causes touch hit-box misalignment)
 - [x] Voice-based symptom input
 - [ ] Symptom timeline visualization
 - [ ] Related symptom suggestions ("Did you also experience...")
