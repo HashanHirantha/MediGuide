@@ -6,8 +6,14 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { decode } from 'base64-arraybuffer';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 WebBrowser.maybeCompleteAuthSession();
+
+// Configure Google Sign-in
+GoogleSignin.configure({
+  webClientId: 'YOUR_WEB_CLIENT_ID_HERE', // TODO: Replace with your actual Web Client ID from Google Cloud Console
+});
 
 interface Profile {
   id: string;
@@ -103,27 +109,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
-      const redirectUrl = Linking.createURL('');
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-          skipBrowserRedirect: true,
-        },
-      });
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn() as any;
+      const idToken = userInfo?.data?.idToken || userInfo?.idToken;
 
-      if (error) return { error };
+      if (idToken) {
+        const { data, error } = await supabase.auth.signInWithIdToken({
+          provider: 'google',
+          token: idToken,
+        });
 
-      if (data?.url) {
-        const res = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
-        if (res.type === 'success' && res.url) {
-          return { error: null };
-        } else {
-          return { error: { message: 'Sign in cancelled' } };
-        }
+        if (error) return { error };
+
+        return { error: null };
+      } else {
+        return { error: { message: 'No ID token found from Google Sign-In.' } };
       }
-      return { error: { message: 'Could not generate OAuth URL' } };
-    } catch (e) {
+    } catch (e: any) {
+      console.log('Google Sign-In Error:', e);
       return { error: e };
     }
   };
