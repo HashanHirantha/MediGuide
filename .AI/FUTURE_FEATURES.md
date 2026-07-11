@@ -222,9 +222,9 @@ This document tracks all planned features, enhancements, and technical improveme
 
 > **Goal**: Prepare for production, add premium features, and admin tooling.
 
-### 4.1 Admin Panel
-- [ ] Use Supabase Dashboard for basic admin operations
-- [ ] Build custom admin views with Supabase RLS admin policies
+### 4.1 Admin Panel ✅ PARTIALLY DONE
+- [x] Use Supabase Dashboard for basic admin operations
+- [x] Build custom admin views with Supabase RLS admin policies (Admin Drawer and Dashboard built)
 - [ ] User management (view, block, delete)
 - [ ] Doctor verification & approval workflow
 - [ ] Symptom & disease CRUD management
@@ -330,6 +330,7 @@ Phase 3 (Advanced) 🔮 PARTIALLY STARTED
 └── 3.5 Maps & Navigation ────── TODO
 
 Phase 4 (Scale) ──────────────── PARTIALLY STARTED
+├── 4.1 Admin Panel ───────────── ✅ Partially Done (Dashboard & Drawer)
 ├── 4.3 Multi-language (i18n) ─── ✅ Done (EN, SI, TA)
 ```
 
