@@ -725,17 +725,19 @@ export default function SymptomCheckerScreen() {
                 </TouchableOpacity>
               </View>
               
-              <Body
-                data={selectedMuscles.map(muscleSlug => ({
-                  slug: muscleSlug as any,
-                  intensity: 1,
-                  color: colors.primary
-                }))}
-                onBodyPartPress={(muscle) => handleMusclePress(muscle)}
-                gender={modelGender}
-                side={bodySide}
-                scale={1.2}
-              />
+              <View style={{ transform: [{ scale: 1.3 }], marginVertical: 40 }}>
+                <Body
+                  data={selectedMuscles.map(muscleSlug => ({
+                    slug: muscleSlug as any,
+                    intensity: 1,
+                    color: colors.primary
+                  }))}
+                  onBodyPartPress={(muscle) => handleMusclePress(muscle)}
+                  gender={modelGender}
+                  side={bodySide}
+                  scale={1}
+                />
+              </View>
               <Text style={[globalStyles.durationHint, { textAlign: 'center', marginTop: 15 }]}>
                 Tap on the body part where you feel discomfort to add related symptoms.
               </Text>
