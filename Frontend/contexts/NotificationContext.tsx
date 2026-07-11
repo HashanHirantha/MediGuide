@@ -17,8 +17,8 @@ const NotificationContext = createContext<NotificationContextValue>({
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [expoPushToken, setExpoPushToken] = useState<string | undefined>();
   const [notification, setNotification] = useState<Notifications.Notification | undefined>();
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
+  const notificationListener = useRef<Notifications.Subscription | null>(null);
+  const responseListener = useRef<Notifications.Subscription | null>(null);
   const { user } = useAuthContext();
 
   useEffect(() => {
@@ -52,7 +52,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         router.push(`/appointments/${data.appointmentId}`);
       } else if (data?.type === 'health_tip') {
         // We could navigate to a tips screen or articles
-        router.push('/(tabs)/');
+        router.push('/');
       }
     });
 
