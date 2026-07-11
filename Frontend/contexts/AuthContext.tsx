@@ -98,7 +98,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, meta?: { firstName?: string; lastName?: string; phone?: string; dateOfBirth?: string; gender?: string; bloodGroup?: string; profileImageUri?: string; heightCm?: number; weightKg?: number; bmi?: number }) => {
     console.log('[Auth] Starting signUp for:', email);
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    
+    // Map meta fields to raw_user_meta_data for the database trigger
+    const metaData = {
+      first_name: meta?.firstName,
+      last_name: meta?.lastName,
+      phone: meta?.phone,
+      date_of_birth: meta?.dateOfBirth,
+      gender: meta?.gender,
+      blood_group: meta?.bloodGroup,
+      height_cm: meta?.heightCm,
+      weight_kg: meta?.weightKg,
+      bmi: meta?.bmi,
+    };
+
+    const { data, error } = await supabase.auth.signUp({ 
+      email, 
+      password,
+      options: {
+        data: metaData
+      }
+    });
     
     if (error) {
       console.error('[Auth] SignUp failed:', error.message);
