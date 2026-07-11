@@ -26,7 +26,7 @@ import {
   deleteAiCheckHistory,
   AiCheckHistoryEntry,
 } from '../../services/aiCheckHistoryService';
-import { subscribePatientAppointments } from '../../services/appointmentService';
+import { cancelAppointment, subscribePatientAppointments } from '../../services/appointmentService';
 import i18n from '../../i18n';
 
 // ─── Helpers ─────────────────────────────────────────────────
@@ -161,7 +161,7 @@ export default function HistoryScreen() {
               }
             } catch (_) {}
           } else {
-            await supabase.from('appointments').update({ status: 'cancelled' }).eq('id', appointmentId);
+            await cancelAppointment(appointmentId);
           }
           fetchHistory();
         },

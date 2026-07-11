@@ -81,8 +81,8 @@ This document tracks all planned features, enhancements, and technical improveme
 - [x] Booking confirmation with summary
 - [x] My Bookings list with status filters (`history.tsx`)
 - [x] Appointment detail screen (`appointments/[id].tsx`)
-- [ ] Cancel appointment UI — needs implementation
-- [ ] Realtime appointment status updates via Supabase Realtime subscriptions — hook exists but not fully wired
+- [x] Cancel appointment UI — needs implementation
+- [x] Realtime appointment status updates via Supabase Realtime subscriptions — hook exists but not fully wired
 
 ---
 

@@ -11,6 +11,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { globalStyles } from '../../constants/globalStyles';
 import { colors } from '../../constants/theme';
 import { getDoctorImageUrl } from '../../utils/getDoctorImageUrl';
+import { cancelAppointment, subscribePatientAppointments } from '../../services/appointmentService';
 import i18n from '../../i18n';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -30,6 +31,15 @@ export default function AppointmentDetailScreen() {
   useEffect(() => {
     fetchAppointment();
   }, [id]);
+
+  useEffect(() => {
+    if (user?.id) {
+      const unsubscribe = subscribePatientAppointments(user.id, () => {
+        fetchAppointment();
+      });
+      return unsubscribe;
+    }
+  }, [user?.id, id]);
 
   const fetchAppointment = async () => {
     // 1. Try Supabase
@@ -102,10 +112,7 @@ export default function AppointmentDetailScreen() {
         text: i18n.t('appointment.cancel') || 'Yes, Cancel',
         style: 'destructive',
         onPress: async () => {
-          await supabase
-            .from('appointments')
-            .update({ status: 'cancelled' })
-            .eq('id', id);
+          await cancelAppointment(id);
           router.back();
         },
       },
