@@ -15,7 +15,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
 import { DrawerActions } from "@react-navigation/native";
 import { getDiseases, addDisease, updateDisease, deleteDisease } from "../../services/diseaseService";
-import { Colors, Typography, Spacing, Radius, Shadow, Layout, AppStyles, FontWeight } from "../../constants/AdminTheme";
+import { globalStyles } from "../../constants/globalStyles";
+import { colors, spacing, typography, radius, shadows } from "../../constants/theme";
 
 export default function DiseasesScreen() {
   const navigation = useNavigation();
@@ -110,10 +111,10 @@ export default function DiseasesScreen() {
 
   const getRiskColor = (level: string) => {
     switch (level?.toLowerCase()) {
-      case 'critical': return Colors.danger;
-      case 'high': return Colors.pending;
-      case 'moderate': return Colors.warning;
-      default: return Colors.success;
+      case 'critical': return colors.dangerText;
+      case 'high': return colors.starColorAlt;
+      case 'moderate': return colors.warningText;
+      default: return colors.successText;
     }
   };
 
@@ -135,10 +136,10 @@ export default function DiseasesScreen() {
 
       <View style={styles.actionButtons}>
         <TouchableOpacity style={styles.actionBtn} onPress={() => openEditModal(item)}>
-          <Ionicons name="pencil-outline" size={20} color={Colors.primary} />
+          <Ionicons name="pencil-outline" size={20} color={colors.primary} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionBtn} onPress={() => handleDelete(item)}>
-          <Ionicons name="trash-outline" size={20} color={Colors.danger} />
+          <Ionicons name="trash-outline" size={20} color={colors.dangerText} />
         </TouchableOpacity>
       </View>
     </View>
@@ -148,17 +149,17 @@ export default function DiseasesScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.openDrawer())}>
-          <Ionicons name="menu" size={30} color={Colors.textPrimary} />
+          <Ionicons name="menu" size={30} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Diseases</Text>
         <TouchableOpacity onPress={openAddModal}>
-          <Ionicons name="add-circle-outline" size={30} color={Colors.primary} />
+          <Ionicons name="add-circle-outline" size={30} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color={Colors.primary} />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
         <FlatList
@@ -208,31 +209,31 @@ export default function DiseasesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: AppStyles.screen,
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: Layout.screenPadding, backgroundColor: Colors.surface, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  headerTitle: { fontSize: Typography.h3, fontWeight: FontWeight.bold, color: Colors.textPrimary },
-  listContainer: { padding: Layout.screenPadding },
+  container: globalStyles.container,
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: spacing.lg, backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border },
+  headerTitle: { fontSize: typography.h2.fontSize, fontWeight: '700', color: colors.textPrimary },
+  listContainer: { padding: spacing.lg },
   center: { flex: 1, justifyContent: "center", alignItems: "center", marginTop: 50 },
-  card: { backgroundColor: Colors.card, borderRadius: Radius.large, padding: Layout.cardPadding, marginBottom: Spacing.md, ...Shadow.card, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  cardInfo: { flex: 1, marginRight: Spacing.md },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.xs },
-  name: { fontSize: Typography.h5, fontWeight: FontWeight.semibold, color: Colors.textPrimary, flex: 1 },
-  badge: { paddingHorizontal: Spacing.sm, paddingVertical: 2, borderRadius: Radius.medium },
-  badgeText: { fontSize: 10, fontWeight: FontWeight.bold },
-  specialty: { fontSize: Typography.bodySmall, color: Colors.primary, fontWeight: FontWeight.semibold },
-  desc: { fontSize: Typography.bodySmall, color: Colors.textSecondary, marginTop: 6 },
-  actionButtons: { flexDirection: "row", gap: Spacing.md },
-  actionBtn: { padding: Spacing.sm, backgroundColor: Colors.divider, borderRadius: Radius.small },
+  card: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg, marginBottom: spacing.md, ...shadows.card, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  cardInfo: { flex: 1, marginRight: spacing.md },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs },
+  name: { fontSize: 16, fontWeight: '600', color: colors.textPrimary, flex: 1 },
+  badge: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.md },
+  badgeText: { fontSize: 10, fontWeight: '700' },
+  specialty: { fontSize: typography.caption.fontSize, color: colors.primary, fontWeight: '600' },
+  desc: { fontSize: typography.caption.fontSize, color: colors.textSecondary, marginTop: 6 },
+  actionButtons: { flexDirection: "row", gap: spacing.md },
+  actionBtn: { padding: spacing.sm, backgroundColor: colors.surfaceAlt, borderRadius: radius.sm },
   
   // Modal
-  modalOverlay: { flex: 1, backgroundColor: Colors.overlay, justifyContent: "center", alignItems: "center", padding: Layout.screenPadding },
-  modalContent: { width: "100%", backgroundColor: Colors.surface, borderRadius: Radius.large, padding: Layout.screenPadding },
-  modalTitle: { fontSize: Typography.h3, fontWeight: FontWeight.bold, color: Colors.textPrimary, marginBottom: Spacing.xl, textAlign: "center" },
-  label: { fontSize: Typography.body, fontWeight: FontWeight.semibold, color: Colors.textSecondary, marginBottom: Spacing.sm },
-  input: { borderWidth: 1, borderColor: Colors.border, borderRadius: Radius.medium, padding: Spacing.md, fontSize: Typography.h5, marginBottom: Spacing.lg, backgroundColor: Colors.background },
-  modalActions: { flexDirection: "row", justifyContent: "space-between", marginTop: Spacing.sm },
-  cancelBtn: { flex: 1, padding: 14, borderRadius: Radius.medium, backgroundColor: Colors.divider, marginRight: Spacing.sm, alignItems: "center" },
-  cancelBtnText: { color: Colors.textSecondary, fontWeight: FontWeight.semibold, fontSize: Typography.h5 },
-  saveBtn: { flex: 1, padding: 14, borderRadius: Radius.medium, backgroundColor: Colors.primary, marginLeft: Spacing.sm, alignItems: "center" },
-  saveBtnText: { color: Colors.surface, fontWeight: FontWeight.semibold, fontSize: Typography.h5 },
+  modalOverlay: { flex: 1, backgroundColor: colors.overlay, justifyContent: "center", alignItems: "center", padding: spacing.lg },
+  modalContent: { width: "100%", backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg },
+  modalTitle: { fontSize: typography.h2.fontSize, fontWeight: '700', color: colors.textPrimary, marginBottom: spacing.xl, textAlign: "center" },
+  label: { fontSize: typography.body.fontSize, fontWeight: '600', color: colors.textSecondary, marginBottom: spacing.sm },
+  input: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, padding: spacing.md, fontSize: 16, marginBottom: spacing.lg, backgroundColor: colors.background },
+  modalActions: { flexDirection: "row", justifyContent: "space-between", marginTop: spacing.sm },
+  cancelBtn: { flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.surfaceAlt, marginRight: spacing.sm, alignItems: "center" },
+  cancelBtnText: { color: colors.textSecondary, fontWeight: '600', fontSize: 16 },
+  saveBtn: { flex: 1, padding: 14, borderRadius: radius.md, backgroundColor: colors.primary, marginLeft: spacing.sm, alignItems: "center" },
+  saveBtnText: { color: colors.surface, fontWeight: '600', fontSize: 16 },
 });
