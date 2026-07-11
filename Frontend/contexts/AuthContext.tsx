@@ -12,7 +12,7 @@ WebBrowser.maybeCompleteAuthSession();
 
 // Configure Google Sign-in
 GoogleSignin.configure({
-  webClientId: '150434889529-veue9ccppa592l431an6v85fpqs3m9ne.apps.googleusercontent.com', // TODO: Replace with your actual Web Client ID from Google Cloud Console
+  webClientId: '150434889529-vguq1594fuptvq9k21fgie54rfm8t9j5.apps.googleusercontent.com', 
 });
 
 interface Profile {
