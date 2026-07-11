@@ -4,6 +4,10 @@ import { supabase } from '../lib/supabase';
 import { router } from 'expo-router';
 import * as FileSystem from 'expo-file-system/legacy';
 import { decode } from 'base64-arraybuffer';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
+
+WebBrowser.maybeCompleteAuthSession();
 
 interface Profile {
   id: string;
@@ -27,6 +31,7 @@ interface AuthContextValue {
   profile: Profile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any; role?: string }>;
+  signInWithGoogle: () => Promise<{ error: any }>;
   signUp: (email: string, password: string, meta?: { firstName?: string; lastName?: string; phone?: string; dateOfBirth?: string; gender?: string; bloodGroup?: string; profileImageUri?: string; heightCm?: number; weightKg?: number; bmi?: number }) => Promise<{ error: any; imageError: string | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -94,6 +99,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
     return { error, role };
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      const redirectUrl = Linking.createURL('');
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: true,
+        },
+      });
+
+      if (error) return { error };
+
+      if (data?.url) {
+        const res = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
+        if (res.type === 'success' && res.url) {
+          return { error: null };
+        } else {
+          return { error: { message: 'Sign in cancelled' } };
+        }
+      }
+      return { error: { message: 'Could not generate OAuth URL' } };
+    } catch (e) {
+      return { error: e };
+    }
   };
 
   const signUp = async (email: string, password: string, meta?: { firstName?: string; lastName?: string; phone?: string; dateOfBirth?: string; gender?: string; bloodGroup?: string; profileImageUri?: string; heightCm?: number; weightKg?: number; bmi?: number }) => {
@@ -206,7 +238,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, profile, loading, signIn, signUp, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ session, user, profile, loading, signIn, signInWithGoogle, signUp, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

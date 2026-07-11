@@ -20,7 +20,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { signIn, user, profile, loading: authLoading } = useAuth();
+  const { signIn, signInWithGoogle, user, profile, loading: authLoading } = useAuth();
 
   useEffect(() => {
     if (user && !authLoading) {
@@ -49,6 +49,16 @@ export default function LoginScreen() {
       } else {
         router.replace('/(tabs)/home');
       }
+    }
+    setLoading(false);
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError('');
+    const { error: googleError } = await signInWithGoogle();
+    if (googleError) {
+      setError(googleError.message || 'Google Sign In failed.');
     }
     setLoading(false);
   };
@@ -116,11 +126,11 @@ export default function LoginScreen() {
           </View>
 
           <View style={globalStyles.authSocialContainer}>
-            <TouchableOpacity style={globalStyles.authSocialButton}>
+            <TouchableOpacity style={globalStyles.authSocialButton} onPress={handleGoogleLogin} disabled={loading}>
               <FontAwesome5 name="google" size={18} color={colors.textPrimary} />
               <Text style={globalStyles.authSocialText}>GOOGLE</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={globalStyles.authSocialButton}>
+            <TouchableOpacity style={globalStyles.authSocialButton} disabled={loading}>
               <FontAwesome5 name="apple" size={18} color={colors.textPrimary} />
               <Text style={globalStyles.authSocialText}>APPLE</Text>
             </TouchableOpacity>
