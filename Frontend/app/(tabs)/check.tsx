@@ -565,7 +565,12 @@ export default function SymptomCheckerScreen() {
   return (
     <SafeAreaView style={globalStyles.safeArea}>
       <TopBar />
-      <ScrollView style={globalStyles.container} contentContainerStyle={globalStyles.content}>
+      <ScrollView 
+        style={globalStyles.container} 
+        contentContainerStyle={globalStyles.content}
+        keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled={true}
+      >
 
         {/* Huge Title */}
         <Text style={globalStyles.mainTitle}>{i18n.t('check.title') || 'Symptom Checker'}</Text>
