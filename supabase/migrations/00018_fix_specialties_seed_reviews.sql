@@ -117,16 +117,16 @@ BEGIN
     ON CONFLICT (id) DO NOTHING;
 
     -- Update Profiles for Doctors
-    UPDATE public.profiles SET role = 'doctor', first_name = 'Nimal', last_name = 'Perera', profile_image = 'https://i.pravatar.cc/150?u=d1', is_active = true WHERE id = d1_id;
-    UPDATE public.profiles SET role = 'doctor', first_name = 'Sunethra', last_name = 'Silva', profile_image = 'https://i.pravatar.cc/150?u=d2', is_active = true WHERE id = d2_id;
-    UPDATE public.profiles SET role = 'doctor', first_name = 'Ruwan', last_name = 'Fernando', profile_image = 'https://i.pravatar.cc/150?u=d3', is_active = true WHERE id = d3_id;
-    UPDATE public.profiles SET role = 'doctor', first_name = 'Kamal', last_name = 'Gunawardena', profile_image = 'https://i.pravatar.cc/150?u=d4', is_active = true WHERE id = d4_id;
-    UPDATE public.profiles SET role = 'doctor', first_name = 'Priyanthi', last_name = 'Dias', profile_image = 'https://i.pravatar.cc/150?u=d5', is_active = true WHERE id = d5_id;
-    UPDATE public.profiles SET role = 'doctor', first_name = 'Saman', last_name = 'Kumara', profile_image = 'https://i.pravatar.cc/150?u=d6', is_active = true WHERE id = d6_id;
-    UPDATE public.profiles SET role = 'doctor', first_name = 'Aruni', last_name = 'Jayakody', profile_image = 'https://i.pravatar.cc/150?u=d7', is_active = true WHERE id = d7_id;
-    UPDATE public.profiles SET role = 'doctor', first_name = 'Asanka', last_name = 'Bandara', profile_image = 'https://i.pravatar.cc/150?u=d8', is_active = true WHERE id = d8_id;
-    UPDATE public.profiles SET role = 'doctor', first_name = 'Tharushi', last_name = 'Rathnayake', profile_image = 'https://i.pravatar.cc/150?u=d9', is_active = true WHERE id = d9_id;
-    UPDATE public.profiles SET role = 'doctor', first_name = 'Dinesh', last_name = 'Weerasinghe', profile_image = 'https://i.pravatar.cc/150?u=d10', is_active = true WHERE id = d10_id;
+    UPDATE public.profiles SET role = 'doctor', first_name = 'Nimal', last_name = 'Perera', profile_image = 'https://wacebhnvymggciqpebsd.supabase.co/storage/v1/object/public/patients/d1000000-0000-0000-0000-000000000001/doctor_nimal.png', is_active = true WHERE id = d1_id;
+    UPDATE public.profiles SET role = 'doctor', first_name = 'Sunethra', last_name = 'Silva', profile_image = 'https://wacebhnvymggciqpebsd.supabase.co/storage/v1/object/public/patients/d1000000-0000-0000-0000-000000000001/doctor_sunethra.png', is_active = true WHERE id = d2_id;
+    UPDATE public.profiles SET role = 'doctor', first_name = 'Ruwan', last_name = 'Fernando', profile_image = 'https://wacebhnvymggciqpebsd.supabase.co/storage/v1/object/public/patients/d1000000-0000-0000-0000-000000000001/doctor_ruwan.png', is_active = true WHERE id = d3_id;
+    UPDATE public.profiles SET role = 'doctor', first_name = 'Kamal', last_name = 'Gunawardena', profile_image = 'https://wacebhnvymggciqpebsd.supabase.co/storage/v1/object/public/patients/d1000000-0000-0000-0000-000000000001/doctor_kamal.png', is_active = true WHERE id = d4_id;
+    UPDATE public.profiles SET role = 'doctor', first_name = 'Priyanthi', last_name = 'Dias', profile_image = 'https://wacebhnvymggciqpebsd.supabase.co/storage/v1/object/public/patients/d1000000-0000-0000-0000-000000000001/doctor_priyanthi.png', is_active = true WHERE id = d5_id;
+    UPDATE public.profiles SET role = 'doctor', first_name = 'Saman', last_name = 'Kumara', profile_image = 'https://wacebhnvymggciqpebsd.supabase.co/storage/v1/object/public/patients/d1000000-0000-0000-0000-000000000001/doctor_saman.png', is_active = true WHERE id = d6_id;
+    UPDATE public.profiles SET role = 'doctor', first_name = 'Aruni', last_name = 'Jayakody', profile_image = 'https://wacebhnvymggciqpebsd.supabase.co/storage/v1/object/public/patients/d1000000-0000-0000-0000-000000000001/doctor_aruni.png', is_active = true WHERE id = d7_id;
+    UPDATE public.profiles SET role = 'doctor', first_name = 'Asanka', last_name = 'Bandara', profile_image = 'https://wacebhnvymggciqpebsd.supabase.co/storage/v1/object/public/patients/d1000000-0000-0000-0000-000000000001/doctor_asanka.png', is_active = true WHERE id = d8_id;
+    UPDATE public.profiles SET role = 'doctor', first_name = 'Tharushi', last_name = 'Rathnayake', profile_image = 'https://wacebhnvymggciqpebsd.supabase.co/storage/v1/object/public/patients/d1000000-0000-0000-0000-000000000001/doctor_tharushi.png', is_active = true WHERE id = d9_id;
+    UPDATE public.profiles SET role = 'doctor', first_name = 'Dinesh', last_name = 'Weerasinghe', profile_image = 'https://wacebhnvymggciqpebsd.supabase.co/storage/v1/object/public/patients/d1000000-0000-0000-0000-000000000001/doctor_dinesh.png', is_active = true WHERE id = d10_id;
 
     -- Update Profiles for Patients
     UPDATE public.profiles SET first_name = 'Sanjeewa', last_name = 'Jayawardena', role = 'patient' WHERE id = p1_id;

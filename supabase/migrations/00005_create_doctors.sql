@@ -3,6 +3,7 @@
 CREATE TABLE IF NOT EXISTS public.doctors (
   id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id           UUID UNIQUE NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  gender            VARCHAR(20),
   registration_no   VARCHAR(100) UNIQUE NOT NULL,
   specialty         VARCHAR(100) NOT NULL,
   qualification     VARCHAR(300) NOT NULL,

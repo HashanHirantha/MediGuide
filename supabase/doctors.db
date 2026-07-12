@@ -12,9 +12,9 @@ ON CONFLICT (id) DO NOTHING;
 -- 2. Update the profiles table (which is auto-created by the trigger) with doctor details
 INSERT INTO public.profiles (id, email, first_name, last_name, role, is_active, profile_image, created_at, updated_at)
 VALUES
-  ('d1000000-0000-0000-0000-000000000001', 'nimal.perera@mediguide.lk', 'Nimal', 'Perera', 'doctor', true, 'https://i.pravatar.cc/150?img=11', now(), now()),
-  ('d1000000-0000-0000-0000-000000000002', 'sunethra.silva@mediguide.lk', 'Sunethra', 'Silva', 'doctor', true, 'https://i.pravatar.cc/150?img=47', now(), now()),
-  ('d1000000-0000-0000-0000-000000000003', 'ruwan.fernando@mediguide.lk', 'Ruwan', 'Fernando', 'doctor', true, 'https://i.pravatar.cc/150?img=32', now(), now())
+  ('d1000000-0000-0000-0000-000000000001', 'nimal.perera@mediguide.lk', 'Nimal', 'Perera', 'doctor', true, 'https://wacebhnvymggciqpebsd.supabase.co/storage/v1/object/public/patients/d1000000-0000-0000-0000-000000000001/doctor_nimal.png', now(), now()),
+  ('d1000000-0000-0000-0000-000000000002', 'sunethra.silva@mediguide.lk', 'Sunethra', 'Silva', 'doctor', true, 'https://wacebhnvymggciqpebsd.supabase.co/storage/v1/object/public/patients/d1000000-0000-0000-0000-000000000001/doctor_sunethra.png', now(), now()),
+  ('d1000000-0000-0000-0000-000000000003', 'ruwan.fernando@mediguide.lk', 'Ruwan', 'Fernando', 'doctor', true, 'https://wacebhnvymggciqpebsd.supabase.co/storage/v1/object/public/patients/d1000000-0000-0000-0000-000000000001/doctor_ruwan.png', now(), now())
 ON CONFLICT (id) DO UPDATE SET 
   first_name = EXCLUDED.first_name, 
   last_name = EXCLUDED.last_name, 
@@ -22,9 +22,9 @@ ON CONFLICT (id) DO UPDATE SET
   profile_image = EXCLUDED.profile_image;
 
 -- 3. Insert Sri Lankan mock data into the doctors table
-INSERT INTO public.doctors (id, user_id, registration_no, specialty, qualification, experience_years, hospital_name, hospital_address, latitude, longitude, consultation_fee, available_days, available_from, available_to, average_rating, total_reviews, is_verified, bio, profile_image, created_at, updated_at)
+INSERT INTO public.doctors (id, user_id, gender, registration_no, specialty, qualification, experience_years, hospital_name, hospital_address, latitude, longitude, consultation_fee, available_days, available_from, available_to, average_rating, total_reviews, is_verified, bio, profile_image, created_at, updated_at)
 VALUES
-  (gen_random_uuid(), 'd1000000-0000-0000-0000-000000000001', 'SLMC-45123', 'Cardiologist', 'MBBS (Col), MD, MRCP (UK)', 15, 'Asiri Surgical Hospital', 'Colombo 5, Sri Lanka', 6.8920, 79.8735, 3500.00, 'Mon,Wed,Fri', '09:00', '14:00', 4.9, 127, true, 'Dr. Nimal Perera is a renowned cardiologist specializing in interventional cardiology and heart disease prevention.', 'https://i.pravatar.cc/150?img=11', now(), now()),
-  (gen_random_uuid(), 'd1000000-0000-0000-0000-000000000002', 'SLMC-39485', 'Neurologist', 'MBBS (Peradeniya), MD, FRCP (Lon)', 20, 'Nawaloka Hospital', 'Colombo 2, Sri Lanka', 6.9200, 79.8550, 4000.00, 'Tue,Thu,Sat', '10:00', '16:00', 4.8, 98, true, 'Dr. Sunethra Silva has over 20 years of experience treating complex neurological disorders, including Parkinson''s and Alzheimer''s.', 'https://i.pravatar.cc/150?img=47', now(), now()),
-  (gen_random_uuid(), 'd1000000-0000-0000-0000-000000000003', 'SLMC-52190', 'General Practitioner', 'MBBS (Kelaniya), MD', 8, 'Lanka Hospitals', 'Colombo 5, Sri Lanka', 6.8885, 79.8732, 2500.00, 'Mon,Tue,Wed,Thu,Fri', '08:00', '17:00', 4.7, 215, true, 'Dr. Ruwan Fernando provides comprehensive adult medicine, preventive care, and chronic disease management.', 'https://i.pravatar.cc/150?img=32', now(), now())
+  (gen_random_uuid(), 'd1000000-0000-0000-0000-000000000001', 'male', 'SLMC-45123', 'Cardiologist', 'MBBS (Col), MD, MRCP (UK)', 15, 'Asiri Surgical Hospital', 'Colombo 5, Sri Lanka', 6.8920, 79.8735, 3500.00, 'Mon,Wed,Fri', '09:00', '14:00', 4.9, 127, true, 'Dr. Nimal Perera is a renowned cardiologist specializing in interventional cardiology and heart disease prevention.', 'https://wacebhnvymggciqpebsd.supabase.co/storage/v1/object/public/patients/d1000000-0000-0000-0000-000000000001/doctor_nimal.png', now(), now()),
+  (gen_random_uuid(), 'd1000000-0000-0000-0000-000000000002', 'female', 'SLMC-39485', 'Neurologist', 'MBBS (Peradeniya), MD, FRCP (Lon)', 20, 'Nawaloka Hospital', 'Colombo 2, Sri Lanka', 6.9200, 79.8550, 4000.00, 'Tue,Thu,Sat', '10:00', '16:00', 4.8, 98, true, 'Dr. Sunethra Silva has over 20 years of experience treating complex neurological disorders, including Parkinson''s and Alzheimer''s.', 'https://wacebhnvymggciqpebsd.supabase.co/storage/v1/object/public/patients/d1000000-0000-0000-0000-000000000001/doctor_sunethra.png', now(), now()),
+  (gen_random_uuid(), 'd1000000-0000-0000-0000-000000000003', 'male', 'SLMC-52190', 'General Practitioner', 'MBBS (Kelaniya), MD', 8, 'Lanka Hospitals', 'Colombo 5, Sri Lanka', 6.8885, 79.8732, 2500.00, 'Mon,Tue,Wed,Thu,Fri', '08:00', '17:00', 4.7, 215, true, 'Dr. Ruwan Fernando provides comprehensive adult medicine, preventive care, and chronic disease management.', 'https://wacebhnvymggciqpebsd.supabase.co/storage/v1/object/public/patients/d1000000-0000-0000-0000-000000000001/doctor_ruwan.png', now(), now())
 ON CONFLICT (registration_no) DO NOTHING;
