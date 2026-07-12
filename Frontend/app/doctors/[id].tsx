@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, TextInput, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
@@ -68,6 +68,7 @@ const MOCK_REVIEWS = [
 export default function DoctorDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   const [doctor, setDoctor] = useState<any>(null);
   const [reviews, setReviews] = useState<any[]>([]);
   const [patientCount, setPatientCount] = useState(0);
@@ -253,7 +254,7 @@ export default function DoctorDetailScreen() {
       </ScrollView>
 
       {/* Fixed Book Now Button */}
-      <View style={globalStyles.bottomBarContainer}>
+      <View style={[globalStyles.bottomBarContainer, { paddingBottom: Math.max(insets.bottom + 15, 30) }]}>
         <View style={globalStyles.bottomBar}>
           <View>
             <Text style={globalStyles.feeLabel}>CONSULTATION FEE</Text>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, Image, TextInput } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
@@ -24,6 +24,7 @@ const TIME_SLOTS = [
 export default function BookScreen() {
   const { doctorId, diseaseId } = useLocalSearchParams<{ doctorId: string; diseaseId?: string }>();
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   const [doctor, setDoctor] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
@@ -280,7 +281,7 @@ export default function BookScreen() {
       </ScrollView>
 
       {/* Fixed Confirm Button */}
-      <View style={globalStyles.bottomBarContainer}>
+      <View style={[globalStyles.bottomBarContainer, { paddingBottom: Math.max(insets.bottom + 15, 30) }]}>
         <TouchableOpacity
           style={[globalStyles.buttonPrimary, (!selectedDate || !selectedTime) && globalStyles.disabled]}
           activeOpacity={0.8}
