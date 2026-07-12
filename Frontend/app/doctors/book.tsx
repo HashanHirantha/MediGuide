@@ -23,7 +23,7 @@ const TIME_SLOTS = [
 
 export default function BookScreen() {
   const { doctorId, diseaseId } = useLocalSearchParams<{ doctorId: string; diseaseId?: string }>();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const insets = useSafeAreaInsets();
   const [doctor, setDoctor] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState('');
@@ -36,7 +36,7 @@ export default function BookScreen() {
   useEffect(() => {
     supabase
       .from('doctors')
-      .select('*, profiles(first_name, last_name, profile_image)')
+      .select('*, profiles(first_name, last_name, profile_image, expo_push_token)')
       .eq('id', doctorId)
       .single()
       .then(({ data }) => {
@@ -134,6 +134,23 @@ export default function BookScreen() {
         { text: 'View Appointments', onPress: () => router.replace('/(tabs)/history') },
       ]);
     } else {
+      // Send immediate notification to doctor
+      const doctorPushToken = doc?.profiles?.expo_push_token;
+      if (doctorPushToken) {
+        const patientName = profile?.first_name 
+          ? `${profile.first_name} ${profile.last_name || ''}`.trim()
+          : 'A patient';
+          
+        supabase.functions.invoke('send-notification', {
+          body: {
+            expo_push_token: doctorPushToken,
+            title: 'New Appointment Request',
+            body: `${patientName} has requested an appointment on ${selectedDate} at ${selectedTime}.`,
+            data: { type: 'new_appointment' }
+          }
+        }).catch(err => console.log('Failed to send notification to doctor:', err));
+      }
+
       Alert.alert('Booking Confirmed! ✅', 'Your appointment request has been submitted.', [
         { text: 'View Appointments', onPress: () => router.replace('/(tabs)/history') },
       ]);

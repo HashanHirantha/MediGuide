@@ -112,7 +112,15 @@ export default function HistoryScreen() {
         getAiCheckHistory(user.id),
       ]);
 
-      const supaAppts = apptRes.data ?? [];
+      const todayStr = new Date().toISOString().split('T')[0];
+      const rawSupaAppts = apptRes.data ?? [];
+      const supaAppts = rawSupaAppts.filter((a: any) => {
+        // Hide unconfirmed appointments that have passed their date
+        if (a.status === 'pending' && a.appointment_date < todayStr) {
+          return false;
+        }
+        return true;
+      });
       const supaIds   = new Set(supaAppts.map((a: any) => a.id));
       
       const uniqueLocal = localAppts.filter((localA: any) => {
