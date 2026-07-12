@@ -140,6 +140,12 @@ export default function DoctorsScreen() {
               <Text style={globalStyles.statLabel}>{i18n.t('doctors.next_slot') || 'NEXT SLOT'}</Text>
               <Text style={globalStyles.statValue}>Today, 14:30</Text>
             </View>
+            {item.distance_km !== undefined && (
+              <View style={globalStyles.statBox}>
+                <Text style={globalStyles.statLabel}>DISTANCE</Text>
+                <Text style={globalStyles.statValue}>{item.distance_km.toFixed(1)} km</Text>
+              </View>
+            )}
             <View style={globalStyles.statBox}>
               <Text style={globalStyles.statLabel}>{i18n.t('doctors.experience') || 'EXPERIENCE'}</Text>
               <Text style={globalStyles.statValue}>{item.experience_years ?? 0} {i18n.t('doctors.years') || 'Years'}</Text>
@@ -168,9 +174,17 @@ export default function DoctorsScreen() {
           <Text style={globalStyles.compactSpecialty}>
             {getSpecialtyTranslation(item.specialty || 'General Practitioner').toUpperCase()}
           </Text>
-          <View style={globalStyles.compactRating}>
-            <Ionicons name="star-outline" size={12} color={colors.black} />
-            <Text style={globalStyles.compactRatingText}>{(item.average_rating ?? 0).toFixed(1)}</Text>
+          <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+            <View style={globalStyles.compactRating}>
+              <Ionicons name="star-outline" size={12} color={colors.black} />
+              <Text style={globalStyles.compactRatingText}>{(item.average_rating ?? 0).toFixed(1)}</Text>
+            </View>
+            {item.distance_km !== undefined && (
+              <View style={globalStyles.compactRating}>
+                <Ionicons name="location-outline" size={12} color={colors.black} />
+                <Text style={globalStyles.compactRatingText}>{item.distance_km.toFixed(1)} km</Text>
+              </View>
+            )}
           </View>
         </View>
         <TouchableOpacity style={globalStyles.bookButtonSmall} onPress={() => router.push({ pathname: '/doctors/book', params: { doctorId: item.id } })}>

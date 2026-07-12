@@ -150,8 +150,9 @@ function normalizeSpecialties(specialties: string[]): string[] {
  * Automatically normalizes AI-generated specialist titles to DB specialty department names.
  *
  * @param specialties - Array of specialty names from AI (may include titles like "General Practitioner")
+ * @param userLocation - Optional user coordinates to sort by distance (within 20km)
  */
-export async function getRecommendedDoctors(specialties: string[]) {
+export async function getRecommendedDoctors(specialties: string[], userLocation?: { latitude: number; longitude: number } | null) {
   if (specialties.length === 0) {
     return { data: [], error: null };
   }
@@ -160,7 +161,31 @@ export async function getRecommendedDoctors(specialties: string[]) {
   const normalized = normalizeSpecialties(specialties);
   console.log('[DoctorService] Querying specialties:', normalized.join(', '));
 
-  // Build case-insensitive OR filter
+  if (userLocation) {
+    const { data, error: rpcError } = await supabase.rpc('get_doctors_within_radius', {
+      user_lat: userLocation.latitude,
+      user_lon: userLocation.longitude,
+      radius_km: 20,
+      specialty_filters: normalized
+    });
+    
+    if (rpcError) {
+      console.warn('[DoctorService] Location RPC failed, falling back to basic query:', rpcError);
+    } else {
+      // Map RPC result to standard object shape expected by UI
+      const mappedData = (data || []).map((d: any) => ({
+        ...d,
+        profiles: {
+          first_name: d.first_name,
+          last_name: d.last_name,
+          profile_image: d.prof_image
+        }
+      }));
+      return { data: mappedData, error: null };
+    }
+  }
+
+  // Build case-insensitive OR filter for fallback
   const orFilter = normalized
     .map((s) => `specialty.ilike.${s}`)
     .join(',');

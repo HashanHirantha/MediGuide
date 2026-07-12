@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
 import { getRecommendedDoctors } from '../services/doctorService';
 import { getDoctorImageUrl } from '../utils/getDoctorImageUrl';
 import { colors, spacing } from '../constants/theme';
@@ -49,7 +50,18 @@ export function RecommendedDoctors({ specialties }: RecommendedDoctorsProps) {
 
   const fetchDoctors = async () => {
     setLoading(true);
-    const { data, error } = await getRecommendedDoctors(specialties);
+    let userLocation = null;
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === 'granted') {
+        const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        userLocation = location.coords;
+      }
+    } catch (e) {
+      console.log('Location error:', e);
+    }
+
+    const { data, error } = await getRecommendedDoctors(specialties, userLocation);
     if (!error && data) {
       setDoctors(data);
     }
