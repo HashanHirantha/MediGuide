@@ -95,6 +95,31 @@ export default function SecuritySettingsScreen() {
 
 
 
+        {biometricsSupported && (
+          <>
+            <Text style={[globalStyles.sectionTitle, { marginTop: 24 }]}>APP LOCK</Text>
+            <View style={globalStyles.card}>
+              <View style={globalStyles.settingRow}>
+                <View style={globalStyles.settingIconContainer}>
+                  <Feather name="fingerprint" size={20} color={colors.primary} />
+                </View>
+                <View style={globalStyles.settingTextContainer}>
+                  <Text style={globalStyles.settingTitle}>{i18n.t('security.biometric_title') || 'Biometric Login'}</Text>
+                  <Text style={globalStyles.settingDescription}>
+                    {i18n.t('security.biometric_desc') || 'Require authentication to open the app'}
+                  </Text>
+                </View>
+                <Switch
+                  value={biometricsEnabled}
+                  onValueChange={handleToggleBiometrics}
+                  trackColor={{ false: colors.border, true: colors.primary }}
+                  thumbColor="#fff"
+                />
+              </View>
+            </View>
+          </>
+        )}
+
         <Text style={[globalStyles.sectionTitle, { marginTop: 24 }]}>CHANGE PASSWORD</Text>
         <View style={globalStyles.card}>
           <View style={{ padding: 16 }}>

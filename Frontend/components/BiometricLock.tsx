@@ -1,51 +1,45 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, AppState, AppStateStatus } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather } from '@expo/vector-icons';
-import { colors } from '../constants/theme';
-import { globalStyles } from '../constants/globalStyles';
 import { useAuth } from '../hooks/useAuth';
+import { colors, radius, spacing, typography } from '../constants/theme';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-export const BiometricLock: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface BiometricLockProps {
+  children: React.ReactNode;
+}
+
+export function BiometricLock({ children }: BiometricLockProps) {
+  const { user, loading } = useAuth();
   const [isLocked, setIsLocked] = useState(false);
-  const [biometricsEnabled, setBiometricsEnabled] = useState(false);
-  const appState = useRef(AppState.currentState);
-  const { user } = useAuth();
+  const [checking, setChecking] = useState(true);
 
-  useEffect(() => {
-    checkBiometricsSetting();
-    
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
-    return () => {
-      subscription.remove();
-    };
-  }, []);
-
-  const checkBiometricsSetting = async () => {
-    const enabled = await AsyncStorage.getItem('biometrics_enabled');
-    if (enabled === 'true') {
-      setBiometricsEnabled(true);
-      lockAndAuthenticate();
-    }
-  };
-
-  const handleAppStateChange = async (nextAppState: AppStateStatus) => {
-    if (
-      appState.current.match(/inactive|background/) &&
-      nextAppState === 'active'
-    ) {
-      // App has come to the foreground!
+  const checkBiometrics = useCallback(async () => {
+    try {
       const enabled = await AsyncStorage.getItem('biometrics_enabled');
-      if (enabled === 'true') {
-        lockAndAuthenticate();
+      if (enabled === 'true' && user) {
+        setIsLocked(true);
+        authenticate();
+      } else {
+        setIsLocked(false);
       }
+    } catch (e) {
+      console.log('Error checking biometrics', e);
+    } finally {
+      setChecking(false);
     }
-    appState.current = nextAppState;
-  };
+  }, [user]);
 
-  const lockAndAuthenticate = async () => {
-    setIsLocked(true);
+  // Re-check when user auth state changes or when the app loads
+  useEffect(() => {
+    if (!loading) {
+      checkBiometrics();
+    }
+  }, [loading, checkBiometrics]);
+
+  const authenticate = async () => {
     const result = await LocalAuthentication.authenticateAsync({
       promptMessage: 'Unlock MediGuide',
       disableDeviceFallback: true,
@@ -57,20 +51,78 @@ export const BiometricLock: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  if (isLocked && biometricsEnabled && user) {
+  if (checking) {
+    // Show nothing while checking (or a splash screen overlay)
+    return null;
+  }
+
+  if (isLocked) {
     return (
-      <View style={[globalStyles.safeArea, { justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }]}>
-        <Feather name="lock" size={64} color={colors.primary} style={{ marginBottom: 24 }} />
-        <Text style={[globalStyles.authTitle, { textAlign: 'center' }]}>App Locked</Text>
-        <Text style={[globalStyles.authSubtitle, { textAlign: 'center', marginBottom: 40 }]}>
-          Authenticate to access your health data.
-        </Text>
-        <TouchableOpacity style={[globalStyles.buttonPrimary, { width: 200 }]} onPress={lockAndAuthenticate}>
-          <Text style={globalStyles.buttonPrimaryText}>Unlock</Text>
-        </TouchableOpacity>
-      </View>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.content}>
+          <View style={styles.iconContainer}>
+            <Feather name="lock" size={48} color={colors.primary} />
+          </View>
+          <Text style={styles.title}>App Locked</Text>
+          <Text style={styles.subtitle}>
+            Please authenticate to access MediGuide.
+          </Text>
+
+          <TouchableOpacity style={styles.button} onPress={authenticate} activeOpacity={0.8}>
+            <Feather name="fingerprint" size={20} color="#fff" />
+            <Text style={styles.buttonText}>Unlock with Biometrics</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return <>{children}</>;
-};
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  content: {
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+  iconContainer: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: colors.primary + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  title: {
+    ...typography.h1,
+    color: colors.black,
+    marginBottom: spacing.sm,
+  },
+  subtitle: {
+    ...typography.body,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: spacing.xxl,
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    borderRadius: radius.full,
+    gap: spacing.sm,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
