@@ -15,7 +15,7 @@ import i18n from '../../i18n';
 
 export default function DoctorsScreen() {
   const { specialty } = useLocalSearchParams<{ specialty?: string }>();
-  const { doctors, loading, fetchDoctors } = useDoctors();
+  const { doctors, loading, fetchDoctors, locationFallback } = useDoctors();
   const [activeSpecialty, setActiveSpecialty] = useState(specialty || 'All Doctors');
   const [filterList, setFilterList] = useState<string[]>(['All Doctors']);
   const [refreshing, setRefreshing] = useState(false);
@@ -203,6 +203,14 @@ export default function DoctorsScreen() {
           <>
             {renderTitle()}
             {renderFilters()}
+            {locationFallback && doctors.length > 0 && (
+              <View style={styles.fallbackContainer}>
+                <Ionicons name="information-circle-outline" size={20} color={colors.textSecondary} />
+                <Text style={styles.fallbackText}>
+                  {i18n.t('doctors.no_doctors_location') || 'No doctors found near your location. Showing all doctors instead.'}
+                </Text>
+              </View>
+            )}
           </>
         }
         data={doctors}
@@ -238,5 +246,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: colors.black,
+  },
+  fallbackContainer: {
+    backgroundColor: colors.authCardBg,
+    padding: spacing.md,
+    marginHorizontal: spacing.lg,
+    borderRadius: radius.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+    gap: 10,
+  },
+  fallbackText: {
+    flex: 1,
+    fontSize: 13,
+    color: colors.textSecondary,
   },
 });

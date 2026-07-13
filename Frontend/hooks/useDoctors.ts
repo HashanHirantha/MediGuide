@@ -28,9 +28,11 @@ export function useDoctors() {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [locationFallback, setLocationFallback] = useState(false);
 
   const fetchDoctors = async (specialty?: string) => {
     setLoading(true);
+    setLocationFallback(false);
     try {
       // 1. Try to get user location
       let userLocation = null;
@@ -40,7 +42,10 @@ export function useDoctors() {
         userLocation = location.coords;
       }
 
-      // 2. Fetch doctors based on location or default
+      let dataToSet: Doctor[] = [];
+      let fetchViaLocationSuccess = false;
+
+      // 2. Fetch doctors based on location
       if (userLocation) {
         // Use RPC to get doctors within 20km
         const { data, error: rpcError } = await supabase.rpc('get_doctors_within_radius', {
@@ -52,18 +57,27 @@ export function useDoctors() {
 
         if (rpcError) throw rpcError;
         
-        // Map RPC result to match the standard Doctor interface shape expected by the UI
-        const mappedData = (data || []).map((d: any) => ({
-          ...d,
-          profiles: {
-            first_name: d.first_name,
-            last_name: d.last_name,
-            profile_image: d.prof_image
-          }
-        }));
-        setDoctors(mappedData);
-      } else {
-        // Fallback: No location permission, fetch normally
+        if (data && data.length > 0) {
+          // Map RPC result to match the standard Doctor interface shape expected by the UI
+          dataToSet = data.map((d: any) => ({
+            ...d,
+            profiles: {
+              first_name: d.first_name,
+              last_name: d.last_name,
+              profile_image: d.prof_image
+            }
+          }));
+          fetchViaLocationSuccess = true;
+        }
+      } 
+      
+      // 3. Fallback: No location permission, or location returned no results
+      if (!fetchViaLocationSuccess) {
+        if (userLocation) {
+          // It means location was tried but no doctors found, so we are falling back
+          setLocationFallback(true);
+        }
+
         let query = supabase
           .from('doctors')
           .select('*, profiles(first_name, last_name, profile_image)')
@@ -76,8 +90,10 @@ export function useDoctors() {
 
         const { data, error: fetchError } = await query;
         if (fetchError) throw fetchError;
-        setDoctors(data ?? []);
+        dataToSet = data ?? [];
       }
+
+      setDoctors(dataToSet);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -95,5 +111,5 @@ export function useDoctors() {
     return { data, error: null };
   };
 
-  return { doctors, loading, error, fetchDoctors, fetchDoctorById };
+  return { doctors, loading, error, fetchDoctors, fetchDoctorById, locationFallback };
 }

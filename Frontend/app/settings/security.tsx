@@ -104,9 +104,9 @@ export default function SecuritySettingsScreen() {
                   <Feather name="fingerprint" size={20} color={colors.primary} />
                 </View>
                 <View style={globalStyles.settingTextContainer}>
-                  <Text style={globalStyles.settingTitle}>{i18n.t('security.biometric_title') || 'Biometric Login'}</Text>
+                  <Text style={globalStyles.settingTitle}>{i18n.t('security.biometrics') || 'Biometric Login'}</Text>
                   <Text style={globalStyles.settingDescription}>
-                    {i18n.t('security.biometric_desc') || 'Require authentication to open the app'}
+                    {i18n.t('security.biometrics_desc') || 'Require authentication to open the app'}
                   </Text>
                 </View>
                 <Switch
