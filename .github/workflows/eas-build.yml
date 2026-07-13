@@ -1,0 +1,83 @@
+name: EAS Build
+
+on:
+  # Trigger on version tags like v1.0.0, v2.1.3-beta
+  push:
+    tags:
+      - "v*"
+  # Allow manual trigger from GitHub UI
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: "Platform to build"
+        required: true
+        default: "android"
+        type: choice
+        options:
+          - android
+          - ios
+          - all
+      profile:
+        description: "EAS build profile"
+        required: true
+        default: "preview"
+        type: choice
+        options:
+          - development
+          - preview
+          - production
+
+concurrency:
+  group: eas-build-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: EAS Build (${{ github.event.inputs.platform || 'android' }} — ${{ github.event.inputs.profile || 'preview' }})
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: Setup Expo & EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run pre-build checks
+        run: |
+          npm run lint
+          npm run type-check
+
+      # ---------- Tag-triggered builds (push to tag) ----------
+      - name: Build Android APK (tag)
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        run: eas build --platform android --profile preview --non-interactive
+
+      # ---------- Manual dispatch builds ----------
+      - name: Build Android (manual)
+        if: >-
+          github.event_name == 'workflow_dispatch' &&
+          (github.event.inputs.platform == 'android' || github.event.inputs.platform == 'all')
+        run: eas build --platform android --profile ${{ github.event.inputs.profile }} --non-interactive
+
+      - name: Build iOS (manual)
+        if: >-
+          github.event_name == 'workflow_dispatch' &&
+          (github.event.inputs.platform == 'ios' || github.event.inputs.platform == 'all')
+        run: eas build --platform ios --profile ${{ github.event.inputs.profile }} --non-interactive
