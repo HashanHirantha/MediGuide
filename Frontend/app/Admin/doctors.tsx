@@ -16,7 +16,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
 import { DrawerActions } from "@react-navigation/native";
-import { getAdminDoctors, createDoctorAdmin } from "../../services/adminService";
+import { getAdminDoctors, createDoctorAdmin, updateDoctorAdmin, deleteDoctorAdmin } from "../../services/adminService";
 import { globalStyles } from "../../constants/globalStyles";
 import { colors, spacing, typography, radius, shadows } from "../../constants/theme";
 import { Input } from "../../components/ui/Input";
@@ -27,6 +27,7 @@ export default function AdminDoctorsScreen() {
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [editingDoctorId, setEditingDoctorId] = useState<string | null>(null);
 
   // Form states
   const [firstName, setFirstName] = useState('');
@@ -51,35 +52,102 @@ export default function AdminDoctorsScreen() {
     setLoading(false);
   };
 
-  const handleAddDoctor = async () => {
-    if (!firstName || !lastName || !email || !password || !specialty || !registrationNo) {
+  const handleSubmitDoctor = async () => {
+    if (!firstName || !lastName || !specialty || !registrationNo) {
       Alert.alert('Error', 'Please fill in all required fields.');
+      return;
+    }
+    
+    if (!editingDoctorId && (!email || !password)) {
+      Alert.alert('Error', 'Email and Password are required for new doctors.');
       return;
     }
 
     setSubmitting(true);
-    const { error } = await createDoctorAdmin({
-      first_name: firstName,
-      last_name: lastName,
-      email,
-      password,
-      specialty,
-      registration_no: registrationNo,
-      qualification,
-      hospital_name: hospitalName,
-      experience_years: experienceYears ? parseInt(experienceYears, 10) : 0,
-      consultation_fee: consultationFee ? parseInt(consultationFee, 10) : 0
-    });
+    let error = null;
+
+    if (editingDoctorId) {
+      const res = await updateDoctorAdmin(editingDoctorId, {
+        first_name: firstName,
+        last_name: lastName,
+        specialty,
+        registration_no: registrationNo,
+        qualification,
+        hospital_name: hospitalName,
+        experience_years: experienceYears ? parseInt(experienceYears, 10) : 0,
+        consultation_fee: consultationFee ? parseInt(consultationFee, 10) : 0
+      });
+      error = res.error;
+    } else {
+      const res = await createDoctorAdmin({
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        password,
+        specialty,
+        registration_no: registrationNo,
+        qualification,
+        hospital_name: hospitalName,
+        experience_years: experienceYears ? parseInt(experienceYears, 10) : 0,
+        consultation_fee: consultationFee ? parseInt(consultationFee, 10) : 0
+      });
+      error = res.error;
+    }
+
     setSubmitting(false);
 
     if (error) {
       Alert.alert('Error', error);
     } else {
-      Alert.alert('Success', 'Doctor added successfully.');
+      Alert.alert('Success', editingDoctorId ? 'Doctor updated successfully.' : 'Doctor added successfully.');
       setModalVisible(false);
       resetForm();
       fetchDoctors();
     }
+  };
+
+  const handleEditPress = (doctor: any) => {
+    setEditingDoctorId(doctor.user_id);
+    setFirstName(doctor.profiles?.first_name || '');
+    setLastName(doctor.profiles?.last_name || '');
+    setEmail(doctor.profiles?.email || '');
+    setPassword(''); // Leave empty for edit
+    setSpecialty(doctor.specialty || '');
+    setRegistrationNo(doctor.registration_no || '');
+    setQualification(doctor.qualification || '');
+    setHospitalName(doctor.hospital_name || '');
+    setExperienceYears(doctor.experience_years ? doctor.experience_years.toString() : '');
+    setConsultationFee(doctor.consultation_fee ? doctor.consultation_fee.toString() : '');
+    setModalVisible(true);
+  };
+
+  const handleDeletePress = (doctor: any) => {
+    Alert.alert(
+      "Delete Doctor",
+      `Are you sure you want to delete Dr. ${doctor.profiles?.last_name}? This action cannot be undone.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            const { error } = await deleteDoctorAdmin(doctor.user_id);
+            if (error) {
+              Alert.alert("Error", error);
+            } else {
+              Alert.alert("Success", "Doctor deleted successfully.");
+              fetchDoctors();
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const openAddModal = () => {
+    resetForm();
+    setEditingDoctorId(null);
+    setModalVisible(true);
   };
 
   const resetForm = () => {
@@ -129,6 +197,17 @@ export default function AdminDoctorsScreen() {
           <Text style={styles.detailText}>Reg No: <Text style={{ fontWeight: '600' }}>{item.registration_no}</Text></Text>
         </View>
       </View>
+      
+      <View style={styles.actionRow}>
+        <TouchableOpacity style={styles.editBtn} onPress={() => handleEditPress(item)}>
+          <Ionicons name="pencil-outline" size={18} color={colors.primary} />
+          <Text style={styles.editBtnText}>Edit</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDeletePress(item)}>
+          <Ionicons name="trash-outline" size={18} color={colors.dangerText} />
+          <Text style={styles.deleteBtnText}>Delete</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -165,7 +244,7 @@ export default function AdminDoctorsScreen() {
       {/* Floating Action Button */}
       <TouchableOpacity 
         style={styles.fab}
-        onPress={() => setModalVisible(true)}
+        onPress={openAddModal}
       >
         <Ionicons name="add" size={32} color={colors.surface} />
       </TouchableOpacity>
@@ -179,7 +258,7 @@ export default function AdminDoctorsScreen() {
       >
         <SafeAreaView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Add New Doctor</Text>
+            <Text style={styles.modalTitle}>{editingDoctorId ? 'Edit Doctor' : 'Add New Doctor'}</Text>
             <TouchableOpacity onPress={() => setModalVisible(false)}>
               <Ionicons name="close" size={28} color={colors.textPrimary} />
             </TouchableOpacity>
@@ -209,14 +288,17 @@ export default function AdminDoctorsScreen() {
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                editable={!editingDoctorId} // Cannot edit email after creation easily
               />
-              <Input
-                label="Password *"
-                placeholder="Temporary Password"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-              />
+              {!editingDoctorId && (
+                <Input
+                  label="Password *"
+                  placeholder="Temporary Password"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                />
+              )}
               <Input
                 label="Specialty *"
                 placeholder="e.g. Cardiologist"
@@ -264,13 +346,13 @@ export default function AdminDoctorsScreen() {
 
               <TouchableOpacity
                 style={[globalStyles.buttonPrimary, { marginTop: 20, marginBottom: 40 }]}
-                onPress={handleAddDoctor}
+                onPress={handleSubmitDoctor}
                 disabled={submitting}
               >
                 {submitting ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text style={globalStyles.buttonPrimaryText}>Add Doctor</Text>
+                  <Text style={globalStyles.buttonPrimaryText}>{editingDoctorId ? 'Update Doctor' : 'Add Doctor'}</Text>
                 )}
               </TouchableOpacity>
             </ScrollView>
@@ -298,6 +380,34 @@ const styles = StyleSheet.create({
   detailsContainer: { backgroundColor: colors.surfaceAlt, padding: spacing.md, borderRadius: radius.md },
   detailRow: { flexDirection: "row", alignItems: "center", marginBottom: spacing.xs, gap: spacing.sm },
   detailText: { color: colors.textSecondary, fontSize: typography.caption.fontSize, flex: 1 },
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginTop: spacing.md,
+    gap: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: spacing.md,
+  },
+  editBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.sm,
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.md,
+    gap: 4,
+  },
+  editBtnText: { color: colors.primary, fontWeight: '600' },
+  deleteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.sm,
+    backgroundColor: '#FEE2E2', // light red
+    borderRadius: radius.md,
+    gap: 4,
+  },
+  deleteBtnText: { color: colors.dangerText, fontWeight: '600' },
   fab: {
     position: 'absolute',
     bottom: 30,

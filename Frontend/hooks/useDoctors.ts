@@ -55,9 +55,9 @@ export function useDoctors() {
           specialty_filters: specialty ? [specialty] : null
         });
 
-        if (rpcError) throw rpcError;
-        
-        if (data && data.length > 0) {
+        if (rpcError) {
+          console.warn('[useDoctors] RPC error, falling back to non-location fetch:', rpcError.message);
+        } else if (data && data.length > 0) {
           // Map RPC result to match the standard Doctor interface shape expected by the UI
           dataToSet = data.map((d: any) => ({
             ...d,

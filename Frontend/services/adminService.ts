@@ -176,3 +176,44 @@ export async function createDoctorAdmin(doctorData: any): Promise<{ data: any | 
 
   return { data, error: null };
 }
+
+/**
+ * Update an existing doctor securely from the admin dashboard via RPC
+ */
+export async function updateDoctorAdmin(userId: string, doctorData: any): Promise<{ data: any | null; error: string | null }> {
+  const { data, error } = await supabase.rpc('update_doctor_by_admin', {
+    p_user_id: userId,
+    p_first_name: doctorData.first_name,
+    p_last_name: doctorData.last_name,
+    p_specialty: doctorData.specialty,
+    p_registration_no: doctorData.registration_no,
+    p_qualification: doctorData.qualification,
+    p_hospital_name: doctorData.hospital_name,
+    p_experience_years: doctorData.experience_years || 0,
+    p_consultation_fee: doctorData.consultation_fee || 0
+  });
+
+  if (error) {
+    console.error('[AdminService] Update doctor error:', error.message);
+    return { data: null, error: error.message };
+  }
+
+  return { data, error: null };
+}
+
+/**
+ * Delete a doctor by using the delete_user_by_admin RPC (which cascades)
+ */
+export async function deleteDoctorAdmin(userId: string): Promise<{ error: string | null }> {
+  const { error } = await supabase.rpc('delete_user_by_admin', {
+    target_user_id: userId
+  });
+
+  if (error) {
+    console.error('[AdminService] Delete doctor error:', error.message);
+    return { error: error.message };
+  }
+
+  return { error: null };
+}
+
