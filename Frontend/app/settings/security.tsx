@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Switch, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialIcons } from '@expo/vector-icons';
 import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TopBar } from '../../components/TopBar';
@@ -99,13 +99,13 @@ export default function SecuritySettingsScreen() {
           <>
             <Text style={[globalStyles.sectionTitle, { marginTop: 24 }]}>APP LOCK</Text>
             <View style={globalStyles.card}>
-              <View style={globalStyles.settingRow}>
-                <View style={globalStyles.settingIconContainer}>
-                  <Feather name="fingerprint" size={20} color={colors.primary} />
+              <View style={globalStyles.row}>
+                <View style={globalStyles.iconContainer}>
+                  <MaterialIcons name="fingerprint" size={20} color={colors.primary} />
                 </View>
-                <View style={globalStyles.settingTextContainer}>
-                  <Text style={globalStyles.settingTitle}>{i18n.t('security.biometrics') || 'Biometric Login'}</Text>
-                  <Text style={globalStyles.settingDescription}>
+                <View style={globalStyles.rowTextContainer}>
+                  <Text style={globalStyles.rowTitle}>{i18n.t('security.biometrics') || 'Biometric Login'}</Text>
+                  <Text style={globalStyles.rowSubtitle}>
                     {i18n.t('security.biometrics_desc') || 'Require authentication to open the app'}
                   </Text>
                 </View>
