@@ -100,7 +100,9 @@ export default function HistoryScreen() {
     try {
       const stored = await AsyncStorage.getItem('local_appointments');
       if (stored) localAppts = JSON.parse(stored);
-    } catch (_) {}
+    } catch (_) {
+      // ignore
+    }
 
     if (user) {
       const [apptRes, aiRes] = await Promise.all([
@@ -167,7 +169,9 @@ export default function HistoryScreen() {
                 const localAppts = JSON.parse(stored).filter((a: any) => a.id !== appointmentId);
                 await AsyncStorage.setItem('local_appointments', JSON.stringify(localAppts));
               }
-            } catch (_) {}
+            } catch (_) {
+              // ignore
+            }
           } else {
             await cancelAppointment(appointmentId);
           }

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, Image, TextInput } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { supabase } from '../../lib/supabase';
@@ -121,7 +122,7 @@ export default function BookScreen() {
     if (error) {
       // Save locally as fallback if Supabase fails (offline mode)
       try {
-        const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+
         const existing = await AsyncStorage.getItem('local_appointments');
         const localAppointments = existing ? JSON.parse(existing) : [];
         localAppointments.unshift(newAppointment);

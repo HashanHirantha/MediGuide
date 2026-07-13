@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
@@ -57,7 +58,7 @@ export default function AppointmentDetailScreen() {
 
     // 2. Try AsyncStorage (local appointments)
     try {
-      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+
       const stored = await AsyncStorage.getItem('local_appointments');
       if (stored) {
         const localAppts = JSON.parse(stored);
