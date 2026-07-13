@@ -28,6 +28,7 @@ export default function AdminDoctorsScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [editingDoctorId, setEditingDoctorId] = useState<string | null>(null);
+  const [showSpecialtyDropdown, setShowSpecialtyDropdown] = useState(false);
 
   // Form states
   const [firstName, setFirstName] = useState('');
@@ -40,6 +41,11 @@ export default function AdminDoctorsScreen() {
   const [hospitalName, setHospitalName] = useState('');
   const [experienceYears, setExperienceYears] = useState('');
   const [consultationFee, setConsultationFee] = useState('');
+
+  const uniqueSpecialties = Array.from(new Set(doctors.map(d => d.specialty).filter(Boolean)));
+  const filteredSpecialties = uniqueSpecialties.filter(s => 
+    s.toLowerCase().includes(specialty.toLowerCase()) && s.toLowerCase() !== specialty.toLowerCase()
+  );
 
   useEffect(() => {
     fetchDoctors();
@@ -299,12 +305,50 @@ export default function AdminDoctorsScreen() {
                   secureTextEntry
                 />
               )}
-              <Input
-                label="Specialty *"
-                placeholder="e.g. Cardiologist"
-                value={specialty}
-                onChangeText={setSpecialty}
-              />
+              <View style={{ zIndex: 10 }}>
+                <Input
+                  label="Specialty *"
+                  placeholder="e.g. Cardiologist"
+                  value={specialty}
+                  onChangeText={(val) => {
+                    setSpecialty(val);
+                    setShowSpecialtyDropdown(true);
+                  }}
+                  onFocus={() => setShowSpecialtyDropdown(true)}
+                  onBlur={() => setTimeout(() => setShowSpecialtyDropdown(false), 200)}
+                />
+                {showSpecialtyDropdown && filteredSpecialties.length > 0 && (
+                  <View style={{
+                    backgroundColor: colors.surface,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    borderRadius: radius.md,
+                    marginTop: -10,
+                    marginBottom: 15,
+                    maxHeight: 150,
+                    ...shadows.sm
+                  }}>
+                    <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
+                      {filteredSpecialties.map((s, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          style={{
+                            padding: 12,
+                            borderBottomWidth: index < filteredSpecialties.length - 1 ? 1 : 0,
+                            borderBottomColor: colors.border
+                          }}
+                          onPress={() => {
+                            setSpecialty(s);
+                            setShowSpecialtyDropdown(false);
+                          }}
+                        >
+                          <Text style={{ color: colors.textPrimary }}>{s}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+              </View>
               <Input
                 label="Registration Number *"
                 placeholder="REG-12345"
