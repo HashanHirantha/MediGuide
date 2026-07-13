@@ -34,12 +34,12 @@ BEGIN
     new_user_id := gen_random_uuid();
     
     INSERT INTO auth.users (
-        id, aud, role, email, encrypted_password,
+        instance_id, id, aud, role, email, encrypted_password,
         email_confirmed_at, created_at, updated_at,
         raw_app_meta_data, raw_user_meta_data, is_super_admin, is_sso_user
     )
     VALUES (
-        new_user_id, 'authenticated', 'authenticated', p_email, extensions.crypt(p_password, extensions.gen_salt('bf')),
+        '00000000-0000-0000-0000-000000000000', new_user_id, 'authenticated', 'authenticated', LOWER(p_email), extensions.crypt(p_password, extensions.gen_salt('bf')),
         now(), now(), now(),
         '{"provider":"email","providers":["email"]}', '{}', false, false
     );
@@ -50,7 +50,7 @@ BEGIN
     )
     VALUES (
         gen_random_uuid(), new_user_id, new_user_id::text, 
-        format('{"sub":"%s","email":"%s"}', new_user_id::text, p_email)::jsonb, 
+        format('{"sub":"%s","email":"%s"}', new_user_id::text, LOWER(p_email))::jsonb, 
         'email', now(), now(), now()
     );
 
