@@ -131,3 +131,48 @@ export async function getAdminAnalytics(): Promise<{ data: AdminAnalytics | null
 
   return { data: data as AdminAnalytics, error: null };
 }
+
+/**
+ * Fetch all doctors for admin
+ */
+export async function getAdminDoctors(): Promise<{ data: any[] | null; error: string | null }> {
+  const { data, error } = await supabase
+    .from('doctors')
+    .select(`
+      *,
+      profiles (first_name, last_name, email)
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('[AdminService] Fetch all doctors error:', error.message);
+    return { data: null, error: error.message };
+  }
+
+  return { data, error: null };
+}
+
+/**
+ * Create a doctor securely from the admin dashboard via RPC
+ */
+export async function createDoctorAdmin(doctorData: any): Promise<{ data: any | null; error: string | null }> {
+  const { data, error } = await supabase.rpc('create_doctor_by_admin', {
+    p_email: doctorData.email,
+    p_password: doctorData.password,
+    p_first_name: doctorData.first_name,
+    p_last_name: doctorData.last_name,
+    p_specialty: doctorData.specialty,
+    p_registration_no: doctorData.registration_no,
+    p_qualification: doctorData.qualification,
+    p_hospital_name: doctorData.hospital_name,
+    p_experience_years: doctorData.experience_years || 0,
+    p_consultation_fee: doctorData.consultation_fee || 0
+  });
+
+  if (error) {
+    console.error('[AdminService] Create doctor error:', error.message);
+    return { data: null, error: error.message };
+  }
+
+  return { data, error: null };
+}
