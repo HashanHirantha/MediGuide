@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.textPrimary,
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     fontSize: 15,
-    color: colors.text,
+    color: colors.textPrimary,
     minHeight: 100,
     textAlignVertical: 'top',
     marginBottom: 16,

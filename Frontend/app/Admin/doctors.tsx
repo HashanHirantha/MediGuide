@@ -326,7 +326,7 @@ export default function AdminDoctorsScreen() {
                     marginTop: -10,
                     marginBottom: 15,
                     maxHeight: 150,
-                    ...shadows.sm
+                    ...shadows.card
                   }}>
                     <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
                       {filteredSpecialties.map((s, index) => (

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../hooks/useAuth';
 import { colors, radius, spacing, typography } from '../constants/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -69,7 +69,7 @@ export function BiometricLock({ children }: BiometricLockProps) {
           </Text>
 
           <TouchableOpacity style={styles.button} onPress={authenticate} activeOpacity={0.8}>
-            <Feather name="fingerprint" size={20} color="#fff" />
+            <Ionicons name="finger-print" size={20} color="#fff" />
             <Text style={styles.buttonText}>Unlock with Biometrics</Text>
           </TouchableOpacity>
         </View>

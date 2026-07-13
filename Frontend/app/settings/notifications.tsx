@@ -139,7 +139,7 @@ export default function NotificationsSettingsScreen() {
           {/* Emergency Alerts */}
           <View style={globalStyles.row}>
             <View style={[globalStyles.iconContainer, { backgroundColor: '#FFEBEE' }]}>
-              <Feather name="alert-triangle" size={20} color={colors.error} />
+              <Feather name="alert-triangle" size={20} color={colors.errorText} />
             </View>
             <View style={globalStyles.rowTextContainer}>
               <Text style={globalStyles.rowTitle}>Emergency Alerts</Text>

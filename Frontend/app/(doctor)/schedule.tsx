@@ -29,7 +29,7 @@ export default function DoctorSchedule() {
       const { data } = await getDoctorProfileByUserId(profile!.id);
       if (data) {
         if (data.available_days) {
-          setSelectedDays(data.available_days.split(',').map(d => d.trim()));
+          setSelectedDays(data.available_days.split(',').map((d: string) => d.trim()));
         }
         setAvailableFrom(data.available_from ? data.available_from.substring(0, 5) : '');
         setAvailableTo(data.available_to ? data.available_to.substring(0, 5) : '');
