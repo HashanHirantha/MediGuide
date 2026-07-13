@@ -725,7 +725,7 @@ export default function SymptomCheckerScreen() {
                 </TouchableOpacity>
               </View>
               
-              <View style={{ transform: [{ scale: 1.3 }], marginVertical: 40 }}>
+              <View style={{ marginVertical: 40, alignItems: 'center' }}>
                 <Body
                   data={selectedMuscles.map(muscleSlug => ({
                     slug: muscleSlug as any,
@@ -735,7 +735,7 @@ export default function SymptomCheckerScreen() {
                   onBodyPartPress={(muscle) => handleMusclePress(muscle)}
                   gender={modelGender}
                   side={bodySide}
-                  scale={1}
+                  scale={1.3}
                 />
               </View>
               <Text style={[globalStyles.durationHint, { textAlign: 'center', marginTop: 15 }]}>
