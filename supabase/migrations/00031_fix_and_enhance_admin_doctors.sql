@@ -2,7 +2,15 @@
 -- 1. Updates the create_doctor_by_admin RPC to insert into auth.identities
 -- 2. Creates the update_doctor_by_admin RPC
 
--- Update the existing create function to include auth.identities
+-- Update the existing create function to include auth.identities and fix NULL errors
+-- Fix existing broken rows in auth.users (Database error querying schema fix)
+UPDATE auth.users
+SET 
+    confirmation_token = COALESCE(confirmation_token, ''),
+    recovery_token = COALESCE(recovery_token, ''),
+    email_change_token_new = COALESCE(email_change_token_new, ''),
+    email_change = COALESCE(email_change, '');
+
 CREATE OR REPLACE FUNCTION public.create_doctor_by_admin(
     p_email TEXT,
     p_password TEXT,
@@ -36,12 +44,14 @@ BEGIN
     INSERT INTO auth.users (
         instance_id, id, aud, role, email, encrypted_password,
         email_confirmed_at, created_at, updated_at,
-        raw_app_meta_data, raw_user_meta_data, is_super_admin, is_sso_user
+        raw_app_meta_data, raw_user_meta_data, is_super_admin, is_sso_user,
+        confirmation_token, recovery_token, email_change_token_new, email_change
     )
     VALUES (
         '00000000-0000-0000-0000-000000000000', new_user_id, 'authenticated', 'authenticated', LOWER(p_email), extensions.crypt(p_password, extensions.gen_salt('bf')),
         now(), now(), now(),
-        '{"provider":"email","providers":["email"]}', '{}', false, false
+        '{"provider":"email","providers":["email"]}', '{}', false, false,
+        '', '', '', ''
     );
 
     -- 3. Insert into auth.identities so password login works properly in Supabase GoTrue
