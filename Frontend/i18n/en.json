@@ -62,7 +62,8 @@
     "years": "Years",
     "book_now": "Book Now",
     "book": "Book",
-    "no_doctors": "No doctors found."
+    "no_doctors": "No doctors found.",
+    "no_doctors_location": "No doctors found near your location. Showing all available doctors instead."
   },
   "history": {
     "title": "My History",
