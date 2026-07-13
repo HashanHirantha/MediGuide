@@ -24,8 +24,11 @@ export default function LoginScreen() {
 
   useEffect(() => {
     if (user && !authLoading) {
-      if (profile?.role === 'admin') router.replace('/Admin/dashboard');
-      else if (profile?.role === 'doctor') router.replace('/(doctor)/dashboard');
+      // Wait until the profile is fetched before redirecting to avoid glitches
+      if (!profile) return;
+
+      if (profile.role === 'admin') router.replace('/Admin/dashboard');
+      else if (profile.role === 'doctor') router.replace('/(doctor)/dashboard');
       else router.replace('/(tabs)/home');
     }
   }, [user, profile, authLoading]);
